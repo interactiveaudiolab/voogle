@@ -5,9 +5,40 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>Live input record and playback</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>
+  <!-- wavesurfer.js microphone -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.microphone.min.js"></script>
+  <!-- wavesurfer.js regions -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.regions.min.js"></script>
+  <!-- css style -->
   <style type='text/css'>
-    ul { list-style: none; }
-    #recordingslist audio { display: block; margin-bottom: 10px; }
+  region.wavesurfer-region::before {
+    content: attr(data-region-label);
+    position: relative;
+    border-style: solid;
+    border-width: 1px;
+    top: 2px;
+  }
+
+  h1 {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  region.wavesurfer-region[data-region-highlight] {
+    border: 3px solid rgb(86, 180, 239);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
+  }
+
+  #waveform{
+    position:relative;
+    width:75%;
+    margin-right: auto;
+    margin-left: auto;
+    /*border-style: solid;*/
+    /*border-width: 3px;*/
+    background-color:white;
+  }
+
   </style>
 </head>
 <body>
@@ -16,7 +47,7 @@
 
   <p>Before you enable microphone input either plug in headphones or turn the volume down if you want to avoid ear splitting feedback!</p>
 
-  <button onclick="startRecording(this);">record</button>
+  <button id="startRecording" onclick="startRecording(this);" disabled>record</button>
   <button onclick="stopRecording(this);" disabled>stop</button>
   
   <h2>Log</h2>
@@ -25,7 +56,7 @@
   <h2>Recorded output</h2>
   <p> Once you have stopped the recording, a waveform displaying the recorded audio will be displayed and you may play it back using the button below.</p>
   <div id="waveform"></div>
-  <button id="playpause" onclick="clicked()" >Play</button>
+  <button id="playpause" onclick="clicked()" >Play/Pause</button>
 
   <script>
   document.getElementById('playpause').style.display="none";
@@ -33,20 +64,42 @@
   var wavesurfer = WaveSurfer.create({
     container: '#waveform',
     waveColor: 'violet',
-    progressColor: 'purple',
-    normalize: true
+    cursorColor: 000,
+    progressColor: 'purple'
+    //hideScrollbar: true,
+  });
+
+
+
+  var microphone = Object.create(WaveSurfer.Microphone);
+  microphone.init({
+      wavesurfer: wavesurfer
+  });
+
+  microphone.on('deviceReady', function(stream) {
+      console.log('Device ready!', stream);
+  });
+  microphone.on('deviceError', function(code) {
+      console.warn('Device error: ' + code);
   });
 
   
 
+  console.log(wavesurfer.regions);
+
+
   function clicked() {
-    wavesurfer.playPause();
     if (wavesurfer.isPlaying()) {
-        document.getElementById("playpause").textContent = "Pause";
+        //document.getElementById("playpause").textContent = "Pause";
+        wavesurfer.pause();
     } else {
         document.getElementById("playpause").textContent = "Play";
+        wavesurfer.regions.list.oneRegion.play();
     }
-}
+  }
+
+
+
 
   function __log(e, data) {
     log.innerHTML += "\n" + e + " " + (data || '');
@@ -56,28 +109,29 @@
   function startUserMedia(stream) {
     var input = audio_context.createMediaStreamSource(stream);
     __log('Media stream created.');
-    // Uncomment if you want the audio to feedback directly
-    //input.connect(audio_context.destination);
-    //__log('Input connected to audio context destination.');
-    
+
     recorder = new Recorder(input);
     __log('Recorder initialised.');
+
+    document.getElementById("startRecording").disabled = false;
   }
   function startRecording(button) {
     recorder && recorder.record();
     button.disabled = true;
     button.nextElementSibling.disabled = false;
+    microphone.start();
     __log('Recording...');
   }
   function stopRecording(button) {
+    microphone.stop();
+    microphone.destroy();
     recorder && recorder.stop();
     button.disabled = true;
     button.previousElementSibling.disabled = false;
     __log('Stopped recording.');
     
-    // create WAV download link using audio data blob
+    // create waveform
     createWaveForm();
-    
     recorder.clear();
   }
   function createWaveForm() {
@@ -85,6 +139,20 @@
       console.log(blob);
       var url = URL.createObjectURL(blob);
       wavesurfer.load(url);
+      wavesurfer.on('ready', function() {
+          wavesurfer.clearRegions();
+          wavesurfer.addRegion({
+            id: 'oneRegion',
+            loop: false,
+            start: 0,
+            end: 0.99*wavesurfer.getDuration(),
+            color: 'hsla(100, 100%, 40%, 0.69)',
+            attributes: {
+                label: 'The audio contained in this region will be sent to the search engine.'
+            }
+        });
+      });
+      
       document.getElementById('playpause').style.display="block";
     });
   }
