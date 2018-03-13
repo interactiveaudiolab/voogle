@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <!-- Required meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>VocalSearch™</title>
+
+  <link href="data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAFIaeAHbJ2AAjo7sApaWlAEO+0AAYl7EAl7W5ABJxhQBZtMQAD3mPAKzb5QAaorsAZq67ABmbtAAZpMMAPp+uABR6iwCj5OsAHrLIALi4uQAYe4kAEGJxAB+0ygDa2toAFKG6ABmoxwAbrMUAG6C1AMPDwwASprwAk+DpAB6uzgAUjaUAGZuxAIbM2wAWnrgAEGJvABR/kgAaqsEAGnqIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoFQAAAAAAAAAAAAAAAAAQAAAdAAAAAAAAAAAAAAAADAAAAAkAAAAAAAAAAAAAAAALAAAKFAAAAAAAAAAAAAAAACMGAAAEAAAAAAAAAAAAAAAAAgAYHgcAAAAAAAAAAAAAAAAFAA0AAwAAAAAAAAAAAAAAABIlAAAkAAAAAAAAAAAAAAAAHxYPABkAAAAAAAAAAAAAAAAaAQgmJwAAAAAAAAAAAAAAHCAiAAATAAAAAAAAAAAAACEOAAAAABcAAAAAAAAAAAAAAAAAAAAAGwAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAAAAP//AACf/wAAb/8AAHf/AACz/wAAzf8AAOj/AAD1fwAA+b8AAPxfAAD+DwAA/jcAAP57AAD//QAA//4AAP//AAA=" rel="icon" type="image/x-icon" />
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>
+  <!-- wavesurfer.js microphone -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.microphone.min.js"></script>
+  <!-- wavesurfer.js regions -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.regions.min.js"></script>
+  <!-- css style -->
+  
+  <!-- JQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
+
+
+  <style type='text/css'>
+
+  .jumbotron {
+    background-color: transparent !important;
+  }
+
+  handle.wavesurfer-handle.wavesurfer-handle-start:hover{
+    background-color: lightblue;
+  }
+
+  handle.wavesurfer-handle.wavesurfer-handle-end:hover{
+    background-color: lightblue;
+  }
+  
+  region.wavesurfer-region::before {
+    /*content: attr(data-region-label);*/
+    position: absolute;
+    border-style: solid;
+    border-width: 1px;
+    top: 2px;
+    color: 'hsla(0, 0%, 100%, 0.15)';
+  }
+
+  handle.wavesurfer-handle.wavesurfer-handle-start {
+    max-width: 15px !important;
+    width: 100% !important;
+    /*color: green !important;*/
+  }
+
+  handle.wavesurfer-handle.wavesurfer-handle-end {
+    max-width: 15px !important;
+    width: 100% !important;
+    left: 99% !important;
+    /*color: red !important;*/
+  }
+
+  .wavesurfer-region[data-id="oneRegion"] {
+  border-left: 5px solid green;
+  border-right: 5px solid red;
+  width: 50%;
+  }
+
+
+  region.wavesurfer-region[data-region-highlight] {
+    border: 3px solid rgb(86, 180, 239);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
+  }
+
+  #waveform{
+    position:relative;
+    width: 100%;
+    /*margin: 10px;*/
+    display: inline-block;
+    /*border-radius: 10px;*/
+    border: hidden 3px;
+    color: black;
+
+  }
+
+  .panel-body {
+    text-align: center;
+  }
+
+  .srch {
+    text-align: center;
+  }
+
+  .btn-group {
+    margin: auto;
+  }
+
+
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="page-header mt-3">
+      <h1>VocalSearch
+        <small class="text-muted" style="font-size: 20px;"> A Search-By-Vocal-Imitation Search Engine </small>
+      </h1>
+    </div>
+
+    <div class="jumbotron">
+
+      <div class="card text-white bg-secondary mb-3">
+        <button class="btn btn-info" style="white-space: normal;" data-toggle="collapse" data-target="#info">VocalSearch is a new kind of audio search engine. Need some help? Click here!</button>
+        <div id="info" class="collapse">
+          <div class="mb-3 mt-3">
+           To search for a sound in our database, press the <kbd>Start Recording</kbd> button, try to imitate your desired sound as well as possible with your voice, and then press the <kbd>Stop Recording</kbd> button. A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. 
+           </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div class="btn-group">
+            <button id="startRecording" class="btn btn-lg btn-success" onclick="startRecording(this);" disabled> Start Recording </button>
+            <button class="btn btn-lg btn-danger" onclick="stopRecording(this);" disabled> Stop Recording </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel well well-lg mt-3">
+        <div id="waveform" class="mb-3"></div>
+        <div class="panel-body">
+          <button id="playpause" onclick="clicked()" class="btn btn-primary"> Play / Pause </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- <div class="input-group input-group-lg mb-3">
+      <input id="textDescription" type="text" class="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm">
+    </div> -->
+
+    <div class="srch">
+      <button id="search" class="btn btn-outline-success btn-lg" onclick="search()"> Search &#x1F50D; </button>
+    </div>
+
+    
+
+  
+  <h2 style="display: none;">Log</h2>
+  <pre id="log" style="display:none;"></pre>
+
+  <div class="jumbotron panel" style="text-align: center;">
+    <div id="searchResults" class="panel-body list-group" style="display: none;">
+      <h2>Search Results</h2>
+      <ol>
+        <li id="result_0" class="list-group-item"> </li>
+        <li id="result_1" class="list-group-item"> </li>
+        <li id="result_2" class="list-group-item"> </li>
+        <li id="result_3" class="list-group-item"> </li>
+        <li id="result_4" class="list-group-item"> </li>
+        <li id="result_5" class="list-group-item"> </li>
+        <li id="result_6" class="list-group-item"> </li>
+        <li id="result_7" class="list-group-item"> </li>
+        <li id="result_8" class="list-group-item"> </li>
+        <li id="result_9" class="list-group-item"> </li>
+      </ol>
+    </div>
+  </div>
+  
+  
+  
+
+  <script>
+  document.getElementById('playpause').style.display="none";
+  document.getElementById('search').style.display="none";
+  // document.getElementById('textDescription').style.display="none";
+
+
+  var results = null;
+  var audio = new Audio('/static/jeopardy.mp3');
+
+
+  var wavesurfer = WaveSurfer.create({
+    container: '#waveform',
+    waveColor: 'violet',
+    cursorColor: 000,
+    progressColor: 'purple',
+    hideScrollbar: true,
+    scrollParent: true,
+    cursorWidth: 0,
+    //maxCanvasWidth: document.body.clientWidth*2
+  });
+
+  this.wavesurfer.empty();
+
+
+
+  var microphone = Object.create(WaveSurfer.Microphone);
+  microphone.init({
+      wavesurfer: wavesurfer
+  });
+
+  microphone.on('deviceReady', function(stream) {
+      console.log('Device ready!', stream);
+  });
+  microphone.on('deviceError', function(code) {
+      console.warn('Device error: ' + code);
+  });
+
+  
+
+  console.log(wavesurfer.regions);
+
+
+  function clicked() {
+    if (wavesurfer.isPlaying()) {    
+        wavesurfer.pause();
+    } else {
+        wavesurfer.regions.list.oneRegion.play();
+    }
+  }
+
+
+  function __log(e, data) {
+    log.innerHTML += "\n" + e + " " + (data || '');
+  }
+  var audio_context;
+  var recorder;
+  function startUserMedia(stream) {
+    var input = audio_context.createMediaStreamSource(stream);
+    __log('Media stream created.');
+
+    recorder = new Recorder(input);
+    __log('Recorder initialised.');
+
+    document.getElementById("startRecording").disabled = false;
+  }
+  function startRecording(button) {
+    recorder && recorder.record();
+    document.getElementById('playpause').style.display="none";
+    button.disabled = true;
+    button.nextElementSibling.disabled = false;
+    document.getElementById("waveform").style.backgroundColor = "white";
+    microphone.start();
+    wavesurfer.clearRegions();
+    __log('Recording...');
+  }
+  function stopRecording(button) {
+    wavesurfer.clearRegions();
+    microphone.stop();
+    microphone.destroy();
+    recorder && recorder.stop();
+    button.disabled = true;
+    button.previousElementSibling.disabled = false;
+    __log('Stopped recording.');
+    
+    // create waveform
+    createWaveForm();
+    // document.getElementById('textDescription').style.display="inline-block";
+    document.getElementById('search').style.display="inline-block";
+    recorder.clear();
+  }
+
+  var recordingBlob = null;
+  var recordingURL = null;
+
+  function createWaveForm() {
+    recorder && recorder.exportWAV(function(blob) {
+      console.log(blob);
+      var url = URL.createObjectURL(blob);
+      console.log(url);
+      recordingURL = url;
+      recordingBlob = blob;
+      wavesurfer.load(url);
+      wavesurfer.on('ready', function() {
+          wavesurfer.clearRegions();
+          wavesurfer.addRegion({
+            id: 'oneRegion',
+            loop: false,
+            start: 0.01*wavesurfer.getDuration(),
+            end: 0.99*wavesurfer.getDuration(),
+            color: "hsla(100, 50%, 35%, 0.15)",
+            attributes: {
+                label: 'The audio contained in this region will be sent to the search engine.'
+            }
+        });
+      });
+      
+      document.getElementById('playpause').style.display="inline-block";
+    });
+  }
+
+  function search() {
+
+    length = (wavesurfer.regions.list.oneRegion.end-wavesurfer.regions.list.oneRegion.start);
+
+    var formData = new FormData();
+    formData.append('file', recordingBlob);
+    formData.append('start', wavesurfer.regions.list.oneRegion.start);
+    formData.append('length', length);
+    formData.append('textDescription', 'hello'); // CHANGE BACK TO [ formData.append('textDescription', textDescription.value); ] AFTER FRIDAY DEMO
+    
+    $(document).ajaxSend(function(){
+        document.getElementById('search').disabled = true;
+        document.getElementById('search').innerHTML = 'Searching...';
+    });
+
+    $.ajax({
+            url: '/search',
+            data: formData,
+            type: 'POST',
+            async: true,
+            beforeSend: function() {
+              audio.play();
+            },
+            processData: false,
+            contentType:false,         
+            success: function(response) {
+                results = response.split(",");
+                for (i = 0; i < 10; i++) {
+                  (function (i) {
+                    jQuery.get('./static/'+results[i],function(data){
+                      var sound      = document.createElement('audio');
+                      sound.id       = 'audio-player_'+i;
+                      sound.controls = 'controls';
+                      sound.src      = './static/'+results[i];
+                      sound.type     = 'audio/wav';
+                      document.getElementById('result_'+i).innerHTML = results[i] + "<br> <br>";
+                      document.getElementById('result_'+i).appendChild(sound);
+                    });
+                  })(i);
+                }
+                document.getElementById("searchResults").style.display = "inline-block";
+                document.getElementById('search').disabled = false;
+                document.getElementById('search').innerHTML = 'Search &#x1F50D;';
+                audio.pause();
+                audio.load();
+            },
+            error: function(error) {
+                alert(error);
+            }
+        })                   
+  }
+
+
+  window.onload = function init() {
+    try {
+      // webkit shim
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+      window.URL = window.URL || window.webkitURL;
+      
+      audio_context = new AudioContext;
+      __log('Audio context set up.');
+      __log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+    } catch (e) {
+      alert('No web audio support in this browser!');
+    }
+    
+    navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+      __log('No live audio input: ' + e);
+    });
+  };
+  </script>
+
+  <script src="{{ url_for('static', filename='recorder.js') }}"></script>
+  </div>
+</body>
+
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0-beta.3/darkly/bootstrap.min.css" rel="stylesheet" integrity="sha384-novkfxI48G9YvcamVHf01KL+Sm6JFherxeJKqUdbez8EoEsAued2k/cD43lYG+B1" crossorigin="anonymous">
+<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</html>
