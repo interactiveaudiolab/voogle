@@ -93,6 +93,13 @@
     margin: auto;
   }
 
+  ol {
+    margin-left: -10% !important;
+  }
+
+  small{
+    display: inline-block;
+  }
 
 
   </style>
@@ -101,17 +108,16 @@
 
   <div class="container">
     <div class="page-header mt-3">
-      <h1>VocalSearch
-        <small class="text-muted" style="font-size: 20px;"> A Search-By-Vocal-Imitation Search Engine </small>
+      <h1>VocalSearch <small  class="text-muted" style="font-size: 20px;"> A Vocal-Imitation Search Engine </small>
       </h1>
     </div>
 
-    <div class="jumbotron">
+    <div class="jumbotron vertical-center">
 
       <div class="card text-white bg-secondary mb-3">
         <button class="btn btn-info" style="white-space: normal;" data-toggle="collapse" data-target="#info">VocalSearch is a new kind of audio search engine. Need some help? Click here!</button>
         <div id="info" class="collapse">
-          <div class="mb-3 mt-3">
+          <div class="m-3">
            To search for a sound in our database, press the <kbd>Start Recording</kbd> button, try to imitate your desired sound as well as possible with your voice, and then press the <kbd>Stop Recording</kbd> button. A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. 
            </div>
         </div>
@@ -149,20 +155,20 @@
   <h2 style="display: none;">Log</h2>
   <pre id="log" style="display:none;"></pre>
 
-  <div class="jumbotron panel" style="text-align: center;">
-    <div id="searchResults" class="panel-body list-group" style="display: none;">
+  <div class="jumbotron vertical center" style="text-align: center; width: 100%">
+    <div id="searchResults" class="list-group" style="display: none;">
       <h2>Search Results</h2>
-      <ol>
-        <li id="result_0" class="list-group-item"> </li>
-        <li id="result_1" class="list-group-item"> </li>
-        <li id="result_2" class="list-group-item"> </li>
-        <li id="result_3" class="list-group-item"> </li>
-        <li id="result_4" class="list-group-item"> </li>
-        <li id="result_5" class="list-group-item"> </li>
-        <li id="result_6" class="list-group-item"> </li>
-        <li id="result_7" class="list-group-item"> </li>
-        <li id="result_8" class="list-group-item"> </li>
-        <li id="result_9" class="list-group-item"> </li>
+      <ol class="">
+        <li id="result_0" class=""> </li>
+        <li id="result_1" class=""> </li>
+        <li id="result_2" class=""> </li>
+        <li id="result_3" class=""> </li>
+        <li id="result_4" class=""> </li>
+        <li id="result_5" class=""> </li>
+        <li id="result_6" class=""> </li>
+        <li id="result_7" class=""> </li>
+        <li id="result_8" class=""> </li>
+        <li id="result_9" class=""> </li>
       </ol>
     </div>
   </div>
@@ -188,6 +194,7 @@
     hideScrollbar: true,
     scrollParent: true,
     cursorWidth: 0,
+    normalize: true
     //maxCanvasWidth: document.body.clientWidth*2
   });
 
@@ -272,13 +279,30 @@
       recordingURL = url;
       recordingBlob = blob;
       wavesurfer.load(url);
+      var startPt = 0;
+      var endPt = wavesurfer.getDuration();
+      var thresh = 0.10;
+
       wavesurfer.on('ready', function() {
+          var buffer1 = wavesurfer.backend.buffer.getChannelData(0);
+          for (var i = 0; i<wavesurfer.backend.buffer.length; i++) {
+            if (buffer1[i]>=thresh) {
+              startPt = i/44100;
+              break;
+            }
+          }
+          for (var i = wavesurfer.backend.buffer.length-1; i>0; i--) {
+            if (buffer1[i]>=thresh) {
+              endPt = i/44100;
+              break;
+            }
+          }
           wavesurfer.clearRegions();
           wavesurfer.addRegion({
             id: 'oneRegion',
             loop: false,
-            start: 0.01*wavesurfer.getDuration(),
-            end: 0.99*wavesurfer.getDuration(),
+            start: startPt-0.25,
+            end: endPt+0.25,
             color: "hsla(100, 50%, 35%, 0.15)",
             attributes: {
                 label: 'The audio contained in this region will be sent to the search engine.'
@@ -335,6 +359,10 @@
                 document.getElementById('search').innerHTML = 'Search &#x1F50D;';
                 audio.pause();
                 audio.load();
+                $('html, body').animate({
+                  scrollTop: $('#searchResults').offset().top - 70
+                }, 800);
+                //document.getElementById('searchResults').scrollIntoView();
             },
             error: function(error) {
                 alert(error);
