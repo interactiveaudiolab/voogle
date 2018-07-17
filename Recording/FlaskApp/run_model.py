@@ -102,7 +102,7 @@ def search_audio(imi_path, ref_dir, model_path):
     # If a new set of reference recordings are added, you should run 'preprecessing_ref' function 
     # ref_filenames, ref_data = preprocessing_ref(ref_dir)
     # np.save('./preprocessed_data/ref_filenames.npy', ref_filenames)
-    # np.save('./preprocessed_data/pairs_ref_right.npy', ref_data)
+    # np.save('./preprocessed_data/ref_data.npy', ref_data)
     ref_filenames = np.load('./preprocessed_data/ref_filenames.npy')
     ref_data = np.load('./preprocessed_data/ref_data.npy')
 
@@ -131,7 +131,7 @@ def search_audio(imi_path, ref_dir, model_path):
 
 def main():
     imi_path = './imitation/mosquito - 4938112476119040.wav'
-    ref_dir = './audio/'
+    ref_dir = './static/'
     model_path = './model/model.h5'
 
 

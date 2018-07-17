@@ -21,6 +21,9 @@
   <!-- JQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
 
+  <link rel="stylesheet" type="text/css" href="https://rawgit.com/LeaVerou/awesomplete/gh-pages/awesomplete.css">
+  <script type="text/javascript" src="https://rawgit.com/LeaVerou/awesomplete/gh-pages/awesomplete.min.js"></script>
+
 
   <style type='text/css'>
 
@@ -101,6 +104,24 @@
     display: inline-block;
   }
 
+  .awesomplete {
+    position: relative;
+    z-index: 2;
+    float: left;
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .awesomplete > ul {
+    color: black;
+    background: white;
+  }
+
+  .big-text {
+    font-size: 20pt;
+    margin-left: 0% !important;
+  }
+
 
   </style>
 </head>
@@ -115,10 +136,17 @@
     <div class="jumbotron vertical-center">
 
       <div class="card text-white bg-secondary mb-3">
-        <button class="btn btn-info" style="white-space: normal;" data-toggle="collapse" data-target="#info">VocalSearch is a new kind of audio search engine. Need some help? Click here!</button>
-        <div id="info" class="collapse">
+        <button class="btn btn-info" style="white-space: normal;" data-toggle="" data-target="#info" style="font-size: 20pt;">INSTRUCTIONS</button>
+        <div id="info" class="show">
           <div class="m-3">
-           To search for a sound in our database, press the <kbd>Start Recording</kbd> button, try to imitate your desired sound as well as possible with your voice, and then press the <kbd>Stop Recording</kbd> button. A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. 
+            <ol class='big-text'>
+              <li> Press the <kbd>Start Recording</kbd> button </li>
+              <li> Try to imitate your desired sound as well as possible with your voice </li>
+              <li> Press the <kbd>Stop Recording</kbd> button </li>
+              <li> Press Play/Pause to review your recording </li>
+              <li> Enter a text description of your sound if applicable </li>
+              <li> <kbd> Search! </kbd> </li> <!-- A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. --> 
+            </ol>
            </div>
         </div>
       </div>
@@ -126,8 +154,8 @@
       <div class="panel panel-default">
         <div class="panel-body">
           <div class="btn-group">
-            <button id="startRecording" class="btn btn-lg btn-success" onclick="startRecording(this);" disabled> Start Recording </button>
-            <button class="btn btn-lg btn-danger" onclick="stopRecording(this);" disabled> Stop Recording </button>
+            <button id="startRecording" class="btn btn-lg btn-success" onclick="handleAction(this);" style="background:'#1DBB8D';" disabled> Start Recording </button>
+            <!-- <button class="btn btn-lg btn-danger" onclick="stopRecording(this);" disabled> Stop Recording </button> -->
           </div>
         </div>
       </div>
@@ -135,15 +163,17 @@
       <div class="panel well well-lg mt-3">
         <div id="waveform" class="mb-3"></div>
         <div class="panel-body">
-          <button id="playpause" onclick="clicked()" class="btn btn-primary"> Play / Pause </button>
+          <button id="playpause" onclick="clicked()" class="btn btn-primary" style="display: none"> Play / Pause </button>
         </div>
       </div>
 
     </div>
 
-    <!-- <div class="input-group input-group-lg mb-3">
-      <input id="textDescription" type="text" class="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm">
-    </div> -->
+    <div class="form-group form-group-lg mb-3">
+      <span class="awesomplete mb-3">
+        <input id="textDescription" type="text" class="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm">
+      </span>
+    </div>
 
     <div class="srch">
       <button id="search" class="btn btn-outline-success btn-lg" onclick="search()"> Search &#x1F50D; </button>
@@ -179,7 +209,133 @@
   <script>
   document.getElementById('playpause').style.display="none";
   document.getElementById('search').style.display="none";
-  // document.getElementById('textDescription').style.display="none";
+  document.getElementById('textDescription').style.display="none";
+
+  var input = document.getElementById("textDescription");
+  var awesomeplete = new Awesomplete(input, {
+    list: ['accordian', 
+'airplane', 
+'baby crying', 
+'bagpipes', 
+'banjo', 
+'basketball', 
+'bicycle bell', 
+'birds chirping', 
+'blinds', 
+'blowing nose', 
+'boat horn', 
+'bongos', 
+'bowling', 
+'brushing teeth', 
+'burp', 
+'camera', 
+'can crush', 
+'can opening', 
+'car crash', 
+'car horn', 
+'cash register', 
+'cat', 
+'chewing', 
+'chickens', 
+'child coughing', 
+'church bells', 
+'clapping', 
+'clearing throat', 
+'coin dropping', 
+'cork popping', 
+'cow', 
+'crickets', 
+'crow', 
+'crumpling paper', 
+'cuckoo clock', 
+'cutting paper', 
+'cymbals', 
+'dog barking', 
+'donkey', 
+'door closing', 
+'doorbell', 
+'drill', 
+'dropping ice in glass', 
+'drums', 
+'duck', 
+'elephant', 
+'explosion', 
+'firecrackers', 
+'flute ed', 
+'frog', 
+'frying food', 
+'gargling', 
+'glass breaking', 
+'gong', 
+'guitar ed', 
+'gunshots', 
+'hammering', 
+'harmonica', 
+'harp', 
+'helicopter', 
+'Horsegal', 
+'JACKHAMM', 
+'Knocking', 
+'Laughing', 
+'LAWNMOWR', 
+'LION', 
+'MACHGUN', 
+'Monkey', 
+'MOSQUITO', 
+'Motorcyc', 
+'Ocean', 
+'ORGAN', 
+'OWL', 
+'PIANO', 
+'Pig', 
+'PINBALL', 
+'Pingpong', 
+'Polsiren', 
+'Pourwatr', 
+'Pullswch', 
+'RAIN', 
+'Rattlsna', 
+'River', 
+'ROOSTER', 
+'Sandpapr', 
+'Sawing', 
+'SAX', 
+'SCREAM', 
+'Seal', 
+'SHEEP', 
+'Shuflcrd', 
+'SNEEZE', 
+'SNORING', 
+'SONAR', 
+'STAPLER', 
+'Swords', 
+'Teakettl', 
+'Tearpapr', 
+'TELEPHON', 
+'THUNDER', 
+'Toilet', 
+'TRAIN', 
+'TRUCK', 
+'TRUMPET', 
+'Turnpage', 
+'Typewrtr', 
+'VELCRO', 
+'VIOLIN', 
+'Watrbubb', 
+'Watrdrai', 
+'Watrdrip', 
+'Whip', 
+'Whistle', 
+'WHISTLNG', 
+'WIND', 
+'Wndchime', 
+'Wolf', 
+'Woodpckr', 
+'YAWN', 
+'ZIPPER', ],
+minChars: 1,
+maxItems: 5
+  });
 
 
   var results = null;
@@ -242,14 +398,37 @@
 
     document.getElementById("startRecording").disabled = false;
   }
+
+  var state = false;
+
+  function handleAction(button) {
+    if (state == false) {
+        startRecording(button);
+        state = true;
+        return;
+    }
+
+    if (state == true) {
+        // stuff for 'stop' action
+        stopRecording(button);
+        state = false;
+        return;
+    }
+  }
+
   function startRecording(button) {
     recorder && recorder.record();
     document.getElementById('playpause').style.display="none";
-    button.disabled = true;
-    button.nextElementSibling.disabled = false;
+    //button.disabled = true;
+    //button.nextElementSibling.disabled = false;
     document.getElementById("waveform").style.backgroundColor = "white";
     microphone.start();
     wavesurfer.clearRegions();
+    button.innerHTML = 'Stop Recording';
+    button.style.background = '#D75452';
+    // document.getElementById('startRecording').classlist.add('btn-danger');
+    // document.getElementById('startRecording').classlist.remove('btn-success');
+
     __log('Recording...');
   }
   function stopRecording(button) {
@@ -257,13 +436,19 @@
     microphone.stop();
     microphone.destroy();
     recorder && recorder.stop();
-    button.disabled = true;
-    button.previousElementSibling.disabled = false;
+    //button.disabled = true;
+    //button.previousElementSibling.disabled = false;
+
+    button.innerHTML = 'Start Recording';
+    button.style.background = '#1DBB8D';
+    // document.getElementById('startRecording').classlist.remove('btn-danger');
+    // document.getElementById('startRecording').classlist.add('btn-success');
+
     __log('Stopped recording.');
     
     // create waveform
     createWaveForm();
-    // document.getElementById('textDescription').style.display="inline-block";
+    document.getElementById('textDescription').style.display="inline-block";
     document.getElementById('search').style.display="inline-block";
     recorder.clear();
   }
@@ -322,7 +507,7 @@
     formData.append('file', recordingBlob);
     formData.append('start', wavesurfer.regions.list.oneRegion.start);
     formData.append('length', length);
-    formData.append('textDescription', 'hello'); // CHANGE BACK TO [ formData.append('textDescription', textDescription.value); ] AFTER FRIDAY DEMO
+    formData.append('textDescription', textDescription.value);
     
     $(document).ajaxSend(function(){
         document.getElementById('search').disabled = true;

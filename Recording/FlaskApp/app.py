@@ -3,7 +3,7 @@ from flask.json import jsonify
 import os, keras, librosa, json
 from werkzeug import secure_filename
 
-from run_model import *
+from run_model_pytorch import *
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT,'uploads')
@@ -21,6 +21,7 @@ def search():
 		offset = request.form['start']
 		duration = request.form['length']
 		text = request.form['textDescription']
+		print text
 		if file:
 			# save incoming audio file
 			filename = secure_filename(file.filename) + '.wav'
@@ -41,7 +42,7 @@ def search():
 			# define filepaths for the keras model
 			imi_path = outgoing_filepath
 			ref_dir = './static/'
-			model_path = './model/model.h5'
+			model_path = './model/random_selection'
 
 			# run the siamese network
 			sorted_filenames = search_audio(imi_path, ref_dir, model_path)
