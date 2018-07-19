@@ -159,27 +159,27 @@ def search_audio(imi_path, ref_dir, model):
     ref_data = np.load('./preprocessed_data1/ref_data.npy')
 
 
-    avg_list = []
+    # avg_list = []
     mx_list = [] 
     
     for ref_segs, fname in zip(ref_data, ref_filenames):
-        avg, mx = sim(imi_data, ref_segs, this_model)
+        mx = sim(imi_data, ref_segs, this_model)
         #d[fname] = [avg,mx]
-        avg_list.append(avg)
+        # avg_list.append(avg)
         mx_list.append(mx)
 
     #print ref_filenames[np.argsort(mx_list)]
 
-    sorted_avg_index = np.argsort(avg_list)[::-1]
+    # sorted_avg_index = np.argsort(avg_list)[::-1]
     sorted_mx_index = np.argsort(mx_list)[::-1]
 
     # print 'sorted_avg_index', sorted_avg_index
     # print 'sorted_mx_index', sorted_mx_index
-    sorted_avg_filenames = ref_filenames[sorted_avg_index]
+    # sorted_avg_filenames = ref_filenames[sorted_avg_index]
     sorted_mx_filenames = ref_filenames[sorted_mx_index]
 
     
-    return sorted_avg_filenames, sorted_mx_filenames
+    return sorted_mx_filenames
 
 def sim(X,Y, model): #takes segments of imitation recording and segments of ONE reference recording, returns average similarity and max similarity
     left = []
@@ -199,10 +199,10 @@ def sim(X,Y, model): #takes segments of imitation recording and segments of ONE 
     model_output = model_output.flatten()
     #sorted_index = np.argsort(model_output.flatten())[::-1]
 
-    avg = np.mean(model_output)
+    # avg = np.mean(model_output)
     mx = np.max(model_output)
 
-    return avg, mx
+    return mx
 
 
 
@@ -212,7 +212,6 @@ def main():
     ref_dir = './ImitableFiles_Unfinished/001Animal_Domestic animals_ pets_Cat_Growling/'
     model_path = './model/model_11-10_top_pair.h5'
     model = load_model(model_path)
-    avg_indices = []
     mx_indices = []
 
     root_dir = './ImitableFiles_Unfinished/'
@@ -221,6 +220,7 @@ def main():
         allrefdirnames.append(refdirname)
 
     allrefdirnames = allrefdirnames[1:]
+    # print allrefdirnames
 
     # preprocessing_ref(ref_dir)
     # print search_audio(imi_dir, ref_dir, model)
@@ -238,12 +238,14 @@ def main():
     # print 'rank of canonical using average similarity of segments: ', avg_indices[-1]+1
     # print 'rank of canonical using max similarity of segments: ', mx_indices[-1]+1
 
-    with open('results_keras_no_HNS_yes_seg.csv', 'a') as output_file:
+    with open('keras_max_prec_at_1.csv', 'a') as output_file:
         csv_writer = csv.writer(output_file, delimiter=',')
-        csv_writer.writerow(["Category", "Imitation file", "Search results using AVG", "Canonical rank using AVG", "Search results using MAX", "Rank of canonical using MAX of segment sims"])
+        csv_writer.writerow(["Precision at 1 per category"])
         for refdirname, refdirnames, reffilenames in os.walk(root_dir): # loop through categories
             for imidirname, imidirnames, imifilenames in os.walk(imi_dir): # loop through imitations
                 for rd, rdname in zip(refdirnames, allrefdirnames): # rd is used for matching ref audio category to imitation audio, rdname is used for skipping the root directory (outputted from os.walk)
+                    ones_count = 0
+                    total_count = 0
                     ref_filenames, ref_data = preprocessing_ref(rdname+'/') # preprocess current reference audio category (doing this externally so it isn't done everytime search_audio is run)
                     np.save('./preprocessed_data1/ref_filenames.npy', ref_filenames)
                     np.save('./preprocessed_data1/ref_data.npy', ref_data)
@@ -251,18 +253,25 @@ def main():
                         if imifilename[:3] == rd[:3]: # if the category of reference audio matches category of imitation file
                             imi_path = os.path.join(imidirname, imifilename) #get the filepath of the imitation file
                             if "DS_Store" not in imi_path: # check to avoid noBackendError in librosa by loading a .DS_Store file
-                                sorted_avg, sorted_max = search_audio(imi_path, refdirname, model) # run the search on the current imitation file, current category, model
-                                for i, elem in enumerate(sorted_avg): #search through the results for the canonical reference audio
-                                    if 'perfect' in elem.lower(): # every canonical example has "perfect" in the title, so find the search result with 'perfect' in the filename
-                                        avg_indices.append(i) # locate index (rank - 1) of the canonical reference audio file
+                                total_count += 1
+                                sorted_max = search_audio(imi_path, refdirname, model) # run the search on the current imitation file, current category, model
                                 for i, elem in enumerate(sorted_max): #search through the results for the canonical reference audio
                                     if 'perfect' in elem.lower(): # every canonical example has "perfect" in the title, so find the search result with 'perfect' in the filename
                                         mx_indices.append(i) # locate index (rank - 1) of the canonical reference audio file
                                 print "Category: ", rd
                                 print "Imitation file: ", imifilename
-                                print "Rank of the canonical example (AVG SEG SIM): ", avg_indices[-1]+1, " out of ", len(sorted_avg), "\n"
                                 print "Rank of the canonical example (MAX SEG SIM): ", mx_indices[-1]+1, " out of ", len(sorted_max), "\n"
-                                csv_writer.writerow([rd, imifilename, sorted_avg, avg_indices[-1]+1, sorted_max, mx_indices[-1]+1], ) #write all the information to csv row
+                                if mx_indices[-1]+1 == 1:
+                                    ones_count += 1
+                                print total_count, ones_count
+                    if total_count != 0:
+                        prec_at_1 = float(ones_count)/float(total_count)
+                        print prec_at_1
+                        csv_writer.writerow([prec_at_1], )
+                    elif total_count==0: 
+                        csv_writer.writerow([0], ) 
+
+                                # csv_writer.writerow([rd, imifilename, sorted_avg, avg_indices[-1]+1, sorted_max, mx_indices[-1]+1], ) #write all the information to csv row
     
     # ranks = [5,9,9,5,3,3,7,8,8,1,1,6,9,9,8,3,9,8,7,4,3,1,7,7,2,1,8,9,9,10,5,2,1,1,3,8,1,6,9,2,1,1,1,7,2,7,5,9,1,2,2,6,6,6,2,2,2,3,1,3,3,1,1,2,1,1,1,1,1,4,5,3,8,6,6,4,2,7,3,3,1,3,3,1,9,8,9,9,4,7,9,2,5,10,2,5,1,2,1,1,1,1,5,5,7,4,2,3,6,7,5,6,3,10,2,3,3,2,4,7,9,2,1,2,1,1,1,4,2,4,2,5,3,5,5,4,10,8,5,5,9,1,2,2,7,2,10,8,7,4,6,5,5,4,5,10,6,1,10,8,2,5,3,3,3,9,1,2,2,7,1,1,1,4,5,2,4,4,8,6,7,2,5,7,5,9,6,4,7,8,2,3,1,6,1,1,1,9,6,4,6,5,5,5,5,3,9,4]
     # ranks = [1,4,9,9,7,10,4,5,2,6,1,2,6,5,5,9,10,1,5,8,1,9,1,9,5,10,5,8,7,3,8,5,5,1,3,5,3,2,1,6,9,6,5,6,1,6,7,6,8,7,1,4,3,2,3,5,2,3,8,2,1,3,4,10,1,10,9,6,1,1,3,6,9,3,2,3,9,3,1,5,7,8,1,3,10,1,9,5,5,7,4,6,3,4,3,2,9,6,6,2,6,6,10,6,6,9,6,1,8,1,9,3,1,3,9,8,7,6,3,1,5,2,1,3,5,10,9,1,1,5,10,5,6,2,3,10,6,1,8,3,1,1,6,3,1,5,10,4,3,5,1,8,1,4,7,4,1,9,5,7,10,3,5,8,8,9,2,4,5,9,1,6,5,6,10,3,4,2,4,9,6,3,2,7,8,1,4,2,5,9,9,10,6,1,6,7,9,9,4]

@@ -8,6 +8,7 @@ import csv
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from scipy.stats import norm
+from data_split import *
 #K.set_image_dim_ordering('th')
 #os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -149,8 +150,8 @@ def main():
     # ref_dir = './ImitableFiles_Unfinished/002Animal_Domestic animals_ pets_Cat_Hiss/'
     # model_path = './model/model.h5'
 
-    imi_path = './silence_test_files/SONAR.WAV'
-    ref_dir = './static/'
+    # imi_path = './silence_test_files/SONAR.WAV'
+    # ref_dir = './static/'
     model_path = './model/model_11-10_top_pair.h5'
 
     
@@ -196,8 +197,25 @@ def main():
     # plt.ylabel('Number of imitations with this rank')
     # plt.title('Rank of canonical examples in searches run on "worst" imitations')
     # plt.show()
-    sorted_filenames, sorted_similarity = search_audio(imi_path, ref_dir, model_path)
-    print sorted_filenames, sorted_similarity
+    train_ref, train_imi, test_ref, test_imi = data_split(.99)
+
+
+    indices = []
+
+    for ref in train_ref:
+        ref_filenames, ref_data = preprocessing_ref(ref) # preprocess current reference audio category (doing this externally so it isn't done everytime search_audio is run)
+        np.save('./preprocessed_data1/ref_filenames.npy', ref_filenames)
+        np.save('./preprocessed_data1/ref_data.npy', ref_data)
+        for imi in train_imi:
+            if ref[27:30] == imi[27:30]:
+                sorted_filenames, sorted_similarity = search_audio(imi, ref, model_path)
+                for i, elem in enumerate(sorted_filenames): #search through the results for the canonical reference audio
+                    if 'perfect' in elem.lower(): # every canonical example has "perfect" in the title, so find the search result with 'perfect' in the filename
+                        indices.append(i) # locate index (rank - 1) of the canonical reference audio file
+                        print "Rank of the canonical example: ", indices[-1]+1, " out of ", len(sorted_filenames), "\n"
+
+    # sorted_filenames, sorted_similarity = search_audio(imi_path, ref_dir, model_path)
+    
     
 
 

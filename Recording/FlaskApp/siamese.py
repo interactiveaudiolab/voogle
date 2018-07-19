@@ -83,7 +83,6 @@ class Siamese(nn.Module):
     def forward(self, left, right):
         # raise RuntimeError
         # Calculate both CNN branches
-        print left.shape
         left_output = self.left_branch(left)
         right_output = self.right_branch(right)
 
