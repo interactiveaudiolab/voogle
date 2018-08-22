@@ -18,3 +18,15 @@ If this did not work, you may need to upgrade pip. To do so, please activate the
 ```
 curl https://bootstrap.pypa.io/get-pip.py | python
 ```
+Then, please try the above pip install again.
+
+After this, in order to host the app on your local machine, run: 
+```
+python app.py
+```
+
+This will start the web server. To access the app, please open your internet browser (Google Chrome preferred) and navigate to 
+```
+127.0.0.1:5000/
+```
+From there, please follow the directions on the website. Enjoy!
