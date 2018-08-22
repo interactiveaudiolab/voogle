@@ -39,23 +39,24 @@ def preprocessing_ref(ref_dir):
     ref_sepctrograms = []
     ref_file_names = []
     for f in file_list:
-        print f
-        ref_file_names.append(f)
-        y, sr = librosa.load(ref_dir+f, sr=44100)
-        # zero-padding 
-        
-        if y.shape[0] < 4*sr:
-            pad = np.zeros((4*sr-y.shape[0]))
-            y_fix = np.append(y, pad)
-        else:
-            y_fix = y[0:int(4*sr)]
+        if "DS_Store" not in f and ".js" not in f:
+            print f
+            ref_file_names.append(f)
+            y, sr = librosa.load(ref_dir+f, sr=44100)
+            # zero-padding 
+            
+            if y.shape[0] < 4*sr:
+                pad = np.zeros((4*sr-y.shape[0]))
+                y_fix = np.append(y, pad)
+            else:
+                y_fix = y[0:int(4*sr)]
 
-        S = librosa.feature.melspectrogram(y=y_fix, sr=sr, n_fft=1024, hop_length=1024, power=2)
+            S = librosa.feature.melspectrogram(y=y_fix, sr=sr, n_fft=1024, hop_length=1024, power=2)
 
-        S_db = librosa.power_to_db(S, ref=np.max)
-        S_fix = S_db[:, 0:128]
+            S_db = librosa.power_to_db(S, ref=np.max)
+            S_fix = S_db[:, 0:128]
 
-        ref_sepctrograms.append(S_fix)
+            ref_sepctrograms.append(S_fix)
 
     ref_sepctrograms = np.array(ref_sepctrograms).astype('float32')
 
@@ -106,7 +107,6 @@ def search_audio(imi_path, ref_dir, model_path):
     ref_filenames = np.load('./preprocessed_data/ref_filenames.npy')
     ref_data = np.load('./preprocessed_data/ref_data.npy')
 
-
     # create pairs of input to Siamese network
     pairs_imi_left = []
     pairs_ref_right = []
@@ -133,7 +133,6 @@ def main():
     imi_path = './imitation/mosquito - 4938112476119040.wav'
     ref_dir = './static/'
     model_path = './model/model.h5'
-
 
     sorted_filenames = search_audio(imi_path, ref_dir, model_path)
 

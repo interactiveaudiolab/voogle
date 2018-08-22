@@ -3,7 +3,8 @@ from flask.json import jsonify
 import os, keras, librosa, json
 from werkzeug import secure_filename
 
-from run_model_pytorch import *
+from run_model import *
+
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT,'uploads')
@@ -35,14 +36,14 @@ def search():
 
 			# generate a new audio file based on the start and endpoints from the wavesurfer region
 			recording, sr = librosa.load(incoming_filepath, sr=None, offset=float(offset), duration=float(duration))
-
+			
 			# and save it to the filepath we created earlier
 			librosa.output.write_wav(outgoing_filepath, recording, sr)
 
 			# define filepaths for the keras model
 			imi_path = outgoing_filepath
 			ref_dir = './static/'
-			model_path = './model/random_selection'
+			model_path = './model/model_11-10_top_pair.h5'
 
 			# run the siamese network
 			sorted_filenames = search_audio(imi_path, ref_dir, model_path)
