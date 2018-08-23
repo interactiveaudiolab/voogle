@@ -3,7 +3,7 @@ from flask.json import jsonify
 import os, keras, librosa, json
 from werkzeug import secure_filename
 
-from run_model import *
+from run_model_text import *
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -46,10 +46,10 @@ def search():
 			model_path = './model/model_11-10_top_pair.h5'
 
 			# run the siamese network
-			sorted_filenames = search_audio(imi_path, ref_dir, model_path)
+			sorted_filenames, sorted_filenames_matched = search_audio(imi_path, ref_dir, model_path, text)
 
 			#return the results to a Python list
-			results = sorted_filenames.tolist()
+			results = sorted_filenames.tolist() + ['...'] + sorted_filenames_matched.tolist()
 			print results
 
 	# can't send a list with Flask so we'll make it a long string and parse on the front end

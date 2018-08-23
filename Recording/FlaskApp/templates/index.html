@@ -177,32 +177,39 @@
 
     <div class="srch">
       <button id="search" class="btn btn-outline-success btn-lg" onclick="search()"> Search &#x1F50D; </button>
+      <hr class="my-4">
     </div>
 
-    
-
-  
   <h2 style="display: none;">Log</h2>
   <pre id="log" style="display:none;"></pre>
 
-  <div class="jumbotron vertical center" style="text-align: center; width: 100%">
-    <div id="searchResults" class="list-group" style="display: none;">
-      <h2>Search Results</h2>
-      <ol class="">
-        <li id="result_0" class=""> </li>
-        <li id="result_1" class=""> </li>
-        <li id="result_2" class=""> </li>
-        <li id="result_3" class=""> </li>
-        <li id="result_4" class=""> </li>
-        <li id="result_5" class=""> </li>
-        <li id="result_6" class=""> </li>
-        <li id="result_7" class=""> </li>
-        <li id="result_8" class=""> </li>
-        <li id="result_9" class=""> </li>
-      </ol>
+
+  <nav class="nav nav-tabs justify-content-center mt-3" id="navtabs">
+    <a class="nav-link active" href="#match" data-toggle="tab"> Text matched </a>
+    <a class="nav-link" href="#nomatch" data-toggle="tab"> Text not matched </a>
+  </nav>
+  
+  
+  <div class="tab-content">
+    <div class="tab-pane active jumbotron vertical center" id="match" style="text-align: center; width: 100%">
+      <div id="searchResults_match" class="list-group" style="display: none;">
+        <h2>Search Results - Text Matched</h2>
+        <ol id="parent_match">
+          
+        </ol>
+      </div>
+    </div>
+
+      
+    <div class="tab-pane jumbotron vertical center" id="nomatch" style="text-align: center; width: 100%">
+      <div id="searchResults_nomatch" class="list-group" style="display: none;">
+        <h2>Search Results - Text Not Matched</h2>
+        <ol id="parent_nomatch">
+          
+        </ol>
+      </div>
     </div>
   </div>
-  
   
   
 
@@ -210,6 +217,7 @@
   document.getElementById('playpause').style.display="none";
   document.getElementById('search').style.display="none";
   document.getElementById('textDescription').style.display="none";
+  document.getElementById('navtabs').style.display="none";
 
   var input = document.getElementById("textDescription");
   var awesomeplete = new Awesomplete(input, {
@@ -293,6 +301,7 @@
 'Polsiren', 
 'Pourwatr', 
 'Pullswch', 
+'ref_silence',
 'RAIN', 
 'Rattlsna', 
 'River', 
@@ -498,6 +507,9 @@ maxItems: 5
       document.getElementById('playpause').style.display="inline-block";
     });
   }
+  function parseLists(element) {
+    return element == '...';
+  }
 
   function search() {
 
@@ -525,29 +537,83 @@ maxItems: 5
             processData: false,
             contentType:false,         
             success: function(response) {
-                results = response.split(",");
-                for (i = 0; i < 10; i++) {
-                  (function (i) {
-                    jQuery.get('./static/'+results[i],function(data){
+              document.getElementById('navtabs').style.display="flex";
+              while (document.getElementById("parent_match").firstChild) {
+                document.getElementById("parent_match").removeChild(document.getElementById("parent_match").firstChild);
+              }
+              while (document.getElementById("parent_nomatch").firstChild) {
+                document.getElementById("parent_nomatch").removeChild(document.getElementById("parent_nomatch").firstChild);
+              }
+              
+              results = response.split(",");
+              split_point = results.findIndex(parseLists);
+              console.log(split_point);
+              if (split_point!=0) {
+                no_match_results = results.slice(0,split_point);
+              } else {
+                no_match_results = []
+              }
+              yes_match_results = results.slice(split_point+1, results.length);
+              console.log("No Match results: "+ no_match_results);
+              console.log("Yes match results: "+ yes_match_results);
+              for (i = 0; i < yes_match_results.length-1; i++) {
+                (function (i) {
+                  if (i<10) {
+                    jQuery.get('./static/'+yes_match_results[i],function(data){
                       var sound      = document.createElement('audio');
                       sound.id       = 'audio-player_'+i;
                       sound.controls = 'controls';
-                      sound.src      = './static/'+results[i];
+                      sound.src      = './static/'+yes_match_results[i];
                       sound.type     = 'audio/wav';
-                      document.getElementById('result_'+i).innerHTML = results[i] + "<br> <br>";
-                      document.getElementById('result_'+i).appendChild(sound);
+                      var item = document.createElement("li");
+                      item.id = "result_match_"+i;
+                      item.innerHTML = yes_match_results[i] + "<br> <br>";
+                      item.appendChild(sound);
+                      document.getElementById("parent_match").appendChild(item);
                     });
-                  })(i);
-                }
-                document.getElementById("searchResults").style.display = "inline-block";
-                document.getElementById('search').disabled = false;
-                document.getElementById('search').innerHTML = 'Search &#x1F50D;';
-                audio.pause();
-                audio.load();
-                $('html, body').animate({
-                  scrollTop: $('#searchResults').offset().top - 70
-                }, 800);
-                //document.getElementById('searchResults').scrollIntoView();
+                  }
+                })(i);
+              }
+              // if (document.getElementById("parent_match").childElementCount<1){
+              //   var item = document.createElement("p");
+              //   item.innerHTML = "No results found that matched your text description!";
+              //   document.getElementById("parent_match").appendChild(item);
+              // }
+
+              document.getElementById("searchResults_match").style.display = "inline-block";
+              for (i = 0; i < no_match_results.length-1; i++) {
+                (function (i) {
+                  if (i<10) {
+                    jQuery.get('./static/'+no_match_results[i],function(data){
+                      var sound      = document.createElement('audio');
+                      sound.id       = 'audio-player_'+i;
+                      sound.controls = 'controls';
+                      sound.src      = './static/'+no_match_results[i];
+                      sound.type     = 'audio/wav';
+                      var item = document.createElement("li");
+                      item.id = "result_nomatch_"+i;
+                      item.innerHTML = no_match_results[i] + "<br> <br>";
+                      item.appendChild(sound);
+                      document.getElementById('parent_nomatch').appendChild(item);
+                    });
+                  }
+                })(i);
+              }
+              // if (document.getElementById("parent_nomatch").childElementCount<1){
+              //   var item = document.createElement("p");
+              //   item.innerHTML = "All results found matched your text description!";
+              //   document.getElementById("parent_nomatch").appendChild(item);
+              // }
+              
+              document.getElementById("searchResults_nomatch").style.display = "inline-block";
+              document.getElementById('search').disabled = false;
+              document.getElementById('search').innerHTML = 'Search &#x1F50D;';
+              audio.pause();
+              audio.load();
+              $('html, body').animate({
+                scrollTop: $('#searchResults_match').offset().top - 70
+              }, 800);
+              //document.getElementById('searchResults').scrollIntoView();
             },
             error: function(error) {
                 alert(error);
