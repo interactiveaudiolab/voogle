@@ -8,7 +8,9 @@ app = Flask(__name__)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT,'uploads')
 
-def str2bool(v): # code to accept multiple alternatives for True/False (from stackoverflow)
+def str2bool(v): 
+    # accepts alternatives for True/False command arguments
+    # source: StackOverflow
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -21,47 +23,62 @@ def hello():
     filename_list = []
     f_list = os.listdir(args.database)
     for f in f_list:
-        if ".wav" in f.lower() or ".mp3" in f.lower(): # grab all filenames of audio files in search database, for autocomplete
+        # grab all filenames of audio files in search database, for autocomplete
+        if ".wav" in f.lower() or ".mp3" in f.lower(): 
             filename_list.append(f[:-4]) 
     
     return render_template('index.html', filenamelist=filename_list)
 
 @app.route('/search', methods = ['POST'])
 def search():
-    file = request.files['file'] # blob of audio file of the user recording
-    offset = request.form['start'] # time offset of starting point of imitation (used to trim audio file)
-    duration = request.form['length'] # time offset of ending point of imitation (used to trim audio file)
-    text = request.form['textDescription'] # string containing text filter (optional)
-    print(text)
+    # user's full audio recording
+    file = request.files['file'] 
+
+    # query time markers for trimming full audio 
+    offset = request.form['start']
+    duration = request.form['length']
+
+    # string containing text filter (optional)
+    text = request.form['textDescription'] 
+
     if file:
-        # save incoming blob as .wav audio file
-        filename = secure_filename(file.filename) + '.wav'
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        # write full audio recoding to disk
+        filename_full = secure_filename(file.filename) + '.wav'
+        filepath_full = os.path.join(UPLOAD_FOLDER, filename_full)
+        file.save(filepath_full)
 
-        # get its filepath now that it's been saved
-        incoming_filepath = UPLOAD_FOLDER + '/' + filename
-
-        #create a filepath for our soon-to-be edited version of the recording file
-        outgoing_filepath = UPLOAD_FOLDER + '/query.wav'
-
-        # generate a new audio file based on the start and endpoints from the wavesurfer region
-        recording, sr = librosa.load(incoming_filepath, sr=None, offset=float(offset), duration=float(duration))
+        # generate a new audio file based on query time markers
+        query, sampling_rate = librosa.load(
+            filepath_full,
+            sr=None,
+            offset=float(offset),
+            duration=float(duration))
         
-        # and save it to the filepath we created earlier
-        librosa.output.write_wav(outgoing_filepath, recording, sr)
+        # write query to disk
+        filepath_query = UPLOAD_FOLDER + '/query.wav'
+        librosa.output.write_wav(filepath_query, recording, sampling_rate)
 
         # define filepaths for the keras model
-        imi_path = outgoing_filepath
         ref_dir = './static/'
 
-        # run the siamese network, giving it our recorded imitation, the directory of audio files it is to search, the path to the keras model, and the text query
-        sorted_filenames, sorted_filenames_matched = search_audio(imi_path, ref_dir, model, text)
+        # run a similarity search between the query and the audio database
+        sorted_filenames, sorted_filenames_matched = search_audio(
+            filepath_query,
+            app.config.get['database'],
+            app.config.get['model'],
+            text)
 
-        #return the results to a Python list, delimit the matched vs unmatched lists with a string '...', this will be parsed on the front-end
-        results = sorted_filenames.tolist() + ['...'] + sorted_filenames_matched.tolist()
+        # return the results to the frontend as a list with delimiter '...'
+        results = sorted_filenames.tolist() + ['...'] + \
+            sorted_filenames_matched.tolist()
+
         print(results)
+    else:
+        # TODO: send message back to upload file
+        pass
 
-    # can't send a list with Flask so we'll make it a long string and deal with it on the front-end
+    # can't send a list with Flask 
+    # make it a long string and deal with it on the front-end
     return ','.join(results)
  
 if __name__ == "__main__":
@@ -93,6 +110,7 @@ if __name__ == "__main__":
     model_path = args.model
     model = load_model(model_path)
 
-    # Setup the server
+    # Setup the server process
     app.config.update(vars(args))
+    app.config['model'] = model
     app.run(debug=args.debug, threaded=args.threaded)
