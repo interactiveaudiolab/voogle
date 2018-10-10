@@ -1,0 +1,13 @@
+# similarity model
+model_name: test_model
+model_filepath: ./model/default_model.h5
+
+# database of audio files to be queried
+database_name: test_database
+database_directory: ./static/audio/test_database
+
+# directory for storing preprocessed or embedded data
+data_cache: ./data_cache
+
+# directory for storing user queries
+query_path: ./queries

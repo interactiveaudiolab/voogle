@@ -348,7 +348,7 @@ maxItems: 5
 
 
   var results = null;
-  var audio = new Audio('/static/jeopardy.mp3');
+  var audio = new Audio('/static/audio/jeopardy.mp3');
 
 
   var wavesurfer = WaveSurfer.create({
@@ -559,11 +559,11 @@ maxItems: 5
               for (i = 0; i < yes_match_results.length-1; i++) {
                 (function (i) {
                   if (i<10) {
-                    jQuery.get('./static/'+yes_match_results[i],function(data){
+                    jQuery.get('./static/audio/test_database/'+yes_match_results[i],function(data){
                       var sound      = document.createElement('audio');
                       sound.id       = 'audio-player_'+i;
                       sound.controls = 'controls';
-                      sound.src      = './static/'+yes_match_results[i];
+                      sound.src      = './static/audio/test_database/'+yes_match_results[i];
                       sound.type     = 'audio/wav';
                       var item = document.createElement("li");
                       item.id = "result_match_"+i;
@@ -584,11 +584,11 @@ maxItems: 5
               for (i = 0; i < no_match_results.length-1; i++) {
                 (function (i) {
                   if (i<10) {
-                    jQuery.get('./static/'+no_match_results[i],function(data){
+                    jQuery.get('./static/audio/test_database/'+no_match_results[i],function(data){
                       var sound      = document.createElement('audio');
                       sound.id       = 'audio-player_'+i;
                       sound.controls = 'controls';
-                      sound.src      = './static/'+no_match_results[i];
+                      sound.src      = './static/audio/test_database/'+no_match_results[i];
                       sound.type     = 'audio/wav';
                       var item = document.createElement("li");
                       item.id = "result_nomatch_"+i;

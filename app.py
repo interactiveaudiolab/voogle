@@ -1,15 +1,16 @@
-import os, librosa, argparse
+import argparse
+import librosa
+import os
+import yaml
+from keras.models import load_model
 from flask import Flask, render_template, request
 from werkzeug import secure_filename
 from run_model_text import search_audio
 
 app = Flask(__name__)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(APP_ROOT,'uploads')
-
 def str2bool(v): 
-    # accepts alternatives for True/False command arguments
+    # parses various True/False command-line arguments
     # source: StackOverflow
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
@@ -21,16 +22,28 @@ def str2bool(v):
 @app.route("/")
 def hello():
     filename_list = []
-    f_list = os.listdir(args.database)
+    f_list = os.listdir(app.config.get('database_directory'))
     for f in f_list:
-        # grab all filenames of audio files in search database, for autocomplete
+        # grab all audio filenames in search database for autocomplete
         if ".wav" in f.lower() or ".mp3" in f.lower(): 
             filename_list.append(f[:-4]) 
     
     return render_template('index.html', filenamelist=filename_list)
 
+@app.route('/load', methods = ['POST'])
+def load():
+    # TODO: on startup, the code should load the model and database,
+    # preprocess if necessary, and display loading status to user.
+    # Meanwhile, the user should be able to provide their initial query,
+    # which should be processed after loading is completed. A separate
+    # loading indicator should be displayed to tell the user the progress
+    # on their query.
+    # Note: work on this after testing single-query case
+    pass
+
 @app.route('/search', methods = ['POST'])
 def search():
+
     # user's full audio recording
     file = request.files['file'] 
 
@@ -43,30 +56,25 @@ def search():
 
     if file:
         # write full audio recoding to disk
-        filename_full = secure_filename(file.filename) + '.wav'
-        filepath_full = os.path.join(UPLOAD_FOLDER, filename_full)
-        file.save(filepath_full)
+        recording_filename = secure_filename(file.filename) + '.wav'
+        recording_filepath = os.path.join(
+            app.config.get('query_path'), recording_filename)
+        file.save(recording_filepath)
 
         # generate a new audio file based on query time markers
         query, sampling_rate = librosa.load(
-            filepath_full,
+            recording_filepath,
             sr=None,
             offset=float(offset),
             duration=float(duration))
         
         # write query to disk
-        filepath_query = UPLOAD_FOLDER + '/query.wav'
-        librosa.output.write_wav(filepath_query, recording, sampling_rate)
-
-        # define filepaths for the keras model
-        ref_dir = './static/'
+        query_filepath = app.config.get('query_path') + '/query.wav'
+        librosa.output.write_wav(query_filepath, query, sampling_rate)
 
         # run a similarity search between the query and the audio database
         sorted_filenames, sorted_filenames_matched = search_audio(
-            filepath_query,
-            app.config.get['database'],
-            app.config.get['model'],
-            text)
+            query_filepath, text, app.config)
 
         # return the results to the frontend as a list with delimiter '...'
         results = sorted_filenames.tolist() + ['...'] + \
@@ -83,15 +91,14 @@ def search():
  
 if __name__ == "__main__":
     # set up parser to grab optional inputs:
-    #   -m specifies model path
+    #   -c specifies the .yaml config file
     #   -d specifies debug mode on/off
     #   -t specifies threading on/off
-    #   -db specifies sound database to search
     parser = argparse.ArgumentParser() 
     parser.add_argument(
-        "-m", "--model", type=str,
-        help="The filepath of the model you wish to use.",
-        default="./model/model_11-10_top_pair.h5")
+        "-c", "--config", type=str,
+        help="The filepath of the yaml config you wish to use.",
+        default="./config/test.yaml")
     parser.add_argument(
         "-d", "--debug", type=str2bool,
         help="Sets debug=\"true\" if \"True\", false otherwise.",
@@ -100,17 +107,12 @@ if __name__ == "__main__":
         "-t", "--threaded", type=str2bool, 
         help="Sets threaded=\"true\" if \"True\", false otherwise.",
         default=False)
-    parser.add_argument("-db", "--database", type=str,
-        help="The filepath of the database containing audio you wish to \
-        use as the search space",
-        default="./static/")
     args = parser.parse_args()
 
-    # Load the model from disk
-    model_path = args.model
-    model = load_model(model_path)
+    # Load the config file
+    config = yaml.safe_load(open(args.config))
 
     # Setup the server process
     app.config.update(vars(args))
-    app.config['model'] = model
+    app.config.update(config)
     app.run(debug=args.debug, threaded=args.threaded)
