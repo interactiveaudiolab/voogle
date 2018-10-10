@@ -52,7 +52,7 @@ def search():
 		offset = request.form['start'] # time offset of starting point of imitation (used to trim audio file)
 		duration = request.form['length'] # time offset of ending point of imitation (used to trim audio file)
 		text = request.form['textDescription'] # string containing text filter (optional)
-		print text
+		print(text)
 		if file:
 			# save incoming blob as .wav audio file
 			filename = secure_filename(file.filename) + '.wav'
@@ -79,7 +79,7 @@ def search():
 
 			#return the results to a Python list, delimit the matched vs unmatched lists with a string '...', this will be parsed on the front-end
 			results = sorted_filenames.tolist() + ['...'] + sorted_filenames_matched.tolist()
-			print results
+			print(results)
 
 	# can't send a list with Flask so we'll make it a long string and deal with it on the front-end
 	return ','.join(results)

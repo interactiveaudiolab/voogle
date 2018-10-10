@@ -7,7 +7,6 @@ decorator==4.3.0
 enum34==1.1.6
 Flask==1.0.2
 funcsigs==1.0.2
-futures==3.2.0
 gast==0.2.0
 grpcio==1.14.1
 h5py==2.8.0

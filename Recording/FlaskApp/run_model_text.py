@@ -42,7 +42,7 @@ def preprocessing_ref(ref_dir):
     ref_file_names = []
     for f in file_list:
         if "DS_Store" not in f and ".js" not in f:
-            print f
+            print(f)
             ref_file_names.append(f)
             y, sr = librosa.load(ref_dir+f, sr=44100)
             # zero-padding 
@@ -99,7 +99,7 @@ def get_old_ref_dir(ref_dir):
         with open('ref_dir.pickle', 'w+b') as handle:
             old_ref_dir = ref_dir
             pickle.dump(old_ref_dir, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    print "OLD_REF_DIR: ", old_ref_dir
+    print("OLD_REF_DIR: ", old_ref_dir)
     return old_ref_dir
 
 def update_old_ref_dir(old_ref_dir):
@@ -116,7 +116,7 @@ def search_audio(imi_path, ref_dir, model, text):
     old_ref_dir = get_old_ref_dir(ref_dir)
 
     if ref_dir != old_ref_dir: # we need to preprocess the reference audio files if we haven't done that already
-        print "REF_DIR updated. Preprocessing new reference data..."
+        print("REF_DIR updated. Preprocessing new reference data...")
         ref_filenames, ref_data = preprocessing_ref(ref_dir)
         np.save('./preprocessed_data/ref_filenames.npy', ref_filenames)
         np.save('./preprocessed_data/ref_data.npy', ref_data)
@@ -188,8 +188,8 @@ def main():
     text = ''
 
     sorted_filenames, sorted_filenames_matched = search_audio(imi_path, ref_dir, model_path, text)
-    print "files that matched your text description: ",sorted_filenames_matched
-    print "rest of files in directory sorted by similarity to vocal imitation: ", sorted_filenames
+    print("files that matched your text description: ",sorted_filenames_matched)
+    print("rest of files in directory sorted by similarity to vocal imitation: ", sorted_filenames)
     
 
 
