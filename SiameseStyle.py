@@ -4,6 +4,9 @@ from QueryByVoiceModel import QueryByVoiceModel
 
 class SiameseStyle(QueryByVoiceModel):
     '''
+    TODO: verify with Madhav that default weights do correspond with trained
+        siamese model
+        
     A siamese-style neural network for query-by-voice applications.
 
     citation: Y. Zhang, B. Pardo, and Z. Duan, "Siamese Style Convolutional
