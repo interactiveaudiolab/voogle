@@ -3,6 +3,14 @@ from keras.models import load_model
 from QueryByVoiceModel import QueryByVoiceModel
 
 class SiameseStyle(QueryByVoiceModel):
+    '''
+    A siamese-style neural network for query-by-voice applications.
+
+    citation: Y. Zhang, B. Pardo, and Z. Duan, "Siamese Style Convolutional
+        Neural Networks for Sound Search by Vocal Imitation," in IEEE/ACM
+        Transactions on Audio, Speech, and Language Processing, pp. 99-112,
+        2018.
+    '''
 
     def construct_representation(self, audio_list, sampling_rates, is_query):
         '''
