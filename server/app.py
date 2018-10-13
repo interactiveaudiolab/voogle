@@ -2,14 +2,14 @@ import argparse
 import librosa
 import os
 import yaml
-from keras.models import load_model
 from flask import Flask, render_template, request
 from werkzeug import secure_filename
 from run_model_text import search_audio
 
 app = Flask(__name__)
 
-def str2bool(v): 
+
+def str2bool(v):
     # parses various True/False command-line arguments
     # source: StackOverflow
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -19,18 +19,20 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+
 @app.route("/")
 def hello():
     filename_list = []
     f_list = os.listdir(app.config.get('database_directory'))
     for f in f_list:
         # grab all audio filenames in search database for autocomplete
-        if ".wav" in f.lower() or ".mp3" in f.lower(): 
-            filename_list.append(f[:-4]) 
-    
+        if ".wav" in f.lower() or ".mp3" in f.lower():
+            filename_list.append(f[:-4])
+
     return render_template('index.html', filenamelist=filename_list)
 
-@app.route('/load', methods = ['POST'])
+
+@app.route('/load', methods=['POST'])
 def load():
     # TODO: on startup, the code should load the model and database,
     # preprocess if necessary, and display loading status to user.
@@ -41,18 +43,19 @@ def load():
     # Note: work on this after testing single-query case
     pass
 
-@app.route('/search', methods = ['POST'])
+
+@app.route('/search', methods=['POST'])
 def search():
 
     # user's full audio recording
-    file = request.files['file'] 
+    file = request.files['file']
 
-    # query time markers for trimming full audio 
+    # query time markers for trimming full audio
     offset = request.form['start']
     duration = request.form['length']
 
     # string containing text filter (optional)
-    text = request.form['textDescription'] 
+    text = request.form['textDescription']
 
     if file:
         # write full audio recoding to disk
@@ -67,7 +70,7 @@ def search():
             sr=None,
             offset=float(offset),
             duration=float(duration))
-        
+
         # write query to disk
         query_filepath = app.config.get('query_path') + '/query.wav'
         librosa.output.write_wav(query_filepath, query, sampling_rate)
@@ -85,16 +88,17 @@ def search():
         # TODO: send message back to upload file
         pass
 
-    # can't send a list with Flask 
+    # can't send a list with Flask
     # make it a long string and deal with it on the front-end
     return ','.join(results)
- 
+
+
 if __name__ == "__main__":
     # set up parser to grab optional inputs:
     #   -c specifies the .yaml config file
     #   -d specifies debug mode on/off
     #   -t specifies threading on/off
-    parser = argparse.ArgumentParser() 
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "-c", "--config", type=str,
         help="The filepath of the yaml config you wish to use.",
@@ -104,7 +108,7 @@ if __name__ == "__main__":
         help="Sets debug=\"true\" if \"True\", false otherwise.",
         default=False)
     parser.add_argument(
-        "-t", "--threaded", type=str2bool, 
+        "-t", "--threaded", type=str2bool,
         help="Sets threaded=\"true\" if \"True\", false otherwise.",
         default=False)
     args = parser.parse_args()

@@ -17,7 +17,7 @@
   <!-- wavesurfer.js regions -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.regions.min.js"></script>
   <!-- css style -->
-  
+
   <!-- JQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
 
@@ -38,7 +38,7 @@
   handle.wavesurfer-handle.wavesurfer-handle-end:hover{
     background-color: lightblue;
   }
-  
+
   region.wavesurfer-region::before {
     /*content: attr(data-region-label);*/
     position: absolute;
@@ -145,7 +145,7 @@
               <li> Press the <kbd>Stop Recording</kbd> button </li>
               <li> Press Play/Pause to review your recording </li>
               <li> Enter a text description of your sound if applicable </li>
-              <li> <kbd> Search! </kbd> </li> <!-- A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. --> 
+              <li> <kbd> Search! </kbd> </li> <!-- A waveform will appear, and you will be able to play back your recording. If you desire, you may choose a custom start and end point for your imitation. This is useful if you want to try out your imitation several times in one recording. Slide the green and red bars to choose the portion of audio you wish to use for the search. -->
             </ol>
            </div>
         </div>
@@ -188,30 +188,28 @@
     <a class="nav-link active" href="#match" data-toggle="tab"> Text matched </a>
     <a class="nav-link" href="#nomatch" data-toggle="tab"> Text not matched </a>
   </nav>
-  
-  
+
+
   <div class="tab-content">
     <div class="tab-pane active jumbotron vertical center" id="match" style="text-align: center; width: 100%">
       <div id="searchResults_match" class="list-group" style="display: none;">
         <h2>Search Results - Text Matched</h2>
         <ol id="parent_match">
-          
+
         </ol>
       </div>
     </div>
 
-      
+
     <div class="tab-pane jumbotron vertical center" id="nomatch" style="text-align: center; width: 100%">
       <div id="searchResults_nomatch" class="list-group" style="display: none;">
         <h2>Search Results - Text Not Matched</h2>
         <ol id="parent_nomatch">
-          
+
         </ol>
       </div>
     </div>
   </div>
-  
-  
 
   <script>
   document.getElementById('playpause').style.display="none";
@@ -221,135 +219,133 @@
 
   var input = document.getElementById("textDescription");
   var awesomeplete = new Awesomplete(input, {
-    list: ['accordian', 
-'airplane', 
-'baby crying', 
-'bagpipes', 
-'banjo', 
-'basketball', 
-'bicycle bell', 
-'birds chirping', 
-'blinds', 
-'blowing nose', 
-'boat horn', 
-'bongos', 
-'bowling', 
-'brushing teeth', 
-'burp', 
-'camera', 
-'can crush', 
-'can opening', 
-'car crash', 
-'car horn', 
-'cash register', 
-'cat', 
-'chewing', 
-'chickens', 
-'child coughing', 
-'church bells', 
-'clapping', 
-'clearing throat', 
-'coin dropping', 
-'cork popping', 
-'cow', 
-'crickets', 
-'crow', 
-'crumpling paper', 
-'cuckoo clock', 
-'cutting paper', 
-'cymbals', 
-'dog barking', 
-'donkey', 
-'door closing', 
-'doorbell', 
-'drill', 
-'dropping ice in glass', 
-'drums', 
-'duck', 
-'elephant', 
-'explosion', 
-'firecrackers', 
-'flute ed', 
-'frog', 
-'frying food', 
-'gargling', 
-'glass breaking', 
-'gong', 
-'guitar ed', 
-'gunshots', 
-'hammering', 
-'harmonica', 
-'harp', 
-'helicopter', 
-'Horsegal', 
-'JACKHAMM', 
-'Knocking', 
-'Laughing', 
-'LAWNMOWR', 
-'LION', 
-'MACHGUN', 
-'Monkey', 
-'MOSQUITO', 
-'Motorcyc', 
-'Ocean', 
-'ORGAN', 
-'OWL', 
-'PIANO', 
-'Pig', 
-'PINBALL', 
-'Pingpong', 
-'Polsiren', 
-'Pourwatr', 
-'Pullswch', 
+    list: ['accordian',
+'airplane',
+'baby crying',
+'bagpipes',
+'banjo',
+'basketball',
+'bicycle bell',
+'birds chirping',
+'blinds',
+'blowing nose',
+'boat horn',
+'bongos',
+'bowling',
+'brushing teeth',
+'burp',
+'camera',
+'can crush',
+'can opening',
+'car crash',
+'car horn',
+'cash register',
+'cat',
+'chewing',
+'chickens',
+'child coughing',
+'church bells',
+'clapping',
+'clearing throat',
+'coin dropping',
+'cork popping',
+'cow',
+'crickets',
+'crow',
+'crumpling paper',
+'cuckoo clock',
+'cutting paper',
+'cymbals',
+'dog barking',
+'donkey',
+'door closing',
+'doorbell',
+'drill',
+'dropping ice in glass',
+'drums',
+'duck',
+'elephant',
+'explosion',
+'firecrackers',
+'flute ed',
+'frog',
+'frying food',
+'gargling',
+'glass breaking',
+'gong',
+'guitar ed',
+'gunshots',
+'hammering',
+'harmonica',
+'harp',
+'helicopter',
+'Horsegal',
+'JACKHAMM',
+'Knocking',
+'Laughing',
+'LAWNMOWR',
+'LION',
+'MACHGUN',
+'Monkey',
+'MOSQUITO',
+'Motorcyc',
+'Ocean',
+'ORGAN',
+'OWL',
+'PIANO',
+'Pig',
+'PINBALL',
+'Pingpong',
+'Polsiren',
+'Pourwatr',
+'Pullswch',
 'ref_silence',
-'RAIN', 
-'Rattlsna', 
-'River', 
-'ROOSTER', 
-'Sandpapr', 
-'Sawing', 
-'SAX', 
-'SCREAM', 
-'Seal', 
-'SHEEP', 
-'Shuflcrd', 
-'SNEEZE', 
-'SNORING', 
-'SONAR', 
-'STAPLER', 
-'Swords', 
-'Teakettl', 
-'Tearpapr', 
-'TELEPHON', 
-'THUNDER', 
-'Toilet', 
-'TRAIN', 
-'TRUCK', 
-'TRUMPET', 
-'Turnpage', 
-'Typewrtr', 
-'VELCRO', 
-'VIOLIN', 
-'Watrbubb', 
-'Watrdrai', 
-'Watrdrip', 
-'Whip', 
-'Whistle', 
-'WHISTLNG', 
-'WIND', 
-'Wndchime', 
-'Wolf', 
-'Woodpckr', 
-'YAWN', 
+'RAIN',
+'Rattlsna',
+'River',
+'ROOSTER',
+'Sandpapr',
+'Sawing',
+'SAX',
+'SCREAM',
+'Seal',
+'SHEEP',
+'Shuflcrd',
+'SNEEZE',
+'SNORING',
+'SONAR',
+'STAPLER',
+'Swords',
+'Teakettl',
+'Tearpapr',
+'TELEPHON',
+'THUNDER',
+'Toilet',
+'TRAIN',
+'TRUCK',
+'TRUMPET',
+'Turnpage',
+'Typewrtr',
+'VELCRO',
+'VIOLIN',
+'Watrbubb',
+'Watrdrai',
+'Watrdrip',
+'Whip',
+'Whistle',
+'WHISTLNG',
+'WIND',
+'Wndchime',
+'Wolf',
+'Woodpckr',
+'YAWN',
 'ZIPPER', ],
 minChars: 1,
 maxItems: 5
   });
 
-
   var results = null;
   var audio = new Audio('/static/audio/jeopardy.mp3');
-
 
   var wavesurfer = WaveSurfer.create({
     container: '#waveform',
@@ -360,12 +356,9 @@ maxItems: 5
     scrollParent: true,
     cursorWidth: 0,
     normalize: true
-    //maxCanvasWidth: document.body.clientWidth*2
   });
 
   this.wavesurfer.empty();
-
-
 
   var microphone = Object.create(WaveSurfer.Microphone);
   microphone.init({
@@ -379,19 +372,15 @@ maxItems: 5
       console.warn('Device error: ' + code);
   });
 
-  
-
   console.log(wavesurfer.regions);
 
-
   function clicked() {
-    if (wavesurfer.isPlaying()) {    
+    if (wavesurfer.isPlaying()) {
         wavesurfer.pause();
     } else {
         wavesurfer.regions.list.oneRegion.play();
     }
   }
-
 
   function __log(e, data) {
     log.innerHTML += "\n" + e + " " + (data || '');
@@ -428,15 +417,11 @@ maxItems: 5
   function startRecording(button) {
     recorder && recorder.record();
     document.getElementById('playpause').style.display="none";
-    //button.disabled = true;
-    //button.nextElementSibling.disabled = false;
     document.getElementById("waveform").style.backgroundColor = "white";
     microphone.start();
     wavesurfer.clearRegions();
     button.innerHTML = 'Stop Recording';
     button.style.background = '#D75452';
-    // document.getElementById('startRecording').classlist.add('btn-danger');
-    // document.getElementById('startRecording').classlist.remove('btn-success');
 
     __log('Recording...');
   }
@@ -445,16 +430,12 @@ maxItems: 5
     microphone.stop();
     microphone.destroy();
     recorder && recorder.stop();
-    //button.disabled = true;
-    //button.previousElementSibling.disabled = false;
 
     button.innerHTML = 'Start Recording';
     button.style.background = '#1DBB8D';
-    // document.getElementById('startRecording').classlist.remove('btn-danger');
-    // document.getElementById('startRecording').classlist.add('btn-success');
 
     __log('Stopped recording.');
-    
+
     // create waveform
     createWaveForm();
     document.getElementById('textDescription').style.display="inline-block";
@@ -503,7 +484,7 @@ maxItems: 5
             }
         });
       });
-      
+
       document.getElementById('playpause').style.display="inline-block";
     });
   }
@@ -520,7 +501,7 @@ maxItems: 5
     formData.append('start', wavesurfer.regions.list.oneRegion.start);
     formData.append('length', length);
     formData.append('textDescription', textDescription.value);
-    
+
     $(document).ajaxSend(function(){
         document.getElementById('search').disabled = true;
         document.getElementById('search').innerHTML = 'Searching...';
@@ -535,7 +516,7 @@ maxItems: 5
               audio.play();
             },
             processData: false,
-            contentType:false,         
+            contentType:false,
             success: function(response) {
               document.getElementById('navtabs').style.display="flex";
               while (document.getElementById("parent_match").firstChild) {
@@ -544,7 +525,7 @@ maxItems: 5
               while (document.getElementById("parent_nomatch").firstChild) {
                 document.getElementById("parent_nomatch").removeChild(document.getElementById("parent_nomatch").firstChild);
               }
-              
+
               results = response.split(",");
               split_point = results.findIndex(parseLists);
               console.log(split_point);
@@ -574,11 +555,6 @@ maxItems: 5
                   }
                 })(i);
               }
-              // if (document.getElementById("parent_match").childElementCount<1){
-              //   var item = document.createElement("p");
-              //   item.innerHTML = "No results found that matched your text description!";
-              //   document.getElementById("parent_match").appendChild(item);
-              // }
 
               document.getElementById("searchResults_match").style.display = "inline-block";
               for (i = 0; i < no_match_results.length-1; i++) {
@@ -599,12 +575,7 @@ maxItems: 5
                   }
                 })(i);
               }
-              // if (document.getElementById("parent_nomatch").childElementCount<1){
-              //   var item = document.createElement("p");
-              //   item.innerHTML = "All results found matched your text description!";
-              //   document.getElementById("parent_nomatch").appendChild(item);
-              // }
-              
+
               document.getElementById("searchResults_nomatch").style.display = "inline-block";
               document.getElementById('search').disabled = false;
               document.getElementById('search').innerHTML = 'Search &#x1F50D;';
@@ -613,12 +584,11 @@ maxItems: 5
               $('html, body').animate({
                 scrollTop: $('#searchResults_match').offset().top - 70
               }, 800);
-              //document.getElementById('searchResults').scrollIntoView();
             },
             error: function(error) {
                 alert(error);
             }
-        })                   
+        })
   }
 
 
@@ -628,14 +598,14 @@ maxItems: 5
       window.AudioContext = window.AudioContext || window.webkitAudioContext;
       navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
       window.URL = window.URL || window.webkitURL;
-      
+
       audio_context = new AudioContext;
       __log('Audio context set up.');
       __log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
     } catch (e) {
       alert('No web audio support in this browser!');
     }
-    
+
     navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
       __log('No live audio input: ' + e);
     });
