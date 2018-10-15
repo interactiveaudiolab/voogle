@@ -1,4 +1,5 @@
 import librosa
+import logging
 import numpy as np
 from keras.models import load_model
 from QueryByVoiceModel import QueryByVoiceModel
@@ -50,11 +51,12 @@ class SiameseStyle(QueryByVoiceModel):
         # Siamese-style network requires different representation of query
         # and dataset audio
         if is_query:
-            return self._construct_representation_query(
+            representation = self._construct_representation_query(
                 audio_list[0], sampling_rates[0])
         else:
-            return self._construct_representation_dataset(
+            representation = self._construct_representation_dataset(
                 audio_list, sampling_rates)
+        return representation
 
     def load_model(self, model_filepath):
         '''
@@ -68,6 +70,7 @@ class SiameseStyle(QueryByVoiceModel):
         Returns:
             None
         '''
+        logging.info('Loading model weights from {}'.format(model_filepath))
         self.model = load_model(model_filepath)
 
     def predict(self, query, dataset):
@@ -100,7 +103,7 @@ class SiameseStyle(QueryByVoiceModel):
 
         # run model inference
         return self.model.predict(
-            [query, dataset],  batch_size=1, verbose=1)
+            [query, dataset], batch_size=1, verbose=1)
 
     def _construct_representation_query(self, query, sampling_rate):
         # resample query at 16k
@@ -120,7 +123,7 @@ class SiameseStyle(QueryByVoiceModel):
         logmelspec = librosa.power_to_db(melspec, ref=np.max)
 
         # normalize to zero mean and unit variance
-        return [self.normalize(logmelspec).astype('float32')]
+        return [self._normalize(logmelspec).astype('float32')]
 
     def _construct_representation_dataset(self, dataset, sampling_rates):
         new_sampling_rate = 44100
@@ -141,12 +144,12 @@ class SiameseStyle(QueryByVoiceModel):
             logmelspec = librosa.power_to_db(melspec, ref=np.max)
 
             # normalize to zero mean and unit variance
-            normed = self.normalize(logmelspec).astype('float32')
+            normed = self._normalize(logmelspec).astype('float32')
             spectrograms.append(normed)
 
         return spectrograms
 
-    def _normalize(x):
+    def _normalize(self, x):
         # normalize to zero mean and unit variance
         mean = x.mean(keepdims=True)
         std = x.std(keepdims=True)

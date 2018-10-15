@@ -41,8 +41,10 @@ def search():
 
 
 def str2bool(v):
-    # parses various True/False command-line arguments
-    # source: StackOverflow
+    '''
+    Parses various True/False command-line arguments
+    source: StackOverflow
+    '''
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -82,6 +84,7 @@ if __name__ == "__main__":
     dataset = dataset_factory(
         config.get('dataset_name'),
         config.get('dataset_directory'),
+        config.get('representation_directory'),
         config.get('similarity_model_batch_size'),
         config.get('representation_batch_size'),
         model)

@@ -1,5 +1,6 @@
 import librosa
 import logging
+import numpy as np
 import os
 from audioread import NoBackendError
 from QueryByVoiceDataset import QueryByVoiceDataset
@@ -52,7 +53,7 @@ class TestDataset(QueryByVoiceDataset):
                 os.listdir(self.representation_directory))
             unrepresented = self._find_audio_without_representation(
                 audio_filenames, representation_filenames)
-        except OSError as e:
+        except OSError:
             # Create representation directory
             logging.info('Representation directory not found. Building all' +
                          'representations from scratch')
@@ -75,7 +76,7 @@ class TestDataset(QueryByVoiceDataset):
         non_corresponding = []
         i = 0
         j = 0
-        while i < len(audio_filenames):
+        while i < len(audio_filenames) and j < len(representation_filenames):
             audio = audio_filenames[i]
             representation = representation_filenames[j].rsplit('.', 1)[0]
 
@@ -92,6 +93,15 @@ class TestDataset(QueryByVoiceDataset):
             else:
                 i += 1
                 j += 1
+
+        # Audio files remain that have not been processed
+        if i < len(audio_filenames):
+            unrepresented += audio_filenames[i:]
+
+        # Representations remain that do not have corresponding audio
+        elif j < len(representation_filenames):
+            for representation in representation_filenames[j:]:
+                non_corresponding.append(representation.rsplit('.', 1)[0])
 
         # Report a list of bad representations
         if non_corresponding:
@@ -148,7 +158,7 @@ class TestDataset(QueryByVoiceDataset):
                 filenames.append(filename)
             except NoBackendError:
                 # either non-audio file or bad audioread setup
-                logging.warn('The file {} could not be decoded by any \
+                logging.warning('The file {} could not be decoded by any \
                     backend. Either no backends are available or each \
                     available backend failed to decode the \
                     file'.format(filename))

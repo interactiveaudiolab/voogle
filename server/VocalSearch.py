@@ -3,7 +3,7 @@ import numpy as np
 
 class VocalSearch(object):
     '''
-    TODO
+    A query-by-voice system.
     '''
 
     def __init__(self, model, dataset):
@@ -21,7 +21,15 @@ class VocalSearch(object):
 
     def search(self, query, sampling_rate):
         '''
-        TODO
+        Search the dataset for the closest match to the given vocal query.
+
+        Arguments:
+            query: A 1D numpy array. The vocal query.
+            sampling_rate: An integer. The sampling rate of the query.
+
+        Returns:
+            A list. The names of audio files within the database sorted in
+                descending order of similarity with the user query.
         '''
         # Construct query representation
         query = self.model.construct_representation(
@@ -32,11 +40,13 @@ class VocalSearch(object):
         filenames = []
         for batch, batch_filenames in self.dataset:
             model_output.append(self.model.predict(query, batch))
-            filenames.concatenate(batch_filenames)
+            filenames += batch_filenames
         model_output = np.array(model_output).flatten()
 
         # Determine ranking
         sorted_index = np.argsort(model_output.flatten())[::-1]
 
+        print('model_output: {}, sorted_index: {}, sorted files: {}'.format(
+            model_output, sorted_index, list(np.array(filenames)[sorted_index])))
         # Sort the files by similarity rank
-        return filenames[sorted_index].to_list()
+        return list(np.array(filenames)[sorted_index])

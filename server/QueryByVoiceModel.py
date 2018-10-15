@@ -22,7 +22,7 @@ class QueryByVoiceModel(ABC):
         pass
 
     @abstractmethod
-    def construct_representation(self, audio_list, sampling_rate, is_query):
+    def construct_representation(self, audio_list, sampling_rates, is_query):
         '''
         Constructs the audio representation used during inference. Audio
         files from the dataset are constructed only once and cached for
