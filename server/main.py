@@ -86,7 +86,6 @@ if __name__ == "__main__":
         config.get('representation_batch_size'),
         model)
 
-    app.config.update(vars(args))
     app.config.update(config)
-    app.config.update({'vocal_search' : VocalSearch(model, dataset)})
+    app.config.update({'vocal_search': VocalSearch(model, dataset)})
     app.run(debug=args.debug, threaded=args.threaded)

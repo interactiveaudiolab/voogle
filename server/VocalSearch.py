@@ -27,14 +27,6 @@ class VocalSearch(object):
         query = self.model.construct_representation(
             [query], [sampling_rate], True)
 
-        # run model inference and return the matching files in order of
-        # similarity
-        return self.inference(query[0], self.model, self.dataset)
-
-    def inference(self, query):
-        '''
-        TODO
-        '''
         # Retrieve the similarity measure between query and each dataset entry
         model_output = []
         filenames = []

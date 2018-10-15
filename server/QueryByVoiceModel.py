@@ -4,16 +4,11 @@ from abc import ABC, abstractmethod
 class QueryByVoiceModel(ABC):
     '''
     Abstract base class for a query-by-voice machine learning model
-
-    Notes:
-        - should construct_representation take a generator as input to
-          handle datasets that do not fit into memory? this would make
-          construct_representation also responsible for writing to disk
-            - the generator could take a batch size as an argument to
-              permit arbitrary batching
-            - this would also necessitate predict taking a generator
     '''
     def __init__(self):
+        '''
+        QueryByVoiceModel constructor.
+        '''
         self.model = None
 
     @abstractmethod
