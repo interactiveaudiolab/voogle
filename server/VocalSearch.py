@@ -46,7 +46,5 @@ class VocalSearch(object):
         # Determine ranking
         sorted_index = np.argsort(model_output.flatten())[::-1]
 
-        print('model_output: {}, sorted_index: {}, sorted files: {}'.format(
-            model_output, sorted_index, list(np.array(filenames)[sorted_index])))
         # Sort the files by similarity rank
         return list(np.array(filenames)[sorted_index])
