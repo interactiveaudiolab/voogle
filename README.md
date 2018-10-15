@@ -3,7 +3,7 @@ VocalSearch is an audio search engine that uses vocal imitations of the desired 
 
 ## Installation
 ### Server
-VocalSearch backend dependencies are installed with pip:
+VocalSearch backend dependencies are installed with
 
 ```
 pip install -r requirements.txt
@@ -14,9 +14,9 @@ pip install -r requirements.txt
 ### Interface
 VocalSearch frontend dependencies are installed with npm:
 
-'''
+```
 npm install
-'''
+```
 
 **Note:** You will need to have [Node.js](https://nodejs.org/en/) installed.
 
