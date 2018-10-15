@@ -51,5 +51,6 @@ class TestSiameseStyle(unittest.TestCase):
         # Make sure the model can handle trivial cases
         self.assertTrue(predictions[0] > predictions[1])
 
+
 if __name__ == '__main__':
     unittest.main()
