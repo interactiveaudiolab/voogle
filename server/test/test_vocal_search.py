@@ -17,7 +17,7 @@ class TestVocalSearch(unittest.TestCase):
 
         dataset_directory = os.path.realpath('data/audio/test_dataset')
         representation_directory = os.path.realpath(
-            '../data/representations/test_dataset')
+            'data/representations/test_dataset')
         dataset = TestDataset(dataset_directory, representation_directory)
         dataset = dataset.data_generator(model)
         self.vocal_search = VocalSearch(model, dataset)
