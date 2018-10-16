@@ -1,17 +1,17 @@
-// TODO: get linter working
 import React from 'react';
 import WaveSurfer from 'wavesurfer.js';
 
 export default class VocalSearch extends React.Component {
     constructor(props) {
         super(props);
-        // TODO: fix reference issue. Need an object that accepts
-        // this.container.appendChild
         this.state = {
-            audioStream: this.getAudioStream(),
-            wavesurfer: WaveSurfer.create({container: React.createRef()})
+            audioStream: this.getAudioStream()
         };
-        console.log(this.state.audioStream);
+        this.waveform = React.createRef();
+    }
+
+    componentDidMount() {
+        this.wavesurfer = new WaveSurfer({ container: this.waveform.current });
     }
 
     /**
@@ -30,16 +30,9 @@ export default class VocalSearch extends React.Component {
     }
 
     render() {
-        // return (
-        //     <div id='vocalsearch'>
-        //         <h1>Hello React!</h1>
-        //         <div ref={this.wavesurfer.container}></div>
-        //     </div>
-        // )
-        console.log('rendering')
         return (
             <div className='vocalsearch'>
-                Hello React!
+                <div className='waveform' ref={this.waveform}/>
             </div>
         )
     }
