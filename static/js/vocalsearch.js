@@ -1,32 +1,27 @@
 import React from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import Microphone from 'wavesurfer.js/dist/plugin/wavesurfer.microphone.js';
+import testAudio from '../audio/harp.wav';
 
 export default class VocalSearch extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            audioStream: this.getAudioStream()
-        };
         this.waveform = React.createRef();
     }
 
     componentDidMount() {
-        this.wavesurfer = new WaveSurfer({ container: this.waveform.current });
-    }
-
-    /**
-     * Requests user permission for audio recording.
-     *
-     * @returns {MediaStream} The user's audio stream.
-     */
-    getAudioStream = () => {
-        const constraints = {audio: true, video: false};
-        return (navigator.mediaDevices.getUserMedia(constraints)
-            .catch((error) => this.handleStreamAccessError(error)));
-    }
-
-    handleStreamAccessError = (error) => {
-        /* TODO */
+        this.wavesurfer = WaveSurfer.create({
+            container: this.waveform.current,
+            waveColor: 'violet',
+            progressColor: 'purple',
+            hideScrollbar: true,
+            scrollParent: true,
+            cursorWidth: 0
+        });
+        this.wavesurfer.load(testAudio);
+        // TODO: load an audio file to test waveform
+        this.microphone = new Microphone({ wavesurfer: this.wavesurfer });
+        this.microphone.start();
     }
 
     render() {
