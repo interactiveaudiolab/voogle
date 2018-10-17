@@ -1,7 +1,7 @@
 import React from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import Microphone from 'wavesurfer.js/dist/plugin/wavesurfer.microphone.js';
-import testAudio from '../audio/harp.wav';
+import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone.js';
+import testAudio from '../audio/harp.wav'
 
 export default class VocalSearch extends React.Component {
     constructor(props) {
@@ -16,12 +16,10 @@ export default class VocalSearch extends React.Component {
             progressColor: 'purple',
             hideScrollbar: true,
             scrollParent: true,
-            cursorWidth: 0
+            cursorWidth: 0,
+            plugins: [MicrophonePlugin.create({})]
         });
-        this.wavesurfer.load(testAudio);
-        // TODO: load an audio file to test waveform
-        this.microphone = new Microphone({ wavesurfer: this.wavesurfer });
-        this.microphone.start();
+        this.wavesurfer.microphone.start();
     }
 
     render() {

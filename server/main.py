@@ -17,7 +17,7 @@ def hello():
 
 @app.route('/search', methods=['POST'])
 def search():
-    # user's query
+    # fetch user's query
     query = request.files['query']
     sampling_rate = request.form['sampling_rate']
 
