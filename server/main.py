@@ -1,3 +1,7 @@
+# TODO use github issues
+# TODO pass filenames to frontend
+# TODO log file
+# TODO regenerate representation on wav file update
 import argparse
 import librosa
 import logging
