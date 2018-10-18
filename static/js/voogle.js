@@ -1,3 +1,4 @@
+// TODO: why does this only work when npm is deployed on port 8080?
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
@@ -25,6 +26,7 @@ class Voogle extends React.Component {
     }
 
     componentDidMount() {
+        console.log('mounted');
         // Construct the waveform display
         this.wavesurfer = WaveSurfer.create({
             container: this.waveform.current,
@@ -52,6 +54,8 @@ class Voogle extends React.Component {
         // Get the sampling rate at which audio processing occurs
         this.samplingRate = this.audioContext.sampleRate;
 
+        console.log('requesting mic access');
+
         // Request mic access
         navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
             (stream) => {
@@ -59,10 +63,15 @@ class Voogle extends React.Component {
                 this.audioStream = this.audioContext.createMediaStreamSource(
                     stream);
 
+                console.log('constructing recorder');
+
                 // Plug mic into recorder and recorder into waveform
                 this.recorder = new Recorder(
                     this.audioStream, { numChannels: 1});
+
             }
+        ).catch(
+            (error) => console.log(error)
         );
     }
 

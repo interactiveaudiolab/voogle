@@ -1,3 +1,4 @@
+import logging
 from SiameseStyle import SiameseStyle
 from TestDataset import TestDataset
 
@@ -14,12 +15,17 @@ def model_factory(model_name, model_filepath):
     Returns:
         A QueryByVoiceModel.
     '''
+    logging.debug('Attempting to load the {} model from {}'.format(
+        model_name, model_filepath))
+
     if model_name == 'siamese-style':
         model = SiameseStyle()
     else:
         raise ValueError('Model {} is not defined'.format(model_name))
 
     model.load_model(model_filepath)
+
+    logging.debug('Model loading complete')
     return model
 
 
@@ -45,10 +51,18 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
     Returns:
         A python generator used to generate representations.
     '''
+    logging.debug('Attempting to construct generator for the {} dataset in {}. \
+        Representations will be stored in {}'.format(
+        dataset_name, dataset_directory, representation_directory))
+
     if dataset_name == 'test_dataset':
         dataset = TestDataset(dataset_directory, representation_directory)
     else:
         raise ValueError('Dataset {} is not defined'.format(dataset_name))
 
-    return dataset.data_generator(
+    data_generator = dataset.data_generator(
         model, similarity_model_batch_size, representation_batch_size)
+
+    logging.debug('Data generator construction complete.')
+
+    return data_generator

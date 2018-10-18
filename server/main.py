@@ -4,22 +4,28 @@
 import argparse
 import librosa
 import logging
+import os
 import yaml
-from flask import Flask, render_template, request
+from flask import Flask, request, send_from_directory
 from factory import dataset_factory, model_factory
 from VocalSearch import VocalSearch
 # TODO: If we want concurrent user access, we will need something more powerful
 # than our current Flask setup
-app = Flask(__name__)
+executable_filepath = os.path.abspath(__file__)
+static_folder = os.path.join(os.path.dirname(executable_filepath), 'build')
+app = Flask(__name__, static_folder=static_folder)
 
 
-@app.route("/")
-def hello():
-    return render_template('index.html')
+@app.route('/')
+def index():
+    logging.debug('Rendering index.html from root')
+    return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/search', methods=['POST'])
 def search():
+    logging.debug('Retrieved search request')
+
     # fetch user's query
     query = request.files['query']
     sampling_rate = request.form['sampling_rate']
@@ -56,25 +62,32 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # set up parser to grab optional inputs:
     #   -c specifies the .yaml config file
     #   -d specifies debug mode on/off
     #   -t specifies threading on/off
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c", "--config", type=str,
-        help="The filepath of the yaml config you wish to use.",
-        default="./config/test.yaml")
+        '-c', '--config', type=str,
+        help='The filepath of the yaml config you wish to use.',
+        default='./config/test.yaml')
     parser.add_argument(
-        "-d", "--debug", type=str2bool,
-        help="Sets debug=\"true\" if \"True\", false otherwise.",
+        '-d', '--debug', type=str2bool,
+        help='Sets debug=\'true\' if \'True\', false otherwise.',
         default=False)
     parser.add_argument(
-        "-t", "--threaded", type=str2bool,
-        help="Sets threaded=\"true\" if \"True\", false otherwise.",
+        '-t', '--threaded', type=str2bool,
+        help='Sets threaded=\'true\' if \'True\', false otherwise.',
         default=False)
     args = parser.parse_args()
+
+    # Setup program logging
+    log_file = os.path.join(os.path.dirname(executable_filepath), 'server.log')
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG,
+        format='%(asctime)s %(message)s')
 
     # Load the config file
     config = yaml.safe_load(open(args.config))
