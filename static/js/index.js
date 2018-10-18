@@ -1,5 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import VocalSearch from './vocalsearch.js'
+import Voogle from './voogle.js'
 
-ReactDOM.render(<VocalSearch />, document.getElementById('root'));
+ReactDOM.render(<Voogle />, document.getElementById('root'));

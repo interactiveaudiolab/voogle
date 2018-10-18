@@ -1,0 +1,7 @@
+.waveform{
+  position:relative;
+  width: 100%;
+  display: inline-block;
+  border: hidden 3px;
+  background-color: gray;
+}

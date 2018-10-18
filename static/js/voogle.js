@@ -1,8 +1,11 @@
 import React from 'react';
-import WaveSurfer from 'wavesurfer.js';
 import Recorder from './recorder.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
+import WaveSurfer from 'wavesurfer.js';
 
-class VocalSearch extends React.Component {
+import waveStyle from '../css/wavesurfer.css';
+
+class Voogle extends React.Component {
     constructor(props) {
         super(props);
 
@@ -28,6 +31,7 @@ class VocalSearch extends React.Component {
             cursorColor: 'black',
             hideScrollbar: true,
             pixelRatio: 1,
+            plugins: [RegionsPlugin.create()],
             progressColor: 'purple',
             responsive: true,
             waveColor: 'violet',
@@ -54,6 +58,7 @@ class VocalSearch extends React.Component {
                 // Plug the user's mic into the graph
                 this.audioStream = this.audioContext.createMediaStreamSource(
                     stream);
+
                 // Plug mic into recorder and recorder into waveform
                 this.recorder = new Recorder(
                     this.audioStream, { numChannels: 1});
@@ -66,16 +71,26 @@ class VocalSearch extends React.Component {
         // send the update to the recorder.
         if (this.state.recording != prevState.recording) {
             if (this.state.recording) {
+                // Clear the level-detected region on the waveform
+                this.wavesurfer.clearRegions();
+
+                // Start recording
                 this.recorder.record();
 
                 // Periodically draw the recorded waveform
                 this.timerId = setInterval(this.draw, this.props.drawingRate);
             } else {
+                // Stop recording
                 this.recorder.stop();
+
+                // Indicate that a query is available
                 this.setState({ hasRecorded: true });
 
                 // Stop drawing new audio
                 clearInterval(this.timerId);
+
+                // Find the user's audio via level detection
+                this.drawRegion();
             }
         }
 
@@ -97,10 +112,49 @@ class VocalSearch extends React.Component {
         });
     }
 
+    drawRegion = () => {
+        // Grab the audio buffer
+        let buffer = this.wavesurfer.backend.buffer.getChannelData(0);
+
+        // Find the first location at which the audio exceeds the threshold
+        // level
+        let start = buffer.findIndex((x) => {
+            return Math.abs(x) > this.props.regionStartThreshold;
+        });
+
+        // Find the last location at which the audio exceeds the threshold level
+        let end = buffer.length - buffer.reverse().findIndex((x) => {
+            return Math.abs(x) > this.props.regionEndThreshold;
+        });
+
+        // If audio never exceeded either threshold, set the entire buffer as
+        // the region
+        if (start == -1 || end == -1) {
+            start = 0;
+            end = buffer.length;
+        }
+
+        // Convert to seconds and grab the surrounding audio
+        start = start / this.samplingRate - this.props.regionTolerance;
+        end = end / this.samplingRate + this.props.regionTolerance;
+
+        // Clip the audio to the bounds of the buffer
+        start = Math.max(0, start);
+        end = Math.min(this.wavesurfer.getDuration(), end);
+
+        // Add the region
+        this.wavesurfer.addRegion({
+            id: 'queryRegion',
+            start: start,
+            end: end,
+            color: 'purple'
+        });
+    }
+
     render() {
         return (
-            <div className='vocalsearch'>
-                <div className='waveform' ref={this.waveform}/>
+            <div className='Voogle'>
+                <div className={waveStyle.waveform} ref={this.waveform}/>
                 <button onClick={this.toggleRecording}>
                     {this.state.recordButtonText}
                 </button>
@@ -117,14 +171,18 @@ class VocalSearch extends React.Component {
     search = () => {
         // Event handler for the search button
         if (this.state.hasRecorded) {
-            // TODO: clip audio to region
             this.recorder.exportWAV(this.sendQuery);
         }
     }
 
     sendQuery = (query) => {
+        let start = this.wavesurfer.regions.list.queryRegion.start;
+        let end = this.wavesurfer.regions.list.queryRegion.end;
+
         let formData = new FormData;
         formData.append('query', query);
+        formData.append('start', start);
+        formData.append('end', end);
         formData.append('sampling_rate', this.samplingRate);
 
         fetch('/search', {
@@ -168,9 +226,19 @@ class VocalSearch extends React.Component {
     }
 }
 
-VocalSearch.defaultProps = {
-    // The time in milliseconds between waveform updates
-    drawingRate: 500
+Voogle.defaultProps = {
+    // The time (in milliseconds) between waveform updates
+    drawingRate: 500,
+
+    // The minimum audio buffer value above which automatic region placement
+    // will begin
+    regionStartThreshold: 0.10,
+
+    // The level below which the automatically placed region will end
+    regionEndThreshold: 0.05,
+
+    // The amount of time (in seconds) to add to either side
+    regionTolerance: 0.25
 };
 
-export default VocalSearch;
+export default Voogle;
