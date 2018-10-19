@@ -8,7 +8,9 @@
     "build": "webpack --mode production",
     "start": "webpack-dev-server --open --mode development",
     "production": "npm run build && npm run serve",
-    "serve": "python server/app.py"
+    "development": "npm run build && npm run serve-dev",
+    "serve": "python server/app.py",
+    "serve-dev": "python server/app.py -d True"
   },
   "repository": {
     "type": "git",

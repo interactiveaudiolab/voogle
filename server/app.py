@@ -18,16 +18,13 @@ logger = logging.getLogger('root')
 
 # TODO: If we want concurrent user access, we will need something more powerful
 # than our current Flask setup
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_folder='../build')
 
 
 @app.route('/')
 def index():
     logger.debug('Rendering index.html from root')
-    filepath = os.path.abspath(__file__)
-    build_folder = os.path.join(
-        os.path.dirname(os.path.dirname(filepath)), 'build')
-    return send_from_directory(build_folder, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/search', methods=['POST'])

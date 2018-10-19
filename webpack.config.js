@@ -77,7 +77,7 @@ const prodSettings = {
   output: {
     path: paths.build,
     filename: 'bundle.[hash].js',
-    publicPath: '/'
+    publicPath: '/build/'
   },
   optimization: {
     minimize: true
