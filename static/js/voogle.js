@@ -194,7 +194,7 @@ class Voogle extends React.Component {
         formData.append('end', end);
         formData.append('sampling_rate', this.samplingRate);
 
-        fetch('/search', {
+        fetch('https://localhost:5000/search', {
             method: 'POST',
             body: formData
         }).then(matches => this.setState({ matches: matches }));

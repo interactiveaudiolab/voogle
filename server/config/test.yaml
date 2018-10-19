@@ -1,16 +1,16 @@
 # similarity model
 model_name: siamese-style
-model_filepath: ./model/default_model.h5
+model_filepath: ./server/model/default_model.h5
 
 # dataset of audio files to be queried
 dataset_name: test_dataset
-dataset_directory: ./data/audio/test_dataset
+dataset_directory: ./server/data/audio/test_dataset
 
 # directory for storing preprocessed or embedded data
-representation_directory: ./data/representations/test_dataset
+representation_directory: ./server/data/representations/test_dataset
 
 # directory for storing user queries
-query_path: ./data/queries
+query_path: ./server/data/queries
 
 # batch size of audio representation construction
 representation_batch_size: 128

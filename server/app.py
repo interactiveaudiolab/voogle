@@ -1,30 +1,38 @@
 # TODO pass filenames to frontend
-# TODO log file
+# TODO prevent duplicate log file entries
 # TODO regenerate representation on wav file update
+# TODO get pylint working again
 import argparse
 import librosa
 import logging
 import os
 import yaml
 from flask import Flask, request, send_from_directory
+from flask import Flask
 from factory import dataset_factory, model_factory
 from VocalSearch import VocalSearch
+
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('root')
+
 # TODO: If we want concurrent user access, we will need something more powerful
 # than our current Flask setup
-executable_filepath = os.path.abspath(__file__)
-static_folder = os.path.join(os.path.dirname(executable_filepath), 'build')
-app = Flask(__name__, static_folder=static_folder)
+app = Flask(__name__, static_url_path='')
 
 
 @app.route('/')
 def index():
-    logging.debug('Rendering index.html from root')
-    return send_from_directory(app.static_folder, 'index.html')
+    logger.debug('Rendering index.html from root')
+    filepath = os.path.abspath(__file__)
+    build_folder = os.path.join(
+        os.path.dirname(os.path.dirname(filepath)), 'build')
+    return send_from_directory(build_folder, 'index.html')
 
 
 @app.route('/search', methods=['POST'])
 def search():
-    logging.debug('Retrieved search request')
+    logger.debug('Retrieved search request')
 
     # fetch user's query
     query = request.files['query']
@@ -39,7 +47,7 @@ def search():
         vocal_search = app.config.get('vocal_search')
         ranked_matches = vocal_search.search_audio(
             query, sampling_rate, model, dataset)
-        logging.info(ranked_matches)
+        logger.info(ranked_matches)
 
         # Pass the results to the frontend
         return ','.join(ranked_matches)
@@ -71,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-c', '--config', type=str,
         help='The filepath of the yaml config you wish to use.',
-        default='./config/test.yaml')
+        default='./server/config/test.yaml')
     parser.add_argument(
         '-d', '--debug', type=str2bool,
         help='Sets debug=\'true\' if \'True\', false otherwise.',
@@ -82,21 +90,14 @@ if __name__ == '__main__':
         default=False)
     args = parser.parse_args()
 
-    # Setup program logging
-    log_file = os.path.join(os.path.dirname(executable_filepath), 'server.log')
-    logging.basicConfig(
-        filename=log_file,
-        level=logging.DEBUG,
-        format='%(asctime)s %(message)s')
-
-    # Load the config file
+    # # Load the config file
     config = yaml.safe_load(open(args.config))
 
-    # Setup the model on the server
+    # # Setup the model on the server
     model = model_factory(
         config.get('model_name'), config.get('model_filepath'))
 
-    # Get a generator for the audio representations
+    # # Get a generator for the audio representations
     dataset = dataset_factory(
         config.get('dataset_name'),
         config.get('dataset_directory'),
@@ -105,6 +106,8 @@ if __name__ == '__main__':
         config.get('representation_batch_size'),
         model)
 
+    vocal_search = VocalSearch(model, dataset)
+
     app.config.update(config)
-    app.config.update({'vocal_search': VocalSearch(model, dataset)})
+    app.config.update({'vocal_search': vocal_search})
     app.run(debug=args.debug, threaded=args.threaded)

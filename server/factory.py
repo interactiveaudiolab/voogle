@@ -1,7 +1,12 @@
 import logging
+import logging.config
+import os
 from SiameseStyle import SiameseStyle
 from TestDataset import TestDataset
 
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('factory')
 
 def model_factory(model_name, model_filepath):
     '''
@@ -15,7 +20,7 @@ def model_factory(model_name, model_filepath):
     Returns:
         A QueryByVoiceModel.
     '''
-    logging.debug('Attempting to load the {} model from {}'.format(
+    logger.debug('Attempting to load the {} model from {}'.format(
         model_name, model_filepath))
 
     if model_name == 'siamese-style':
@@ -25,7 +30,7 @@ def model_factory(model_name, model_filepath):
 
     model.load_model(model_filepath)
 
-    logging.debug('Model loading complete')
+    logger.debug('Model loading complete')
     return model
 
 
@@ -51,7 +56,7 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
     Returns:
         A python generator used to generate representations.
     '''
-    logging.debug('Attempting to construct generator for the {} dataset in {}. \
+    logger.debug('Attempting to construct generator for the {} dataset in {}. \
         Representations will be stored in {}'.format(
         dataset_name, dataset_directory, representation_directory))
 
@@ -63,6 +68,6 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
     data_generator = dataset.data_generator(
         model, similarity_model_batch_size, representation_batch_size)
 
-    logging.debug('Data generator construction complete.')
+    logger.debug('Data generator construction complete.')
 
     return data_generator

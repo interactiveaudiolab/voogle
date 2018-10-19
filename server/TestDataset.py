@@ -1,9 +1,14 @@
 import librosa
 import logging
+import logging.config
 import numpy as np
 import os
 from audioread import NoBackendError
 from QueryByVoiceDataset import QueryByVoiceDataset
+
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('TestDataset')
 
 
 class TestDataset(QueryByVoiceDataset):
@@ -55,7 +60,7 @@ class TestDataset(QueryByVoiceDataset):
                 audio_filenames, representation_filenames)
         except OSError:
             # Create representation directory
-            logging.info('Representation directory not found. Building all' +
+            logger.info('Representation directory not found. Building all' +
                          'representations from scratch')
             os.makedirs(self.representation_directory)
             representation_filenames = []
@@ -105,7 +110,7 @@ class TestDataset(QueryByVoiceDataset):
 
         # Report a list of bad representations
         if non_corresponding:
-            logging.warning('Found representations not corresponding to any ' +
+            logger.warning('Found representations not corresponding to any ' +
                             'known audio file: {}'.format(non_corresponding))
 
         return unrepresented
@@ -158,7 +163,7 @@ class TestDataset(QueryByVoiceDataset):
                 filenames.append(filename)
             except NoBackendError:
                 # either non-audio file or bad audioread setup
-                logging.warning('The file {} could not be decoded by any \
+                logger.warning('The file {} could not be decoded by any \
                     backend. Either no backends are available or each \
                     available backend failed to decode the \
                     file'.format(filename))

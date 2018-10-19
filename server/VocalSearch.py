@@ -1,4 +1,11 @@
+import logging
+import logging.config
 import numpy as np
+import os
+
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('VocalSearch')
 
 
 class VocalSearch(object):
@@ -16,8 +23,12 @@ class VocalSearch(object):
             dataset: A python generator. The generator used to load audio
                 representations for similarity ranking.
         '''
+        logger.debug('Initializing')
+
         self.model = model
         self.dataset = dataset
+
+        logger.debug('Initialization complete')
 
     def search(self, query, sampling_rate):
         '''

@@ -1,9 +1,14 @@
 import librosa
 import logging
+import logging.config
 import numpy as np
+import os
 from keras.models import load_model
 from QueryByVoiceModel import QueryByVoiceModel
 
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('SiameseStyle')
 
 class SiameseStyle(QueryByVoiceModel):
     '''
@@ -70,7 +75,7 @@ class SiameseStyle(QueryByVoiceModel):
         Returns:
             None
         '''
-        logging.info('Loading model weights from {}'.format(model_filepath))
+        logger.info('Loading model weights from {}'.format(model_filepath))
         self.model = load_model(model_filepath)
 
     def predict(self, query, dataset):
