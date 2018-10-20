@@ -52,5 +52,15 @@
   "dependencies": {
     "inline-worker": "^1.1.0",
     "wavesurfer.js": "^2.1.0"
+  },
+  "babel": {
+    "presets": [
+        "@babel/preset-env",
+        "@babel/preset-react"
+    ],
+    "plugins":
+    [
+      "@babel/plugin-proposal-class-properties"
+    ]
   }
 }

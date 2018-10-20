@@ -5,23 +5,39 @@ class QueryByVoiceDataset(ABC):
     '''
     Abstract base class for an audio dataset for query-by-voice systems
     '''
-
-    @abstractmethod
-    def data_generator(self, similarity_model_batch_size=None,
-                       reprsentation_batch_size=None):
+    def __init__(self,
+            dataset_directory,
+            representation_directory,
+            similarity_model_batch_size,
+            representation_batch_size,
+            model):
         '''
-        Provides a generator for loading audio representations.
+        Dataset constructor.
 
         Arguments:
+            dataset_directory: A string. The directory containing the dataset.
+            representation_directory: A string. The directory containing the
+                pre-constructed representations. If the directory does not
+                exist, it will be created along with all audio representations
+                for this dataset.
+            representation_batch_size: An integer or None. The maximum number
+                of audio files to load during one batch of representation
+                construction.
             similarity_model_batch_size: An integer or None. The maximum number
-                of audio representations to return upon each call to the
-                generator. If None, all representations are returned.
-            reprsentation_batch_size: An integer or None. The maximum number of
-                audio files to load into memory at once during representation
-                construction. If None, all audio files are loaded and processed
-                at once.
+                of representations to load during one batch of model inference.
             model: A QueryByVoiceModel. The model to be used in representation
                 construction.
+        '''
+        self.dataset_directory = dataset_directory
+        self.representation_directory = representation_directory
+        self.similarity_model_batch_size = similarity_model_batch_size
+        self.representation_batch_size = representation_batch_size
+        self.model = model
+
+    @abstractmethod
+    def data_generator(self):
+        '''
+        Provides a generator for loading audio representations.
 
         Returns:
             A python generator.

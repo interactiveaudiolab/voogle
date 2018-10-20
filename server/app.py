@@ -5,7 +5,9 @@
 import argparse
 import librosa
 import logging
+import numpy as np
 import os
+import wave
 import yaml
 from flask import Flask, request, send_from_directory
 from flask import Flask
@@ -32,18 +34,30 @@ def search():
     logger.debug('Retrieved search request')
 
     # fetch user's query
-    query = request.files['query']
+    query_file = request.files['query']
     sampling_rate = request.form['sampling_rate']
+    offset = request.form['start']
+    duration = request.form['length']
 
-    if query:
+    if query_file:
+        logger.debug('Retrieved user query')
+
         # write query to disk
+        # TODO: each query should be unique
+        # TODO: saved file is not clipped to region bounds
         query_filepath = app.config.get('query_path') + '/query.wav'
-        librosa.output.write_wav(query_filepath, query, sampling_rate)
+        query_file.save(query_filepath)
+
+        # TODO: convert file object directly instead of reloading from disk
+        query, sampling_rate = librosa.load(
+            query_filepath,
+            sr=None,
+            offset=float(offset),
+            duration=float(duration))
 
         # run a similarity search between the query and the audio dataset
         vocal_search = app.config.get('vocal_search')
-        ranked_matches = vocal_search.search_audio(
-            query, sampling_rate, model, dataset)
+        ranked_matches = vocal_search.search(query, sampling_rate)
         logger.info(ranked_matches)
 
         # Pass the results to the frontend

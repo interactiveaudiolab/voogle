@@ -54,20 +54,22 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
             system. Defines the audio representation.
 
     Returns:
-        A python generator used to generate representations.
+        A Dataset object.
     '''
-    logger.debug('Attempting to construct generator for the {} dataset in {}. \
+    logger.debug('Attempting to construct the {} dataset in {}. \
         Representations will be stored in {}'.format(
         dataset_name, dataset_directory, representation_directory))
 
     if dataset_name == 'test_dataset':
-        dataset = TestDataset(dataset_directory, representation_directory)
+        dataset = TestDataset(
+            dataset_directory,
+            representation_directory,
+            similarity_model_batch_size,
+            representation_batch_size,
+            model)
     else:
         raise ValueError('Dataset {} is not defined'.format(dataset_name))
 
-    data_generator = dataset.data_generator(
-        model, similarity_model_batch_size, representation_batch_size)
+    logger.debug('Dataset construction complete.')
 
-    logger.debug('Data generator construction complete.')
-
-    return data_generator
+    return dataset

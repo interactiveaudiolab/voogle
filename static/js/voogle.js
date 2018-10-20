@@ -16,6 +16,7 @@ class Voogle extends React.Component {
             playing: false,
             recordButtonText: 'Record',
             recording: false,
+            matches: null
         }
 
         // A handle for the periodic drawing event
@@ -112,6 +113,19 @@ class Voogle extends React.Component {
                 this.wavesurfer.pause();
             }
         }
+
+        // If new matches for the target's query are available, render them
+        if (this.state.matches != prevState.matches) {
+            console.log(this.state.matches);
+        }
+    }
+
+    clear = () => {
+        // Erase the recorded audio
+        this.recorder.clear();
+        this.wavesurfer.empty();
+        this.wavesurfer.clearRegions();
+        this.setState({hasRecorded: false});
     }
 
     draw = () => {
@@ -173,6 +187,9 @@ class Voogle extends React.Component {
                 <button onClick={this.search}>
                     Search
                 </button>
+                <button onClick={this.clear}>
+                    Clear
+                </button>
             </div>
         )
     }
@@ -191,13 +208,17 @@ class Voogle extends React.Component {
         let formData = new FormData;
         formData.append('query', query);
         formData.append('start', start);
-        formData.append('end', end);
+        formData.append('length', end - start);
         formData.append('sampling_rate', this.samplingRate);
 
-        fetch('https://localhost:5000/search', {
+        fetch('/search', {
             method: 'POST',
             body: formData
-        }).then(matches => this.setState({ matches: matches }));
+        }).then(response => {
+            response.text().then(text => {
+                this.setState({ matches: text.split(',') });
+            });
+        });
     }
 
     togglePlayback = () => {

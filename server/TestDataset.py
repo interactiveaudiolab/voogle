@@ -16,7 +16,12 @@ class TestDataset(QueryByVoiceDataset):
     A small dataset for testing query-by-voice systems
     '''
 
-    def __init__(self, dataset_directory, representation_directory):
+    def __init__(self,
+            dataset_directory,
+            representation_directory,
+            similarity_model_batch_size,
+            representation_batch_size,
+            model):
         '''
         TestDataset constructor.
 
@@ -26,30 +31,21 @@ class TestDataset(QueryByVoiceDataset):
                 pre-constructed representations. If the directory does not
                 exist, it will be created along with all audio representations
                 for this dataset.
-        '''
-        super(TestDataset, self).__init__()
-        self.dataset_directory = dataset_directory
-        self.representation_directory = representation_directory
-
-    def data_generator(self, model, similarity_model_batch_size=None,
-                       reprsentation_batch_size=None):
-        '''
-        Provides a generator for loading audio representations.
-
-        Arguments:
+            representation_batch_size: An integer or None. The maximum number
+                of audio files to load during one batch of representation
+                construction.
             similarity_model_batch_size: An integer or None. The maximum number
-                of audio representations to return upon each call to the
-                generator. If None, all representations are returned.
-            reprsentation_batch_size: An integer or None. The maximum number of
-                audio files to load into memory at once during representation
-                construction. If None, all audio files are loaded and processed
-                at once.
+                of representations to load during one batch of model inference.
             model: A QueryByVoiceModel. The model to be used in representation
                 construction.
-
-        Returns:
-            A python generator.
         '''
+        super(TestDataset, self).__init__(
+            dataset_directory,
+            representation_directory,
+            similarity_model_batch_size,
+            representation_batch_size,
+            model)
+
         # Get all files in dataset
         audio_filenames = sorted(os.listdir(self.dataset_directory))
         try:
@@ -68,12 +64,32 @@ class TestDataset(QueryByVoiceDataset):
 
         # Build the representations and write them to the representation
         # directory
-        self._build_representations(
-            unrepresented, reprsentation_batch_size, model)
+        self._build_representations(unrepresented)
 
-        # Construct the generator for the audio representations
-        return self._build_representation_generator(
-            similarity_model_batch_size)
+    def data_generator(self):
+        '''
+        Provides a generator for loading audio representations.
+
+        Returns:
+            A python generator.
+        '''
+        representations = []
+        filenames = []
+        for filename in os.listdir(self.representation_directory):
+
+            # Read in a representation
+            filepath = os.path.join(self.representation_directory, filename)
+            representation = np.load(filepath)
+            representations.append(representation)
+            filenames.append(filename.rsplit('.', 1)[0])
+
+            # If we've successfully read a batch, yield the batch
+            batch_size = self.representation_batch_size
+            if batch_size and len(representations) == batch_size:
+                yield representations
+                representations = []
+
+        yield representations, filenames
 
     def _find_audio_without_representation(self, audio_filenames,
                                            representation_filenames):
@@ -115,13 +131,13 @@ class TestDataset(QueryByVoiceDataset):
 
         return unrepresented
 
-    def _build_representations(self, audio_filenames, batch_size, model):
+    def _build_representations(self, audio_filenames):
         # Build a generator for reading in audio
-        generator = self._build_audio_generator(audio_filenames, batch_size)
+        generator = self._build_audio_generator(audio_filenames)
 
         # Build audio representations in batches
         for audio, sampling_rates, filenames in generator:
-            representations = model.construct_representation(
+            representations = self.model.construct_representation(
                 audio, sampling_rates, is_query=False)
 
             # Save each representation as its own .npy file
@@ -131,25 +147,7 @@ class TestDataset(QueryByVoiceDataset):
                     self.representation_directory, filename)
                 np.save(filepath + '.npy', representation)
 
-    def _build_representation_generator(self, batch_size):
-        representations = []
-        filenames = []
-        for filename in os.listdir(self.representation_directory):
-
-            # Read in a representation
-            filepath = os.path.join(self.representation_directory, filename)
-            representation = np.load(filepath)
-            representations.append(representation)
-            filenames.append(filename.rsplit('.', 1)[0])
-
-            # If we've successfully read a batch, yield the batch
-            if batch_size and len(representations) == batch_size:
-                yield representations
-                representations = []
-
-        yield representations, filenames
-
-    def _build_audio_generator(self, audio_filenames, batch_size):
+    def _build_audio_generator(self, audio_filenames):
         audio_list = []
         sampling_rates = []
         filenames = []
@@ -170,6 +168,7 @@ class TestDataset(QueryByVoiceDataset):
                 continue
 
             # If we've successfully read a batch, yield the batch
+            batch_size = self.similarity_model_batch_size
             if batch_size and len(audio) == batch_size:
                 yield audio_list, sampling_rates, filenames
                 audio_list = []

@@ -49,7 +49,7 @@ class VocalSearch(object):
         # Retrieve the similarity measure between query and each dataset entry
         model_output = []
         filenames = []
-        for batch, batch_filenames in self.dataset:
+        for batch, batch_filenames in self.dataset.data_generator():
             model_output.append(self.model.predict(query, batch))
             filenames += batch_filenames
         model_output = np.array(model_output).flatten()

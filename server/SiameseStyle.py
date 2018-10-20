@@ -3,6 +3,7 @@ import logging
 import logging.config
 import numpy as np
 import os
+import tensorflow as tf
 from keras.models import load_model
 from QueryByVoiceModel import QueryByVoiceModel
 
@@ -77,6 +78,7 @@ class SiameseStyle(QueryByVoiceModel):
         '''
         logger.info('Loading model weights from {}'.format(model_filepath))
         self.model = load_model(model_filepath)
+        self.graph = tf.get_default_graph()
 
     def predict(self, query, dataset):
         '''
@@ -107,10 +109,14 @@ class SiameseStyle(QueryByVoiceModel):
             raise RuntimeError('No model loaded during call to predict.')
 
         # run model inference
-        return self.model.predict(
-            [query, dataset], batch_size=1, verbose=1)
+        with self.graph.as_default():
+            logger.debug('Running inference')
+            return self.model.predict(
+                [query, dataset], batch_size=1, verbose=1)
 
     def _construct_representation_query(self, query, sampling_rate):
+        logger.debug('Constructing query representation')
+
         # resample query at 16k
         new_sampling_rate = 16000
         query = librosa.resample(query, sampling_rate, new_sampling_rate)
