@@ -1,4 +1,3 @@
-// TODO: why does this only work when npm is deployed on port 8080?
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'

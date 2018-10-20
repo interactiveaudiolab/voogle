@@ -13,9 +13,6 @@ logger = logging.getLogger('SiameseStyle')
 
 class SiameseStyle(QueryByVoiceModel):
     '''
-    TODO: verify with Madhav that default weights do correspond with trained
-        siamese model
-
     A siamese-style neural network for query-by-voice applications.
 
     citation: Y. Zhang, B. Pardo, and Z. Duan, "Siamese Style Convolutional
@@ -101,7 +98,6 @@ class SiameseStyle(QueryByVoiceModel):
         query = np.repeat(np.array(query), len(dataset), axis=0)
 
         # add another dimension to each
-        # TODO: why?
         query = np.expand_dims(query, axis=1)
         dataset = np.expand_dims(np.array(dataset), axis=1)
 

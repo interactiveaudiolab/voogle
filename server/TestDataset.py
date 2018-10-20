@@ -17,11 +17,11 @@ class TestDataset(QueryByVoiceDataset):
     '''
 
     def __init__(self,
-            dataset_directory,
-            representation_directory,
-            similarity_model_batch_size,
-            representation_batch_size,
-            model):
+                 dataset_directory,
+                 representation_directory,
+                 similarity_model_batch_size,
+                 representation_batch_size,
+                 model):
         '''
         TestDataset constructor.
 
@@ -56,8 +56,8 @@ class TestDataset(QueryByVoiceDataset):
                 audio_filenames, representation_filenames)
         except OSError:
             # Create representation directory
-            logger.info('Representation directory not found. Building all' +
-                         'representations from scratch')
+            logger.info('Representation directory not found. Building all \
+                         representations from scratch')
             os.makedirs(self.representation_directory)
             representation_filenames = []
             unrepresented = audio_filenames
@@ -126,8 +126,8 @@ class TestDataset(QueryByVoiceDataset):
 
         # Report a list of bad representations
         if non_corresponding:
-            logger.warning('Found representations not corresponding to any ' +
-                            'known audio file: {}'.format(non_corresponding))
+            logger.warning('Found representations not corresponding to any \
+                            known audio file: {}'.format(non_corresponding))
 
         return unrepresented
 
@@ -141,7 +141,6 @@ class TestDataset(QueryByVoiceDataset):
                 audio, sampling_rates, is_query=False)
 
             # Save each representation as its own .npy file
-            # TODO: this isn't very efficient for reading. Consider hdf5.
             for representation, filename in zip(representations, filenames):
                 filepath = os.path.join(
                     self.representation_directory, filename)

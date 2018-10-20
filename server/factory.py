@@ -8,6 +8,7 @@ logging.config.fileConfig(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
 logger = logging.getLogger('factory')
 
+
 def model_factory(model_name, model_filepath):
     '''
     Given a model name and weight file location, construct the model for
@@ -58,7 +59,7 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
     '''
     logger.debug('Attempting to construct the {} dataset in {}. \
         Representations will be stored in {}'.format(
-        dataset_name, dataset_directory, representation_directory))
+            dataset_name, dataset_directory, representation_directory))
 
     if dataset_name == 'test_dataset':
         dataset = TestDataset(

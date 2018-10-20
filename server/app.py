@@ -1,16 +1,9 @@
-# TODO pass filenames to frontend
-# TODO prevent duplicate log file entries
-# TODO regenerate representation on wav file update
-# TODO get pylint working again
 import argparse
 import librosa
 import logging
-import numpy as np
 import os
-import wave
 import yaml
 from flask import Flask, request, send_from_directory
-from flask import Flask
 from factory import dataset_factory, model_factory
 from VocalSearch import VocalSearch
 
@@ -18,8 +11,6 @@ logging.config.fileConfig(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
 logger = logging.getLogger('root')
 
-# TODO: If we want concurrent user access, we will need something more powerful
-# than our current Flask setup
 app = Flask(__name__, static_folder='../build')
 
 
@@ -43,12 +34,9 @@ def search():
         logger.debug('Retrieved user query')
 
         # write query to disk
-        # TODO: each query should be unique
-        # TODO: saved file is not clipped to region bounds
         query_filepath = app.config.get('query_path') + '/query.wav'
         query_file.save(query_filepath)
 
-        # TODO: convert file object directly instead of reloading from disk
         query, sampling_rate = librosa.load(
             query_filepath,
             sr=None,
@@ -64,21 +52,8 @@ def search():
         return ','.join(ranked_matches)
     else:
         # User did not provide a query
-        # TODO: send message back to upload query
-        pass
-
-
-def str2bool(v):
-    '''
-    Parses various True/False command-line arguments
-    source: StackOverflow
-    '''
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+        logger.warning('A search was attempted with no query')
+        return ''
 
 
 if __name__ == '__main__':
@@ -92,13 +67,13 @@ if __name__ == '__main__':
         help='The filepath of the yaml config you wish to use.',
         default='./server/config/test.yaml')
     parser.add_argument(
-        '-d', '--debug', type=str2bool,
-        help='Sets debug=\'true\' if \'True\', false otherwise.',
-        default=False)
+        '-d', '--debug',
+        help='Run Flask with the debug flag enabled.',
+        action='store_true')
     parser.add_argument(
-        '-t', '--threaded', type=str2bool,
-        help='Sets threaded=\'true\' if \'True\', false otherwise.',
-        default=False)
+        '-t', '--threaded',
+        help='Run Flask with threading enabled.',
+        action='store_true')
     args = parser.parse_args()
 
     # # Load the config file

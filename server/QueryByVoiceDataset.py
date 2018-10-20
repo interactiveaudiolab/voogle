@@ -6,11 +6,11 @@ class QueryByVoiceDataset(ABC):
     Abstract base class for an audio dataset for query-by-voice systems
     '''
     def __init__(self,
-            dataset_directory,
-            representation_directory,
-            similarity_model_batch_size,
-            representation_batch_size,
-            model):
+                 dataset_directory,
+                 representation_directory,
+                 similarity_model_batch_size,
+                 representation_batch_size,
+                 model):
         '''
         Dataset constructor.
 
