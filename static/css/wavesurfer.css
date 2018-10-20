@@ -3,11 +3,59 @@
   width: 100%;
   display: inline-block;
   border: hidden 3px;
-  background-color: gray;
+  background-color: #6C757D;
 }
 
 button {
     margin-right: 1px;
+}
+
+.panel-body {
+  text-align: center;
+}
+
+.srch {
+  text-align: center;
+}
+
+.instructions {
+  white-space: normal;
+  font-size: 20pt;
+}
+
+.btn-group {
+  margin: auto;
+}
+
+ol {
+  margin-left: -10% !important;
+}
+
+small{
+  display: inline-block;
+  font-size: 20px;
+}
+
+.awesomplete {
+  position: relative;
+  z-index: 2;
+  float: left;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.awesomplete > ul {
+  color: black;
+  background: white;
+}
+
+.big-text {
+  font-size: 20pt;
+  margin-left: 0% !important;
+}
+
+.jumbotron {
+  background-color: transparent !important;
 }
 
 handle.wavesurfer-handle.wavesurfer-handle-start:hover{

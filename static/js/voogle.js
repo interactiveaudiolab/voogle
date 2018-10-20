@@ -175,7 +175,8 @@ class Voogle extends React.Component {
         this.wavesurfer.addRegion({
             id: 'queryRegion',
             start: start,
-            end: end
+            end: end,
+            color: 'rgb(238,130,238,0.1)'
         });
     }
 
@@ -194,8 +195,10 @@ class Voogle extends React.Component {
               </div>
               <div className='jumbotron vertical-center'>
                 <div className='card text-white bg-secondary mb-3'>
+                <button className="btn btn-info instructions">
+                  INSTRUCTIONS
+                </button>
                   <div className='m-3'>
-                    <h3>Instructions</h3>
                     <ol className='big-text'>
                       <li> Press the <kbd>Start Recording</kbd> button </li>
                       <li> Try to imitate your desired sound as well as possible with your voice </li>
