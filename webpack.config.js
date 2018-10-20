@@ -36,7 +36,7 @@ const common = {
       },
       {
         test: /\.(css)$/,
-        loader: 'style-loader!css-loader?modules=true&localIdentName=[name]__[local]___[hash:base64:5]'
+        use: [ 'style-loader', 'css-loader' ]
       },
       {
         test: /\.(png|jpg|gif|wav|mp3)$/,

@@ -1,9 +1,13 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+import $ from 'jquery';
+import Popper from 'popper.js';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import WaveSurfer from 'wavesurfer.js';
 
-import waveStyle from '../css/wavesurfer.css';
+import '../css/wavesurfer.css';
 
 class Voogle extends React.Component {
     constructor(props) {
@@ -149,6 +153,9 @@ class Voogle extends React.Component {
             return Math.abs(x) > this.props.regionEndThreshold;
         });
 
+        // This is the actual array buffer--not a copy. Undo our reversal.
+        buffer.reverse();
+
         // If audio never exceeded either threshold, set the entire buffer as
         // the region
         if (start == -1 || end == -1) {
@@ -168,27 +175,55 @@ class Voogle extends React.Component {
         this.wavesurfer.addRegion({
             id: 'queryRegion',
             start: start,
-            end: end,
-            color: 'purple'
+            end: end
         });
     }
 
     render() {
+        // TODO: wavesurfer styling
+
         return (
-            <div className='Voogle'>
-                <div className={waveStyle.waveform} ref={this.waveform}/>
-                <button onClick={this.toggleRecording}>
-                    {this.state.recordButtonText}
-                </button>
-                <button onClick={this.togglePlayback}>
-                    {this.state.playButtonText}
-                </button>
-                <button onClick={this.search}>
-                    Search
-                </button>
-                <button onClick={this.clear}>
-                    Clear
-                </button>
+            <div className='container'>
+              <div className='page-header mt-3'>
+                <h1>
+                  Voogle
+                  <small className='text-muted'>
+                    &nbsp;A Vocal-Imitation Search Engine
+                  </small>
+                </h1>
+              </div>
+              <div className='jumbotron vertical-center'>
+                <div className='card text-white bg-secondary mb-3'>
+                  <div className='m-3'>
+                    <h3>Instructions</h3>
+                    <ol className='big-text'>
+                      <li> Press the <kbd>Start Recording</kbd> button </li>
+                      <li> Try to imitate your desired sound as well as possible with your voice </li>
+                      <li> Press the <kbd>Stop Recording</kbd> button </li>
+                      <li> Press Play/Pause to review your recording </li>
+                      <li> Enter a text description of your sound if applicable </li>
+                      <li> <kbd> Search! </kbd> </li>
+                    </ol>
+                  </div>
+                </div>
+                <div className='waveform' ref={this.waveform}/>
+                <div className='panel panel-default'>
+                  <div className='panel-body'>
+                    <button className='btn btn-lg btn-success' onClick={this.toggleRecording}>
+                      {this.state.recordButtonText}
+                    </button>
+                    <button className='btn btn-lg btn-primary' onClick={this.togglePlayback}>
+                      {this.state.playButtonText}
+                    </button>
+                    <button className='btn btn-lg btn-primary' onClick={this.search}>
+                      Search
+                    </button>
+                    <button className='btn btn-lg btn-primary' onClick={this.clear}>
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
         )
     }
