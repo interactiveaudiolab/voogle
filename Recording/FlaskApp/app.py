@@ -39,20 +39,20 @@ def hello():
 	f_list = os.listdir(args.database)
 	for f in f_list:
 		if ".wav" in f.lower() or ".mp3" in f.lower(): # grab all filenames of audio files in search database, for autocomplete
-			filename_list.append(f[:-4]) 
-	
+			filename_list.append(f[:-4])
+
 	return render_template('index.html', filenamelist=filename_list)
 
 @app.route('/search', methods = ['GET', 'POST'])
 def search():
-	
+
 	# retrieve FormData from the AJAX request
 	if request.method == 'POST':
 		file = request.files['file'] # blob of audio file of the user recording
 		offset = request.form['start'] # time offset of starting point of imitation (used to trim audio file)
 		duration = request.form['length'] # time offset of ending point of imitation (used to trim audio file)
 		text = request.form['textDescription'] # string containing text filter (optional)
-		print text
+		print(text)
 		if file:
 			# save incoming blob as .wav audio file
 			filename = secure_filename(file.filename) + '.wav'
@@ -66,7 +66,7 @@ def search():
 
 			# generate a new audio file based on the start and endpoints from the wavesurfer region
 			recording, sr = librosa.load(incoming_filepath, sr=None, offset=float(offset), duration=float(duration))
-			
+
 			# and save it to the filepath we created earlier
 			librosa.output.write_wav(outgoing_filepath, recording, sr)
 
@@ -79,11 +79,11 @@ def search():
 
 			#return the results to a Python list, delimit the matched vs unmatched lists with a string '...', this will be parsed on the front-end
 			results = sorted_filenames.tolist() + ['...'] + sorted_filenames_matched.tolist()
-			print results
+			print(results)
 
 	# can't send a list with Flask so we'll make it a long string and deal with it on the front-end
 	return ','.join(results)
 
- 
+
 if __name__ == "__main__":
     app.run(debug=args.debug, threaded=args.threaded)
