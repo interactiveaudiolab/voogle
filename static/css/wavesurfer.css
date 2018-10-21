@@ -1,13 +1,78 @@
 .waveform {
-  position:relative;
-  width: 100%;
-  display: inline-block;
-  border: hidden 3px;
-  background-color: #6C757D;
+  background-color: #4E6974;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  padding: 1px;
 }
 
-button {
-    margin-right: 1px;
+.right-button {
+  margin-left: 16px;
+}
+
+body {
+  background-color: #242A36;
+}
+
+.panel {
+    border: 0;
+}
+
+.table > thead > tr > th, .table > thead > tr > td {
+    border: 0;
+}
+
+.small-button {
+  width: 25%;
+}
+
+.text-off-white {
+  color: #E8EFF3;
+}
+
+.wide {
+  width: 100%;
+}
+
+.btn-all {
+  border-style: none;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  color: #E8EFF3;
+}
+
+.btn-purple {
+  background-color: #A51FC7;
+}
+
+.btn-blue {
+  background-color: #4A99D8;
+}
+
+.btn-green {
+  background-color: #13CCA2;
+}
+
+.btn-red {
+  background-color: #DD3C6D;
+}
+
+.btn-purple:hover {
+  background-color: #8519A1;
+}
+
+.btn-blue:hover {
+  background-color: #3D7FB3;
+}
+
+.btn-green:hover {
+  background-color: #0FA684;
+}
+
+.btn-red:hover {
+  background-color: #B8325B;
+}
+
+.gray-box {
+  background-color: #4E6974;
 }
 
 .panel-body {
@@ -50,23 +115,25 @@ small{
 }
 
 .big-text {
-  font-size: 20pt;
+  font-size: 14pt;
   margin-left: 0% !important;
 }
 
 .jumbotron {
   background-color: transparent !important;
+  padding: 32px;
+  margin: 0px;
 }
 
-handle.wavesurfer-handle.wavesurfer-handle-start:hover{
+.wavesurfer-handle.wavesurfer-handle-start:hover{
   background-color: lightblue;
 }
 
-handle.wavesurfer-handle.wavesurfer-handle-end:hover{
+.wavesurfer-handle.wavesurfer-handle-end:hover{
   background-color: lightblue;
 }
 
-region.wavesurfer-region::before {
+.wavesurfer-region::before {
   /*content: attr(data-region-label);*/
   position: absolute;
   border-style: solid;
@@ -75,12 +142,12 @@ region.wavesurfer-region::before {
   color: 'hsla(0, 0%, 100%, 0.15)';
 }
 
-handle.wavesurfer-handle.wavesurfer-handle-start {
+.wavesurfer-handle.wavesurfer-handle-start {
   max-width: 15px !important;
   width: 100% !important;
 }
 
-handle.wavesurfer-handle.wavesurfer-handle-end {
+.wavesurfer-handle.wavesurfer-handle-end {
   max-width: 15px !important;
   width: 100% !important;
   left: 99% !important;
@@ -93,7 +160,7 @@ width: 50%;
 }
 
 
-region.wavesurfer-region[data-region-highlight] {
+.wavesurfer-region[data-region-highlight] {
   border: 3px solid rgb(86, 180, 239);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
 }

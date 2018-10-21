@@ -3,7 +3,7 @@ import librosa
 import logging
 import os
 import yaml
-from flask import Flask, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from factory import dataset_factory, model_factory
 from VocalSearch import VocalSearch
 
@@ -29,6 +29,7 @@ def search():
     sampling_rate = request.form['sampling_rate']
     offset = request.form['start']
     duration = request.form['length']
+    text_input = request.form['text_input']
 
     if query_file:
         logger.debug('Retrieved user query')
@@ -45,11 +46,15 @@ def search():
 
         # run a similarity search between the query and the audio dataset
         vocal_search = app.config.get('vocal_search')
-        ranked_matches = vocal_search.search(query, sampling_rate)
-        logger.info(ranked_matches)
+        ranked_matches, text_matches = vocal_search.search(
+            query, sampling_rate, text_input)
+        logger.info(ranked_matches, text_matches)
 
         # Pass the results to the frontend
-        return ','.join(ranked_matches)
+        return jsonify({
+            'matches': ranked_matches[:10],
+            'text_matches': text_matches[:10]
+        })
     else:
         # User did not provide a query
         logger.warning('A search was attempted with no query')

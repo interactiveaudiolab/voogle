@@ -15,37 +15,57 @@ class Voogle extends React.Component {
 
         this.state = {
             hasRecorded: false,
+            matches: null,
             playButtonText: 'Play',
             playing: false,
             recordButtonText: 'Record',
             recording: false,
-            matches: null
+            textInput: ''
         }
 
         // A handle for the periodic drawing event
         this.timerId = null;
 
-        // Create a reference to a DOM node to place the waveform
-        this.waveform = React.createRef();
+        // Create references to DOM nodes to place the waveforms
+        this.recordingWaveform = React.createRef();
+        this.playbackWaveform = React.createRef();
     }
 
     componentDidMount() {
-        console.log('mounted');
         // Construct the waveform display
         this.wavesurfer = WaveSurfer.create({
-            container: this.waveform.current,
-            cursorColor: 'black',
+            container: this.recordingWaveform.current,
+            cursorColor: '#242A36',
             hideScrollbar: true,
             pixelRatio: 1,
             plugins: [RegionsPlugin.create()],
-            progressColor: 'purple',
+            progressColor: '#3D7FB3',
             responsive: true,
-            waveColor: 'violet',
+            waveColor: '#4A99D8',
+        });
+
+        this.matchWavesurfer = WaveSurfer.create({
+            container: this.playbackWaveform.current,
+            cursorColor: '#242A36',
+            hideScrollbar: true,
+            pixelRatio: 1,
+            plugins: [RegionsPlugin.create()],
+            progressColor: '#3D7FB3',
+            responsive: true,
+            waveColor: '#4A99D8',
         });
 
         // Reset the cursor when the audio is done playing
         this.wavesurfer.on('finish', () => {
             this.wavesurfer.stop();
+            this.setState({
+                playing: false,
+                playButtonText: 'Play'
+            });
+        });
+
+        this.matchWavesurfer.on('finish', () => {
+            this.matchWavesurfer.stop();
             this.setState({
                 playing: false,
                 playButtonText: 'Play'
@@ -58,16 +78,12 @@ class Voogle extends React.Component {
         // Get the sampling rate at which audio processing occurs
         this.samplingRate = this.audioContext.sampleRate;
 
-        console.log('requesting mic access');
-
         // Request mic access
         navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
             (stream) => {
                 // Plug the user's mic into the graph
                 this.audioStream = this.audioContext.createMediaStreamSource(
                     stream);
-
-                console.log('constructing recorder');
 
                 // Plug mic into recorder and recorder into waveform
                 this.recorder = new Recorder(
@@ -176,55 +192,74 @@ class Voogle extends React.Component {
             id: 'queryRegion',
             start: start,
             end: end,
-            color: 'rgb(238,130,238,0.1)'
+            color: 'rgb(36,42,54,0.1)'
         });
     }
 
-    render() {
-        // TODO: wavesurfer styling
+    handleTextInput = (event) => {
+        this.setState({textInput: event.target.value});
+    }
 
+    render() {
         return (
             <div className='container'>
-              <div className='page-header mt-3'>
-                <h1>
+              <div className='page-header mt-4 ml-1 mb-3 row'>
+                <h1 className='text-off-white'>
                   Voogle
                   <small className='text-muted'>
-                    &nbsp;A Vocal-Imitation Search Engine
+                    &nbsp;&nbsp;A Vocal-Imitation Search Engine
                   </small>
                 </h1>
               </div>
-              <div className='jumbotron vertical-center'>
-                <div className='card text-white bg-secondary mb-3'>
-                <button className="btn btn-info instructions">
-                  INSTRUCTIONS
-                </button>
-                  <div className='m-3'>
-                    <ol className='big-text'>
-                      <li> Press the <kbd>Start Recording</kbd> button </li>
-                      <li> Try to imitate your desired sound as well as possible with your voice </li>
-                      <li> Press the <kbd>Stop Recording</kbd> button </li>
-                      <li> Press Play/Pause to review your recording </li>
-                      <li> Enter a text description of your sound if applicable </li>
-                      <li> <kbd> Search! </kbd> </li>
-                    </ol>
+              <div className='row'>
+                <div className='col'>
+                  <div className='card text-off-white gray-box mb-3'>
+                  <button className="btn btn-all btn-blue instructions">
+                    Instructions
+                  </button>
+                    <div id='info' className='show m-3'>
+                      <ol className='big-text'>
+                        <li> Press the <kbd>Record</kbd> button </li>
+                        <li> Imitate your desired sound with your voice </li>
+                        <li> Press the <kbd>Stop Recording</kbd> button </li>
+                        <li> Press Play/Pause to review your recording </li>
+                        <li> Enter a text description of your sound if applicable </li>
+                        <li> <kbd> Search! </kbd> </li>
+                      </ol>
+                    </div>
+                  </div>
+                  <div className='waveform' ref={this.recordingWaveform}/>
+                  <div className="form-group form-group-lg mb-3">
+                    <span className="awesomplete mb-3">
+                      <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
+                    </span>
+                  </div>
+                  <div className='panel panel-default'>
+                    <div className='panel-body'>
+                      <div className='wide btn-group btn-group-justified'>
+                        <button className='btn small-button btn-all btn-red' onClick={this.toggleRecording}>
+                          {this.state.recordButtonText}
+                        </button>
+                        <button className='btn small-button btn-all btn-purple' onClick={this.togglePlayback}>
+                          {this.state.playButtonText}
+                        </button>
+                        <button className='btn small-button btn-all btn-blue' onClick={this.search}>
+                          Search
+                        </button>
+                        <button className='btn small-button btn-all btn-green' onClick={this.clear}>
+                          Clear
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className='waveform' ref={this.waveform}/>
-                <div className='panel panel-default'>
-                  <div className='panel-body'>
-                    <button className='btn btn-lg btn-success' onClick={this.toggleRecording}>
-                      {this.state.recordButtonText}
-                    </button>
-                    <button className='btn btn-lg btn-primary' onClick={this.togglePlayback}>
-                      {this.state.playButtonText}
-                    </button>
-                    <button className='btn btn-lg btn-primary' onClick={this.search}>
-                      Search
-                    </button>
-                    <button className='btn btn-lg btn-primary' onClick={this.clear}>
-                      Clear
+                <div className='col'>
+                  <div className='card text-off-white gray-box mb-3'>
+                    <button className="btn btn-all btn-green instructions">
+                      Matches
                     </button>
                   </div>
+                  <div className='waveform' ref={this.playbackWaveform}/>
                 </div>
               </div>
             </div>
@@ -247,6 +282,7 @@ class Voogle extends React.Component {
         formData.append('start', start);
         formData.append('length', end - start);
         formData.append('sampling_rate', this.samplingRate);
+        formData.append('text_input', this.state.textInput);
 
         fetch('/search', {
             method: 'POST',
