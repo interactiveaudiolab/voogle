@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from 'jquery';
+import AudioFiles from './audiofiles.js'
 import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import React from 'react';
@@ -203,40 +204,65 @@ class Voogle extends React.Component {
     render() {
         return (
             <div className='container'>
-              <div className='page-header mt-4 ml-1 mb-3 row'>
-                <h1 className='text-off-white'>
-                  Voogle
-                  <small className='text-muted'>
-                    &nbsp;&nbsp;A Vocal-Imitation Search Engine
-                  </small>
-                </h1>
+              <div className='mt-4 ml-1 mb-3 row'>
+                <div className='col'>
+                  <h1 className='text-off-white'>
+                    Voogle
+                    <small className='text-muted'>
+                      &nbsp;&nbsp;A Vocal-Imitation Search Engine
+                    </small>
+                  </h1>
+                </div>
+              </div>
+              <div className='row row-eq-height'>
+                <div className='col-6'>
+                  <div className='card mx-auto gray mb-3 text-off-white'>
+                    <div className='card btn btn-all blue instructions'>
+                      Instructions
+                    </div>
+                    <ol className='big-text'>
+                      <li> Press the <kbd>Record</kbd> button </li>
+                      <li> Imitate your desired sound with your voice </li>
+                      <li> Press the <kbd>Stop Recording</kbd> button </li>
+                      <li> Press Play/Pause to review your recording </li>
+                      <li> Enter a text description of your sound if applicable </li>
+                      <li> <kbd> Search! </kbd> </li>
+                    </ol>
+                  </div>
+                </div>
+                <div className='col-6'>
+                  <div className='card mx-auto gray mb-3 text-off-white'>
+                    <div className="card btn btn-all green instructions">
+                      Matches
+                    </div>
+                    <div className='scrollbox'>
+                        <AudioFiles />
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className='row'>
                 <div className='col'>
-                  <div className='card text-off-white gray-box mb-3'>
-                  <button className="btn btn-all btn-blue instructions">
-                    Instructions
-                  </button>
-                    <div id='info' className='show m-3'>
-                      <ol className='big-text'>
-                        <li> Press the <kbd>Record</kbd> button </li>
-                        <li> Imitate your desired sound with your voice </li>
-                        <li> Press the <kbd>Stop Recording</kbd> button </li>
-                        <li> Press Play/Pause to review your recording </li>
-                        <li> Enter a text description of your sound if applicable </li>
-                        <li> <kbd> Search! </kbd> </li>
-                      </ol>
-                    </div>
-                  </div>
                   <div className='waveform' ref={this.recordingWaveform}/>
+                </div>
+                <div className='col'>
+                  <div className='waveform' ref={this.playbackWaveform}/>
+                </div>
+              </div>
+              {/*<div className='row'>
+                <div className='col'>
                   <div className="form-group form-group-lg mb-3">
                     <span className="awesomplete mb-3">
                       <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
                     </span>
                   </div>
+                </div>
+              </div>
+              <div className='row'>
+                <div classname='col'>
                   <div className='panel panel-default'>
                     <div className='panel-body'>
-                      <div className='wide btn-group btn-group-justified'>
+                      <div className='btn-group btn-group-justified'>
                         <button className='btn small-button btn-all btn-red' onClick={this.toggleRecording}>
                           {this.state.recordButtonText}
                         </button>
@@ -254,14 +280,8 @@ class Voogle extends React.Component {
                   </div>
                 </div>
                 <div className='col'>
-                  <div className='card text-off-white gray-box mb-3'>
-                    <button className="btn btn-all btn-green instructions">
-                      Matches
-                    </button>
-                  </div>
-                  <div className='waveform' ref={this.playbackWaveform}/>
                 </div>
-              </div>
+              </div>*/}
             </div>
         )
     }

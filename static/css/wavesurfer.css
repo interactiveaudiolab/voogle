@@ -5,6 +5,13 @@
   padding: 1px;
 }
 
+.row-eq-height {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+}
+
 .right-button {
   margin-left: 16px;
 }
@@ -39,6 +46,22 @@ body {
   color: #E8EFF3;
 }
 
+.blue {
+  background-color: #4A99D8;
+}
+
+.purple {
+  background-color: #A51FC7;
+}
+
+.green {
+  background-color: #13CCA2;
+}
+
+.red {
+  background-color: #DD3C6D;
+}
+
 .btn-purple {
   background-color: #A51FC7;
 }
@@ -71,7 +94,11 @@ body {
   background-color: #B8325B;
 }
 
-.gray-box {
+.rounded {
+  border-radius: 4px;
+}
+
+.gray {
   background-color: #4E6974;
 }
 
