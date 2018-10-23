@@ -64,6 +64,7 @@ class VocalSearch(object):
 
         # Find the audio files also containing the user's text query
         text = text_input.lower()
-        text_matches = [text in filename for filename in match_list]
+        text_matches = [
+            text and text in filename.lower() for filename in match_list]
 
         return match_list, text_matches

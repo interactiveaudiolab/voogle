@@ -8,17 +8,23 @@ import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import WaveSurfer from 'wavesurfer.js';
 
-import '../css/wavesurfer.css';
+import '../css/voogle.css';
 
 class Voogle extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            hasLoadedMatch: false,
             hasRecorded: false,
-            matches: null,
-            playButtonText: 'Play',
-            playing: false,
+            matches: [
+              {rank: 1, filename: 'a.wav', textMatch: true},
+              {rank: 1, filename: 'b.wav', textMatch: false}
+            ],
+            playMatchText: 'Play',
+            playRecordingText: 'Play',
+            playingMatch: false,
+            playingRecording: false,
             recordButtonText: 'Record',
             recording: false,
             textInput: ''
@@ -60,16 +66,16 @@ class Voogle extends React.Component {
         this.wavesurfer.on('finish', () => {
             this.wavesurfer.stop();
             this.setState({
-                playing: false,
-                playButtonText: 'Play'
+                playingRecording: false,
+                playRecordingText: 'Play'
             });
         });
 
         this.matchWavesurfer.on('finish', () => {
             this.matchWavesurfer.stop();
             this.setState({
-                playing: false,
-                playButtonText: 'Play'
+                playingMatch: false,
+                playMatchText: 'Play'
             });
         });
 
@@ -126,11 +132,21 @@ class Voogle extends React.Component {
 
         // If the user pressed the play/pause button, signal wavesurfer to play
         // the recorded audio
-        if (this.state.playing != prevState.playing) {
-            if (this.state.playing) {
+        if (this.state.playingRecording != prevState.playingRecording) {
+            if (this.state.playingRecording) {
                 this.wavesurfer.play();
             } else {
                 this.wavesurfer.pause();
+            }
+        }
+
+        // If the user pressed the play/pause button, signal wavesurfer to play
+        // the recorded audio
+        if (this.state.playingMatch != prevState.playingMatch) {
+            if (this.state.playingMatch) {
+                this.matchWavesurfer.play();
+            } else {
+                this.matchWavesurfer.pause();
             }
         }
 
@@ -201,10 +217,20 @@ class Voogle extends React.Component {
         this.setState({textInput: event.target.value});
     }
 
+    loadAudio = (filename) => {
+        fetch('/load', {
+            method: 'POST',
+            body: filename
+        }).then(response => {
+            // TODO: decode and load into wavesurfer
+            this.setState({hasLoadedMatch: true});
+        });
+    }
+
     render() {
         return (
             <div className='container'>
-              <div className='mt-4 ml-1 mb-3 row'>
+              <div className='mt-4 ml-1 row'>
                 <div className='col'>
                   <h1 className='text-off-white'>
                     Voogle
@@ -215,73 +241,78 @@ class Voogle extends React.Component {
                 </div>
               </div>
               <div className='row row-eq-height'>
-                <div className='col-6'>
-                  <div className='card mx-auto gray mb-3 text-off-white'>
-                    <div className='card btn btn-all blue instructions'>
-                      Instructions
-                    </div>
-                    <ol className='big-text'>
-                      <li> Press the <kbd>Record</kbd> button </li>
-                      <li> Imitate your desired sound with your voice </li>
-                      <li> Press the <kbd>Stop Recording</kbd> button </li>
-                      <li> Press Play/Pause to review your recording </li>
-                      <li> Enter a text description of your sound if applicable </li>
-                      <li> <kbd> Search! </kbd> </li>
-                    </ol>
+                <div className='col-6 mb-2'>
+                  <div className='col-md-12 mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
+                     <div className='card btn btn-all blue mb-2 instructions'>
+                       Instructions
+                     </div>
+                     <ol className='big-text'>
+                       <li> Press the <kbd>Record</kbd> button </li>
+                       <li> Imitate your desired sound with your voice </li>
+                       <li> Press the <kbd>Stop Recording</kbd> button </li>
+                       <li> Press Play/Pause to review your recording </li>
+                       <li> Enter a text description of your sound if applicable </li>
+                       <li> <kbd> Search! </kbd> </li>
+                     </ol>
                   </div>
                 </div>
-                <div className='col-6'>
-                  <div className='card mx-auto gray mb-3 text-off-white'>
-                    <div className="card btn btn-all green instructions">
+                <div className='col-6 mb-2'>
+                  <div className='col-md-12 mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
+                    <div className="card btn btn-all green mb-2 instructions">
                       Matches
                     </div>
-                    <div className='scrollbox'>
-                        <AudioFiles />
+                    <div className='scrollbox mx-4 pt-1'>
+                        <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
                     </div>
                   </div>
                 </div>
               </div>
               <div className='row'>
-                <div className='col'>
+                <div className='col-6 mt-4 mb-1'>
                   <div className='waveform' ref={this.recordingWaveform}/>
                 </div>
-                <div className='col'>
+                <div className='col-6 mt-4 mb-1'>
                   <div className='waveform' ref={this.playbackWaveform}/>
                 </div>
               </div>
-              {/*<div className='row'>
-                <div className='col'>
+              <div className='row'>
+                <div className='col-6'>
                   <div className="form-group form-group-lg mb-3">
                     <span className="awesomplete mb-3">
                       <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
                     </span>
                   </div>
                 </div>
+                <div className='col-6'>
+                </div>
               </div>
               <div className='row'>
-                <div classname='col'>
-                  <div className='panel panel-default'>
-                    <div className='panel-body'>
-                      <div className='btn-group btn-group-justified'>
-                        <button className='btn small-button btn-all btn-red' onClick={this.toggleRecording}>
-                          {this.state.recordButtonText}
-                        </button>
-                        <button className='btn small-button btn-all btn-purple' onClick={this.togglePlayback}>
-                          {this.state.playButtonText}
-                        </button>
-                        <button className='btn small-button btn-all btn-blue' onClick={this.search}>
-                          Search
-                        </button>
-                        <button className='btn small-button btn-all btn-green' onClick={this.clear}>
-                          Clear
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                <div className='col-6 btn-group'>
+                  <button className='btn btn-all btn-red' onClick={this.toggleRecording}>
+                    {this.state.recordButtonText}
+                  </button>
+                  <button className='btn btn-all btn-purple' onClick={this.togglePlayRecording}>
+                    {this.state.playRecordingText}
+                  </button>
+                  <button className='btn btn-all btn-blue' onClick={this.search}>
+                    Search
+                  </button>
+                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                    Clear
+                  </button>
                 </div>
-                <div className='col'>
+                <div className='col-6 btn-group'>
+                  <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
+                    {this.state.playMatchText}
+                  </button>
+                  <button className='btn btn-all btn-blue' onClick={this.search}>
+                    Download
+                  </button>
+                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                    Clear
+                  </button>
                 </div>
-              </div>*/}
+              </div>
             </div>
         )
     }
@@ -308,24 +339,49 @@ class Voogle extends React.Component {
             method: 'POST',
             body: formData
         }).then(response => {
-            response.text().then(text => {
-                this.setState({ matches: text.split(',') });
+            response.json().then(results => {
+                let newMatches = [];
+                for (let i = 0; i < results.matches.length; i++) {
+                    newMatches.push({
+                        rank: i,
+                        filename: results.matches[i],
+                        textMatch: results.text_matches[i]
+                    })
+                }
+                this.setState({ matches: newMatches });
             });
         });
     }
 
-    togglePlayback = () => {
+    togglePlayRecording = () => {
         // Event handler for the play/pause button
         this.setState(state => {
-            if (!state.playing && !state.recording && state.hasRecorded) {
+            if (!state.playingRecording && !state.recording && state.hasRecorded) {
                 return {
-                    playing: true,
-                    playButtonText: 'Pause'
+                    playingRecording: true,
+                    playRecordingText: 'Pause'
                 };
             } else {
                 return {
-                    playing: false,
-                    playButtonText: 'Play'
+                    playingRecording: false,
+                    playRecordingText: 'Play'
+                }
+            }
+        });
+    }
+
+    togglePlayMatch = () => {
+        // Event handler for the play/pause button
+        this.setState(state => {
+            if (!state.playingMatch && state.hasLoadedMatch) {
+                return {
+                    playingMatch: true,
+                    playMatchText: 'Pause'
+                };
+            } else {
+                return {
+                    playingMatch: false,
+                    playMatchText: 'Play'
                 }
             }
         });

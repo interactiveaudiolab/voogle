@@ -52,8 +52,8 @@ def search():
 
         # Pass the results to the frontend
         return jsonify({
-            'matches': ranked_matches[:10],
-            'text_matches': text_matches[:10]
+            'matches': ranked_matches[:8],
+            'text_matches': text_matches[:8]
         })
     else:
         # User did not provide a query

@@ -12,38 +12,19 @@
   display:         flex;
 }
 
-.right-button {
-  margin-left: 16px;
-}
-
 body {
   background-color: #242A36;
-}
-
-.panel {
-    border: 0;
-}
-
-.table > thead > tr > th, .table > thead > tr > td {
-    border: 0;
-}
-
-.small-button {
-  width: 25%;
 }
 
 .text-off-white {
   color: #E8EFF3;
 }
 
-.wide {
-  width: 100%;
-}
-
 .btn-all {
   border-style: none;
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   color: #E8EFF3;
+  width: 100%;
 }
 
 .blue {
@@ -102,21 +83,9 @@ body {
   background-color: #4E6974;
 }
 
-.panel-body {
-  text-align: center;
-}
-
-.srch {
-  text-align: center;
-}
-
 .instructions {
   white-space: normal;
   font-size: 20pt;
-}
-
-.btn-group {
-  margin: auto;
 }
 
 ol {
@@ -142,7 +111,7 @@ small{
 }
 
 .big-text {
-  font-size: 14pt;
+  font-size: 16pt;
   margin-left: 0% !important;
 }
 
