@@ -17,7 +17,7 @@ class SiameseStyle(QueryByVoiceModel):
     '''
 
     def __init__(
-        self, uses_windowing=False, window_length=4.0, hop_length=2.0):
+        self, uses_windowing=True, window_length=4.0, hop_length=2.0):
         '''
         SiameseStyle model constructor.
 

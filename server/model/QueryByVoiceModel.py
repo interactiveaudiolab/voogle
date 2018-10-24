@@ -26,6 +26,12 @@ class QueryByVoiceModel(ABC):
         self.window_length = window_length
         self.hop_length = hop_length
 
+        if self.uses_windowing:
+            self.windower = audaugio.WindowingAugmentation(
+                window_length=self.window_length,
+                hop_size=self.hop_length,
+                drop_last=False)
+
     @abstractmethod
     def construct_representation(self, audio_list, sampling_rates, is_query):
         '''
@@ -91,7 +97,4 @@ class QueryByVoiceModel(ABC):
         Returns:
             A python list of equal-sized 1D numpy arrays.
         '''
-        return audaugio.WindowingAugmentation(
-            window_length=self.window_length,
-            hop_size=self.hop_size,
-            drop_last=False).augment(audio, sampling_rate)
+        return self.windower.augment(audio, sampling_rate)
