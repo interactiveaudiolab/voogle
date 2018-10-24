@@ -2,25 +2,24 @@ import librosa
 import math
 import os
 import unittest
-from SiameseStyle import SiameseStyle
+from model.SiameseStyle import SiameseStyle
 
 
 class TestSiameseStyle(unittest.TestCase):
 
     def setUp(self):
-        self.model_filepath = os.path.realpath('model/default_model.h5')
+        self.model_filepath = os.path.realpath(
+            'server/model/weights/default_model.h5')
         self.model = SiameseStyle()
         self.model.load_model(self.model_filepath)
 
-        dataset_directory = os.path.realpath('data/audio/test_dataset')
+        dataset_directory = os.path.realpath(
+            'server/data/audio/test_dataset')
 
         self.cat, self.sr_cat = librosa.load(
             os.path.join(dataset_directory, 'cat.wav'), sr=None)
         self.dog, self.sr_dog = librosa.load(
             os.path.join(dataset_directory, 'dog_barking.wav'), sr=None)
-
-    def test_get_name(self):
-        self.assertEqual('siamese-style', self.model.get_name())
 
     def test_construct_representation(self):
         dataset = self.model.construct_representation(

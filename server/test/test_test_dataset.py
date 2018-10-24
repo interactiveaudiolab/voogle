@@ -1,31 +1,47 @@
+import librosa
 import os
 import unittest
-from TestDataset import TestDataset
-from SiameseStyle import SiameseStyle
+from data.TestDataset import TestDataset
+from model.SiameseStyle import SiameseStyle
 
 
 class TestTestDataset(unittest.TestCase):
 
     def setUp(self):
-        self.dataset_directory = os.path.realpath('data/audio/test_dataset')
+        self.dataset_directory = os.path.realpath(
+            'server/data/audio/test_dataset')
         self.representation_directory = os.path.realpath(
-            'data/representations/test_dataset')
+            'server/data/representations/test_dataset')
         self.model_filepath = os.path.realpath(
-            'model/default_model.h5')
+            'server/model/weights/default_model.h5')
 
         self.model = SiameseStyle()
         self.model.load_model(self.model_filepath)
         self.dataset = TestDataset(
-            self.dataset_directory, self.representation_directory)
-        self.dataset = self.dataset.data_generator(self.model)
+            self.dataset_directory, self.representation_directory, self.model)
+
+        self.query_audio, self.sr_query = librosa.load(
+            os.path.join(dataset_directory, 'cat.wav'), sr=None)
+        self.query = self.model.construct_representation(
+            [query], [sampling_rate], is_query=True)[0]
+
+    def test_dataset_audio_filenames(self):
+        filenames = self.dataset._get_audio_filenames():
+        assertEqual(len(filenames), 120)
+        for filename in filenames:
+            assertEqual(filename[-4:].lower(), '.wav')
+
+    def test_pairwise_batch_generator(self):
+        # TODO
 
     def test_generator_default(self):
         i = 0
         filenames = []
-        for batch, batch_filenames in self.dataset:
+        generator = self.dataset.data_generator(self.query)
+        for batch_items, batch_audio, file_tracker in generator:
             i += 1
             # Every representation should have a corresponding filename
-            self.assertEqual(len(batch), len(batch_filenames))
+            self.assertEqual(len(batch_items), len(batch_audio))
             filenames += batch_filenames
 
         # No batch size specified, so only one loop

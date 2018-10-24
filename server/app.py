@@ -1,22 +1,23 @@
+import logging
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger('root')
+
 import argparse
 import librosa
-import logging
 import os
 import yaml
 from flask import Flask, jsonify, request, send_from_directory
 from factory import dataset_factory, model_factory
-from VocalSearch import VocalSearch
+from Voogle import Voogle
 
-logging.config.fileConfig(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
-logger = logging.getLogger('root')
 
 app = Flask(__name__, static_folder='../build')
 
 
 @app.route('/')
 def index():
-    logger.debug('Rendering index.html from root')
+    logger.debug('Rendering index.html')
     return send_from_directory(app.static_folder, 'index.html')
 
 
@@ -51,6 +52,7 @@ def search():
         logger.info(ranked_matches, text_matches)
 
         # Pass the results to the frontend
+        logger.debug('Sending search request results to client')
         return jsonify({
             'matches': ranked_matches[:8],
             'text_matches': text_matches[:8]
@@ -58,7 +60,7 @@ def search():
     else:
         # User did not provide a query
         logger.warning('A search was attempted with no query')
-        return ''
+        return jsonify({'matches': [], 'text_matches': []})
 
 
 if __name__ == '__main__':
@@ -85,17 +87,20 @@ if __name__ == '__main__':
     config = yaml.safe_load(open(args.config))
 
     # Setup the model on the server
-    model = model_factory(
-        config.get('model_name'), config.get('model_filepath'))
+    parent_directory = os.path.dirname(__file__)
+    model_filepath = os.path.join(
+        parent_directory, 'model', config.get('model_filepath'))
+    model = model_factory(config.get('model_name'), model_filepath)
 
     # Setup the dataset
-    parent_directory = os.path.dirname(__file__)
     dataset_directory = os.path.join(
         parent_directory,
+        'data',
         config.get('dataset_directory'),
         config.get('dataset_name'))
     representation_directory = os.path.join(
-        parent_directory
+        parent_directory,
+        'data',
         config.get('dataset_directory'),
         config.get('dataset_name'),
         config.get('model_name'))
@@ -107,7 +112,7 @@ if __name__ == '__main__':
         config.get('representation_batch_size'),
         model)
 
-    vocal_search = VocalSearch(model, dataset)
+    vocal_search = Voogle(model, dataset)
 
     app.config.update(config)
     app.config.update({'vocal_search': vocal_search})

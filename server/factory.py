@@ -1,11 +1,9 @@
 import logging
 import logging.config
 import os
-from SiameseStyle import SiameseStyle
-from TestDataset import TestDataset
+from model.SiameseStyle import SiameseStyle
+from model.TestDataset import TestDataset
 
-logging.config.fileConfig(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
 logger = logging.getLogger('factory')
 
 
