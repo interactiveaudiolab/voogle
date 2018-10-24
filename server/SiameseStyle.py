@@ -1,3 +1,4 @@
+import audaugio
 import librosa
 import logging
 import logging.config
@@ -74,17 +75,18 @@ class SiameseStyle(QueryByVoiceModel):
             None
         '''
         logger.info('Loading model weights from {}'.format(model_filepath))
-        self.model = load_model(model_filepath)
+        filepath = os.path.join(os.path.dirname(__file__), model_filepath)
+        self.model = load_model(filepath)
         self.graph = tf.get_default_graph()
 
-    def predict(self, query, dataset):
+    def predict(self, query, items):
         '''
         Runs model inference on the query.
 
         Arguments:
             query: An audio representation as defined by
                 construct_representation. The user's vocal query.
-            dataset: A python list of audio representations as defined by
+            items: A python list of audio representations as defined by
                 construct_representation. The dataset of potential matches for
                 the user's query.
 
@@ -99,7 +101,7 @@ class SiameseStyle(QueryByVoiceModel):
 
         # add another dimension to each
         query = np.expand_dims(query, axis=1)
-        dataset = np.expand_dims(np.array(dataset), axis=1)
+        items = np.expand_dims(np.array(items), axis=1)
 
         if not self.model:
             raise RuntimeError('No model loaded during call to predict.')
@@ -108,7 +110,7 @@ class SiameseStyle(QueryByVoiceModel):
         with self.graph.as_default():
             logger.debug('Running inference')
             return self.model.predict(
-                [query, dataset], batch_size=1, verbose=1)
+                [query, items], batch_size=1, verbose=1)
 
     def _construct_representation_query(self, query, sampling_rate):
         logger.debug('Constructing query representation')
@@ -118,43 +120,59 @@ class SiameseStyle(QueryByVoiceModel):
         query = librosa.resample(query, sampling_rate, new_sampling_rate)
         sampling_rate = new_sampling_rate
 
-        # force all queries to be 4-seconds long
-        query = librosa.util.fix_length(query, 4 * sampling_rate)
+        # # force all queries to be 4-seconds long
+        # query = librosa.util.fix_length(query, 4 * sampling_rate)
+
+        # chop signal into 4-second chunks with 2 seconds of overlap
+        windows = audaugio.WindowingAugmentation(
+            window_length=4.0, hop_size=2.0, drop_last=False)
 
         # construct the logmelspectrogram of the signal
-        melspec = librosa.feature.melspectrogram(
-            query, sr=sampling_rate, n_fft=133,
-            hop_length=133, power=2, n_mels=39,
-            fmin=0.0, fmax=5000)
-        melspec = melspec[:, :482]
-        logmelspec = librosa.power_to_db(melspec, ref=np.max)
+        representation = []
+        for window in windows:
+            melspec = librosa.feature.melspectrogram(
+                window, sr=sampling_rate, n_fft=133,
+                hop_length=133, power=2, n_mels=39,
+                fmin=0.0, fmax=5000)
+            melspec = melspec[:, :482]
+            logmelspec = librosa.power_to_db(melspec, ref=np.max)
+            # normalize to zero mean and unit variance
+            representation.append(
+                self._normalize(logmelspec).astype('float32'))
 
-        # normalize to zero mean and unit variance
-        return [self._normalize(logmelspec).astype('float32')]
+        return [np.array(representation)]
 
     def _construct_representation_dataset(self, dataset, sampling_rates):
         new_sampling_rate = 44100
-        spectrograms = []
+        representations = []
         for audio, sampling_rate in zip(dataset, sampling_rates):
 
             # resample audio at 44.1k
             audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
             sampling_rate = new_sampling_rate
 
-            # force audio to be 4-seconds long at 44.1k
-            audio = librosa.util.fix_length(audio, 4 * sampling_rate)
+            # # force audio to be 4-seconds long at 44.1k
+            # audio = librosa.util.fix_length(audio, 4 * sampling_rate)
 
-            # construct the logmelspectrogram of the signal
-            melspec = librosa.feature.melspectrogram(
-                audio, sr=sampling_rate, n_fft=1024, hop_length=1024, power=2)
-            melspec = melspec[:, 0:128]
-            logmelspec = librosa.power_to_db(melspec, ref=np.max)
+            # chop signal into 4-second chunks with 2 seconds of overlap
+            windows = audaugio.WindowingAugmentation(
+                window_length=4.0, hop_size=2.0, drop_last=False)
 
-            # normalize to zero mean and unit variance
-            normed = self._normalize(logmelspec).astype('float32')
-            spectrograms.append(normed)
+            representation = []
+            for window in windows:
+                # construct the logmelspectrogram of the signal
+                melspec = librosa.feature.melspectrogram(
+                    audio, sr=sampling_rate, n_fft=1024, hop_length=1024, power=2)
+                melspec = melspec[:, 0:128]
+                logmelspec = librosa.power_to_db(melspec, ref=np.max)
 
-        return spectrograms
+                # normalize to zero mean and unit variance
+                representation.append(
+                    self._normalize(logmelspec).astype('float32'))
+
+            representations.append(np.array(representation))
+
+        return representations
 
     def _normalize(self, x):
         # normalize to zero mean and unit variance

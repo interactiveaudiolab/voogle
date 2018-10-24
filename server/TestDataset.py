@@ -1,15 +1,6 @@
-import librosa
-import logging
-import logging.config
 import numpy as np
 import os
-from audioread import NoBackendError
 from QueryByVoiceDataset import QueryByVoiceDataset
-
-logging.config.fileConfig(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
-logger = logging.getLogger('TestDataset')
-
 
 class TestDataset(QueryByVoiceDataset):
     '''
@@ -19,9 +10,9 @@ class TestDataset(QueryByVoiceDataset):
     def __init__(self,
                  dataset_directory,
                  representation_directory,
-                 similarity_model_batch_size,
-                 representation_batch_size,
-                 model):
+                 model,
+                 similarity_model_batch_size=None,
+                 representation_batch_size=None):
         '''
         TestDataset constructor.
 
@@ -31,75 +22,92 @@ class TestDataset(QueryByVoiceDataset):
                 pre-constructed representations. If the directory does not
                 exist, it will be created along with all audio representations
                 for this dataset.
+            model: A QueryByVoiceModel. The model to be used in representation
+                construction.
             representation_batch_size: An integer or None. The maximum number
                 of audio files to load during one batch of representation
                 construction.
             similarity_model_batch_size: An integer or None. The maximum number
                 of representations to load during one batch of model inference.
-            model: A QueryByVoiceModel. The model to be used in representation
-                construction.
         '''
         super(TestDataset, self).__init__(
             dataset_directory,
             representation_directory,
+            model,
             similarity_model_batch_size,
-            representation_batch_size,
-            model)
+            representation_batch_size)
 
-        # Get all files in dataset
-        audio_filenames = sorted(os.listdir(self.dataset_directory))
-        try:
-            # Find the files that don't have representation
-            representation_filenames = sorted(
-                os.listdir(self.representation_directory))
-            unrepresented = self._find_audio_without_representation(
-                audio_filenames, representation_filenames)
-        except OSError:
-            # Create representation directory
-            logger.info('Representation directory not found. Building all \
-                         representations from scratch')
-            os.makedirs(self.representation_directory)
-            representation_filenames = []
-            unrepresented = audio_filenames
-
-        # Build the representations and write them to the representation
-        # directory
-        self._build_representations(unrepresented)
-
-    def data_generator(self):
+    def data_generator(self, query):
         '''
-        Provides a generator for loading audio representations.
+        Provides a generator that returns the necessary data for inference of
+        a query-by-voice model. The generator yields the following:
+
+            batch_query: A numpy array of length representation_batch_size. The
+                chunks of the query to be compared with batch_representations.
+                This may be windowed chunks of the query in the case that
+                self.generate_pairs is True.
+            batch_representations: A numpy array of length
+                representation_batch_size. The chunks of representations to be
+                compared to batch_query. This may be windowed chunks of the
+                original audio in the case that self.generate_pairs is True.
+            file_tracker: A dict. Maps a filename to the index into the batch
+                at which its representations begin.
+
+        Arguments:
+            query: A numpy array. The audio representation of the user's query.
 
         Returns:
             A python generator.
         '''
-        representations = []
-        filenames = []
-        for filename in os.listdir(self.representation_directory):
-
+        # TODO: read in batch_size handles at once
+        # TODO: file_tracker
+        # TODO: duplicate query
+        batch_representations = []
+        batch_filenames = []
+        for handle in self._get_representation_handles():
             # Read in a representation
-            filepath = os.path.join(self.representation_directory, filename)
-            representation = np.load(filepath)
-            representations.append(representation)
-            filenames.append(filename.rsplit('.', 1)[0])
+            representation = self._load_representations(handle)
+            batch_representations.append(representation)
+            batch_filenames.append(handle.rsplit('.', 1)[0])
 
             # If we've successfully read a batch, yield the batch
             batch_size = self.representation_batch_size
-            if batch_size and len(representations) == batch_size:
-                yield representations
-                representations = []
+            if batch_size and len(batch_representations) == batch_size:
+                yield batch_representations
+                batch_representations = []
 
-        yield representations, filenames
+        yield batch_representations, batch_filenames
 
-    def _find_audio_without_representation(self, audio_filenames,
-                                           representation_filenames):
+    def generator_feedback(self, model_output):
+        '''
+        Provides the generator with feedback after one batch of inference. Can
+        be used to implement tree-based search through the representations.
+
+        Arguments:
+            model_output: A python list. The float-valued similarity scores
+                output by the model.
+        '''
+        pass
+
+    def _find_unrepresented(self, audio_filenames, representation_handles):
+        '''
+        Finds the list of audio files that do not have saved representations.
+
+        Arguments:
+            audio_filenames: A python list. All audio files in this dataset.
+            representation_handles: A python list. The handles of all currently
+                cached representations
+
+        Returns:
+            A python list.
+        '''
         unrepresented = []
         non_corresponding = []
         i = 0
         j = 0
-        while i < len(audio_filenames) and j < len(representation_filenames):
+        while i < len(audio_filenames) and j < len(representation_handles):
             audio = audio_filenames[i]
-            representation = representation_filenames[j].rsplit('.', 1)[0]
+            representation = representation_handles[j].rsplit('.', 1)[0]
 
             # Audio file has not been processed
             if audio < representation:
@@ -120,58 +128,76 @@ class TestDataset(QueryByVoiceDataset):
             unrepresented += audio_filenames[i:]
 
         # Representations remain that do not have corresponding audio
-        elif j < len(representation_filenames):
-            for representation in representation_filenames[j:]:
+        elif j < len(representation_handles):
+            for representation in representation_handles[j:]:
                 non_corresponding.append(representation.rsplit('.', 1)[0])
 
         # Report a list of bad representations
         if non_corresponding:
-            logger.warning('Found representations not corresponding to any \
-                            known audio file: {}'.format(non_corresponding))
+            self.logger.warning(
+                'Found representations not corresponding to any known audio \
+                file: {}'.format(non_corresponding))
 
         return unrepresented
 
-    def _build_representations(self, audio_filenames):
-        # Build a generator for reading in audio
-        generator = self._build_audio_generator(audio_filenames)
+    def _get_audio_filenames(self):
+        '''
+        Retrieves a list of all audio fileanames in this dataset. Filenames must
+        be relative to dataset_directory (i.e., the statement
 
-        # Build audio representations in batches
-        for audio, sampling_rates, filenames in generator:
-            representations = self.model.construct_representation(
-                audio, sampling_rates, is_query=False)
+            os.path.isfile(os.path.join(self.dataset_directory, filename))
 
-            # Save each representation as its own .npy file
-            for representation, filename in zip(representations, filenames):
-                filepath = os.path.join(
-                    self.representation_directory, filename)
-                np.save(filepath + '.npy', representation)
+        must return True).
 
-    def _build_audio_generator(self, audio_filenames):
-        audio_list = []
-        sampling_rates = []
-        filenames = []
-        for filename in audio_filenames:
-            try:
-                # read the file in as an audio file
-                filepath = os.path.join(self.dataset_directory, filename)
-                audio, sampling_rate = librosa.load(filepath, sr=None)
-                audio_list.append(audio)
-                sampling_rates.append(sampling_rate)
-                filenames.append(filename)
-            except NoBackendError:
-                # either non-audio file or bad audioread setup
-                logger.warning('The file {} could not be decoded by any \
-                    backend. Either no backends are available or each \
-                    available backend failed to decode the \
-                    file'.format(filename))
-                continue
+        Returns:
+            A python list.
+        '''
+        return sorted(os.listdir(self.dataset_directory))
 
-            # If we've successfully read a batch, yield the batch
-            batch_size = self.similarity_model_batch_size
-            if batch_size and len(audio) == batch_size:
-                yield audio_list, sampling_rates, filenames
-                audio_list = []
-                sampling_rates = []
-                filenames = []
+    def _get_representation_handles(self):
+        '''
+        Retrieves a list of dataset-specific handles for accessing audio
+        representations (e.g., filenames relative to representation_directory or
+        filenames + indexes into a hdf5 file).
 
-        yield audio_list, sampling_rates, filenames
+        Returns:
+            A python list.
+        '''
+        return sorted(os.listdir(self.representation_directory))
+
+    def _load_representations(self, handles):
+        '''
+        Loads and returns the audio representations.
+
+        Arguments:
+            handles: A python list. The representation handles that must be
+                resolved.
+
+        Returns:
+            A python list.
+        '''
+        representations = []
+        for handle in handles:
+            filepath = os.path.join(self.representation_directory, handle)
+            representation = np.load(filepath)
+            representations.append(representation)
+        return representations
+
+    def _save_representations(self, representations, filenames):
+        '''
+        Saves the audio representations to disk.
+
+        Arguments:
+            representations: A python list. The list of audio representations
+                to save.
+            filenames:
+                A python list. The corresponding list of audio filenames (i.e.,
+                    representations[i] is the audio representation of
+                    filenames[i]).
+        '''
+        # Save each representation as its own .npy file
+        for representation, filename in zip(representations, filenames):
+            filepath = os.path.join(
+                self.representation_directory, filename)
+            np.save(filepath + '.npy', representation)
+

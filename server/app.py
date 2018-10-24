@@ -81,18 +81,28 @@ if __name__ == '__main__':
         action='store_true')
     args = parser.parse_args()
 
-    # # Load the config file
+    # Load the config file
     config = yaml.safe_load(open(args.config))
 
-    # # Setup the model on the server
+    # Setup the model on the server
     model = model_factory(
         config.get('model_name'), config.get('model_filepath'))
 
-    # # Get a generator for the audio representations
+    # Setup the dataset
+    parent_directory = os.path.dirname(__file__)
+    dataset_directory = os.path.join(
+        parent_directory,
+        config.get('dataset_directory'),
+        config.get('dataset_name'))
+    representation_directory = os.path.join(
+        parent_directory
+        config.get('dataset_directory'),
+        config.get('dataset_name'),
+        config.get('model_name'))
     dataset = dataset_factory(
         config.get('dataset_name'),
-        config.get('dataset_directory'),
-        config.get('representation_directory'),
+        dataset_directory,
+        representation_directory,
         config.get('similarity_model_batch_size'),
         config.get('representation_batch_size'),
         model)

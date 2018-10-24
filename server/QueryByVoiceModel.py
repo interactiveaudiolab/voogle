@@ -5,11 +5,15 @@ class QueryByVoiceModel(ABC):
     '''
     Abstract base class for a query-by-voice machine learning model
     '''
-    def __init__(self):
+    def __init__(self, pairwise_predict=False):
         '''
         QueryByVoiceModel constructor.
+
+        Arguments:
+            pairwise_predict: A boolean. Indicates whether the model
         '''
         self.model = None
+        self.pairwise_predict = pairwise_predict
 
     @abstractmethod
     def get_name(self):
