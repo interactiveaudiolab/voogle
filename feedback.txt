@@ -4,5 +4,3 @@ Feedback:
  - Some sort of search notification
  - Mobile friendly (col-sm-12)
  - Regions should be described
- - Prepare for inheritance of dataset and model
- - Optional windowing function with parameters window_length and hop_size in model interface

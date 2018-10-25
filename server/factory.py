@@ -2,7 +2,7 @@ import logging
 import logging.config
 import os
 from model.SiameseStyle import SiameseStyle
-from model.TestDataset import TestDataset
+from data.TestDataset import TestDataset
 
 logger = logging.getLogger('factory')
 
@@ -63,9 +63,9 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
         dataset = TestDataset(
             dataset_directory,
             representation_directory,
+            model,
             similarity_model_batch_size,
-            representation_batch_size,
-            model)
+            representation_batch_size)
     else:
         raise ValueError('Dataset {} is not defined'.format(dataset_name))
 

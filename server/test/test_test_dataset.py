@@ -11,7 +11,7 @@ class TestTestDataset(unittest.TestCase):
         self.dataset_directory = os.path.realpath(
             'server/data/audio/test_dataset')
         self.representation_directory = os.path.realpath(
-            'server/data/representations/test_dataset')
+            'server/data/representations/test_dataset/siamese-style')
         self.model_filepath = os.path.realpath(
             'server/model/weights/default_model.h5')
 

@@ -72,8 +72,7 @@ class SiameseStyle(QueryByVoiceModel):
             None
         '''
         self.logger.info('Loading model weights from {}'.format(model_filepath))
-        filepath = os.path.join(os.path.dirname(__file__), model_filepath)
-        self.model = load_model(filepath)
+        self.model = load_model(model_filepath)
         self.graph = tf.get_default_graph()
 
     def predict(self, query, items):

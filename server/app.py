@@ -1,16 +1,18 @@
+import argparse
+import librosa
 import logging
+import logging.config
+import os
+import yaml
+
+# Setup logging
 logging.config.fileConfig(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
 logger = logging.getLogger('root')
 
-import argparse
-import librosa
-import os
-import yaml
 from flask import Flask, jsonify, request, send_from_directory
 from factory import dataset_factory, model_factory
 from Voogle import Voogle
-
 
 app = Flask(__name__, static_folder='../build')
 
@@ -36,7 +38,7 @@ def search():
         logger.debug('Retrieved user query')
 
         # write query to disk
-        query_filepath = app.config.get('query_path') + '/query.wav'
+        query_filepath = app.config.get('query_directory') + '/query.wav'
         query_file.save(query_filepath)
 
         query, sampling_rate = librosa.load(
@@ -49,13 +51,14 @@ def search():
         vocal_search = app.config.get('vocal_search')
         ranked_matches, text_matches = vocal_search.search(
             query, sampling_rate, text_input)
-        logger.info(ranked_matches, text_matches)
+        logger.info('Produced matches {} with text-match array {}\
+                    '.format(ranked_matches, text_matches))
 
         # Pass the results to the frontend
         logger.debug('Sending search request results to client')
         return jsonify({
-            'matches': ranked_matches[:8],
-            'text_matches': text_matches[:8]
+            'matches': ranked_matches,
+            'text_matches': text_matches
         })
     else:
         # User did not provide a query
@@ -90,7 +93,8 @@ if __name__ == '__main__':
     parent_directory = os.path.dirname(__file__)
     model_filepath = os.path.join(
         parent_directory, 'model', config.get('model_filepath'))
-    model = model_factory(config.get('model_name'), model_filepath)
+    model = model_factory(
+        config.get('model_name'), os.path.abspath(model_filepath))
 
     # Setup the dataset
     dataset_directory = os.path.join(
@@ -101,7 +105,7 @@ if __name__ == '__main__':
     representation_directory = os.path.join(
         parent_directory,
         'data',
-        config.get('dataset_directory'),
+        config.get('representation_directory'),
         config.get('dataset_name'),
         config.get('model_name'))
     dataset = dataset_factory(
@@ -114,6 +118,10 @@ if __name__ == '__main__':
 
     vocal_search = Voogle(model, dataset)
 
+    query_directory = os.path.join(
+        parent_directory, 'data', config.get('query_path'))
+
     app.config.update(config)
     app.config.update({'vocal_search': vocal_search})
+    app.config.update({'query_directory': query_directory})
     app.run(debug=args.debug, threaded=args.threaded)

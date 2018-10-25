@@ -19,7 +19,7 @@ class TestVoogle(unittest.TestCase):
         dataset_directory = os.path.realpath(
             'server/data/audio/test_dataset')
         representation_directory = os.path.realpath(
-            'server/data/representations/test_dataset')
+            'server/data/representations/test_dataset/siamese-style')
         dataset = TestDataset(
             dataset_directory, representation_directory, model)
         self.voogle = Voogle(model, dataset, matches=10)
