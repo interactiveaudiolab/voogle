@@ -81,9 +81,9 @@ class SiameseStyle(QueryByVoiceModel):
         Runs model inference on the query.
 
         Arguments:
-            query: An audio representation as defined by
+            query: A numpy array. An audio representation as defined by
                 construct_representation. The user's vocal query.
-            items: A python list of audio representations as defined by
+            items: A numpy array. The audio representations as defined by
                 construct_representation. The dataset of potential matches for
                 the user's query.
 
@@ -92,10 +92,6 @@ class SiameseStyle(QueryByVoiceModel):
                 element in the dataset. The list order should be the same as
                 in dataset.
         '''
-        # add another dimension to each
-        query = np.expand_dims(query, axis=1)
-        items = np.expand_dims(np.array(items), axis=1)
-
         if not self.model:
             raise RuntimeError('No model loaded during call to predict.')
 
@@ -103,7 +99,7 @@ class SiameseStyle(QueryByVoiceModel):
         with self.graph.as_default():
             self.logger.debug('Running inference')
             return self.model.predict(
-                [query, items], batch_size=1, verbose=1)
+                [query, items], batch_size=len(query), verbose=1)
 
     def _construct_representation_query(self, query, sampling_rate):
         self.logger.debug('Constructing query representation')
@@ -127,12 +123,13 @@ class SiameseStyle(QueryByVoiceModel):
                 fmin=0.0, fmax=5000)
             melspec = melspec[:, :482]
             logmelspec = librosa.power_to_db(melspec, ref=np.max)
+            representation.append(logmelspec)
 
-            # normalize to zero mean and unit variance
-            representation.append(
-                self._normalize(logmelspec).astype('float32'))
+        # normalize to zero mean and unit variance
+        representation = np.array(representation)
+        representation = self._normalize(representation).astype('float32')
 
-        return [np.array(representation)]
+        return [representation]
 
     def _construct_representation_dataset(self, dataset, sampling_rates):
         new_sampling_rate = 44100
@@ -152,19 +149,20 @@ class SiameseStyle(QueryByVoiceModel):
             for window in windows:
                 # construct the logmelspectrogram of the signal
                 melspec = librosa.feature.melspectrogram(
-                    audio,
+                    window,
                     sr=sampling_rate,
                     n_fft=1024,
                     hop_length=1024,
                     power=2)
                 melspec = melspec[:, 0:128]
                 logmelspec = librosa.power_to_db(melspec, ref=np.max)
+                representation.append(logmelspec)
 
-                # normalize to zero mean and unit variance
-                representation.append(
-                    self._normalize(logmelspec).astype('float32'))
-
-            representations.append(np.array(representation))
+            # normalize to zero mean and unit variance
+            representation = np.array(representation)
+            representation = self._normalize(representation).astype('float32')
+            representation = np.expand_dims(representation, axis=1)
+            representations.append(representation)
 
         return representations
 

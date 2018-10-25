@@ -20,3 +20,6 @@ After installing the dependencies, the Voogle app can be deployed.
 2. Navigate to `localhost:5000` in your browser.
 
 From there, please follow the directions on the website. Enjoy!
+
+## Testing
+Unit tests can be run with `npm run test`.

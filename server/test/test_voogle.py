@@ -20,9 +20,9 @@ class TestVoogle(unittest.TestCase):
             'server/data/audio/test_dataset')
         representation_directory = os.path.realpath(
             'server/data/representations/test_dataset')
-        dataset = TestDataset(dataset_directory, representation_directory)
-        dataset = dataset.data_generator(model)
-        self.vocal_search = Voogle(model, dataset, matches=10)
+        dataset = TestDataset(
+            dataset_directory, representation_directory, model)
+        self.voogle = Voogle(model, dataset, matches=10)
 
         self.query, self.sr_query = librosa.load(
             os.path.join(dataset_directory, 'cat.wav'), sr=None)
@@ -31,7 +31,7 @@ class TestVoogle(unittest.TestCase):
         '''
         Test a basic query
         '''
-        match_list, text_query = self.vocal_search.search(
+        match_list, text_query = self.voogle.search(
             self.query, self.sr_query)
         self.assertEqual(len(match_list), 10)
         self.assertEqual(len(text_query), 10)

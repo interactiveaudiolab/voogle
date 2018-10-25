@@ -32,7 +32,7 @@ class Voogle(object):
 
         self.logger.debug('Initialization complete')
 
-    def search(self, query, sampling_rate, text_input):
+    def search(self, query, sampling_rate, text_input=''):
         '''
         Search the dataset for the closest match to the given vocal query.
 
@@ -48,20 +48,20 @@ class Voogle(object):
         '''
         # Construct query representation
         query = self.model.construct_representation(
-            [query], [sampling_rate], True)
+            [query], [sampling_rate], is_query=True)
 
         # Retrieve the similarity measure between query and each dataset entry
         model_output = {}
         previous_filename = ''
         previous_index = 0
         generator = self.dataset.data_generator(query)
-        for batch_items, batch_query, file_tracker in generator:
+        for batch_query, batch_items, file_tracker in generator:
 
             # Run inference on this batch
             ranks = self.model.predict(batch_query, batch_items)
 
             # Determine the best score for each audio file
-            for filename, index in file_tracker.items():
+            for index, filename in file_tracker.items():
                 if index != 0 and previous_filename != '':
                     max_file_rank = np.max(ranks[previous_index:index])
                     model_output = self._update_model_output(
@@ -90,3 +90,4 @@ class Voogle(object):
                 model_output[filename], max_file_rank)
         else:
             model_output[filename] = max_file_rank
+        return model_output

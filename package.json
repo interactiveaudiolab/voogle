@@ -4,7 +4,7 @@
   "description": "VocalSearch is an audio search engine that uses vocal imitations of the desired sound as the search query.",
   "main": "scripts/js/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "python -m unittest discover server",
     "build": "webpack --mode production",
     "start": "webpack-dev-server --open --mode development",
     "production": "npm run build && npm run serve",

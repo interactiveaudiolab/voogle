@@ -1,5 +1,6 @@
-import audaugio
+import librosa
 import logging
+import numpy as np
 from abc import ABC, abstractmethod
 
 
@@ -25,12 +26,6 @@ class QueryByVoiceModel(ABC):
         self.uses_windowing = uses_windowing
         self.window_length = window_length
         self.hop_length = hop_length
-
-        if self.uses_windowing:
-            self.windower = audaugio.WindowingAugmentation(
-                window_length=self.window_length,
-                hop_size=self.hop_length,
-                drop_last=False)
 
     @abstractmethod
     def construct_representation(self, audio_list, sampling_rates, is_query):
@@ -68,14 +63,14 @@ class QueryByVoiceModel(ABC):
         pass
 
     @abstractmethod
-    def predict(self, query, dataset):
+    def predict(self, query, items):
         '''
         Runs model inference on the query.
 
         Arguments:
-            query: An audio representation as defined by
+            query: A numpy array. An audio representation as defined by
                 construct_representation. The user's vocal query.
-            dataset: A python list of audio representations as defined by
+            items: A numpy array. The audio representations as defined by
                 construct_representation. The dataset of potential matches for
                 the user's query.
 
@@ -95,6 +90,13 @@ class QueryByVoiceModel(ABC):
             sampling_rate: An int. The sampling rate of the audio.
 
         Returns:
-            A python list of equal-sized 1D numpy arrays.
+            A 2D numpy array of shape (windows, window_samples)
         '''
-        return self.windower.augment(audio, sampling_rate)
+        window_samples = int(self.window_length * sampling_rate)
+        hop_samples = int(self.hop_length * sampling_rate)
+
+        if audio.shape[0] < window_samples:
+            window = librosa.util.fix_length(audio, window_samples)
+            return np.expand_dims(window, axis=0)
+        else:
+            return librosa.util.frame(audio, window_samples, hop_samples).T

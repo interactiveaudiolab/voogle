@@ -25,9 +25,9 @@ class TestTestDataset(unittest.TestCase):
             120)
 
         self.query_audio, self.sr_query = librosa.load(
-            os.path.join(dataset_directory, 'cat.wav'), sr=None)
+            os.path.join(self.dataset_directory, 'cat.wav'), sr=None)
         self.query = self.model.construct_representation(
-            [query], [sampling_rate], is_query=True)[0]
+            [self.query_audio], [self.sr_query], is_query=True)[0]
 
     def test_dataset_audio_filenames(self):
         filenames = self.dataset._get_audio_filenames()
@@ -47,10 +47,10 @@ class TestTestDataset(unittest.TestCase):
         represented_files = [False] * len(filenames)
         for query_batch, item_batch, file_tracker in gen_output:
             self.assertEqual(len(query_batch), len(item_batch))
-            for filename in file_tracker:
+            for filename in file_tracker.values():
                 self.assertTrue(filename in filenames)
                 represented_files[filenames.index(filename)] = True
-            for index in file_tracker.values():
+            for index in file_tracker.keys():
                 self.assertLess(index, len(query_batch))
         self.assertTrue(all(represented_files))
 

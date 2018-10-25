@@ -1,5 +1,6 @@
 import librosa
 import logging
+import numpy as np
 import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
