@@ -1,6 +1,0 @@
-Feedback:
- - Clear button should have instructions
- - Playback should start at region
- - Some sort of search notification
- - Mobile friendly (col-sm-12)
- - Regions should be described
