@@ -48,11 +48,15 @@ def search():
             duration=float(duration))
 
         # run a similarity search between the query and the audio dataset
-        vocal_search = app.config.get('vocal_search')
-        ranked_matches, text_matches = vocal_search.search(
+        voogle = app.config.get('voogle')
+        ranked_matches, text_matches = voogle.search(
             query, sampling_rate, text_input)
         logger.info('Produced matches {} with text-match array {}\
                     '.format(ranked_matches, text_matches))
+
+        # Prepend the file location for S3 retreival
+        bucket_directory = 'audio/' + app.config.get('dataset_name') + '/'
+        ranked_matches = [bucket_directory + match for match in ranked_matches]
 
         # Pass the results to the frontend
         logger.debug('Sending search request results to client')
@@ -73,10 +77,6 @@ if __name__ == '__main__':
     #   -t specifies threading on/off
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-c', '--config', type=str,
-        help='The filepath of the yaml config you wish to use.',
-        default='./server/config/test.yaml')
-    parser.add_argument(
         '-d', '--debug',
         help='Run Flask with the debug flag enabled.',
         action='store_true')
@@ -87,10 +87,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load the config file
-    config = yaml.safe_load(open(args.config))
+    parent_directory = os.path.dirname(__file__)
+    config_file = os.path.join(parent_directory, 'config.yaml')
+    config = yaml.safe_load(open(config_file))
 
     # Setup the model on the server
-    parent_directory = os.path.dirname(__file__)
     model_filepath = os.path.join(
         parent_directory, 'model', config.get('model_filepath'))
     model = model_factory(
@@ -116,12 +117,12 @@ if __name__ == '__main__':
         config.get('representation_batch_size'),
         model)
 
-    vocal_search = Voogle(model, dataset)
+    voogle = Voogle(model, dataset)
 
     query_directory = os.path.join(
         parent_directory, 'data', config.get('query_path'))
 
     app.config.update(config)
-    app.config.update({'vocal_search': vocal_search})
+    app.config.update({'voogle': voogle})
     app.config.update({'query_directory': query_directory})
     app.run(debug=args.debug, threaded=args.threaded)
