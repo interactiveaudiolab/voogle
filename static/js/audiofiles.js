@@ -6,9 +6,9 @@ class AudioFiles extends Component {
         const { files, loader } = this.props;
         const fileList = files.map((file, index) => {
             return (
-                <div className='row round-box dark-gray mb-1'>
+                <div className='row round-box dark-gray mb-1' onClick={() => loader(file.filename)}>
                   <div className='col-9'>
-                    { file.filename }
+                    { file.filename.slice(file.filename.lastIndexOf('/') + 1) }
                   </div>
                   { this.renderTextMatch(file.textMatch) }
                 </div>

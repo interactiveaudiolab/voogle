@@ -1,8 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import $ from 'jquery';
 import AudioFiles from './audiofiles.js'
+import AWS from 'aws-sdk'
 import Popper from 'popper.js';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
@@ -15,12 +16,9 @@ class Voogle extends React.Component {
         super(props);
 
         this.state = {
-            hasLoadedMatch: false,
             hasRecorded: false,
-            matches: [
-              {rank: 1, filename: 'a.wav', textMatch: true},
-              {rank: 1, filename: 'b.wav', textMatch: false}
-            ],
+            loadedMatch: null,
+            matches: [],
             playMatchText: 'Play',
             playRecordingText: 'Play',
             playingMatch: false,
@@ -36,6 +34,18 @@ class Voogle extends React.Component {
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
         this.playbackWaveform = React.createRef();
+
+        // Connect to the AWS bucket storing audio files
+        AWS.config.update({
+            region: 'us-east-2',
+            credentials: new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: 'us-east-2:be4dd070-23b0-4a6b-ade4-99bb48caaf24',
+            })
+        });
+        this.bucket = new AWS.S3({
+          apiVersion: '2006-03-01',
+          params: {Bucket: 'voogle'}
+        });
     }
 
     componentDidMount() {
@@ -76,6 +86,14 @@ class Voogle extends React.Component {
             this.setState({
                 playingMatch: false,
                 playMatchText: 'Play'
+            });
+        });
+
+        this.matchWavesurfer.on('ready',  () => {
+            this.matchWavesurfer.play();
+            this.setState({
+                playingMatch: true,
+                playMatchText: 'Pause'
             });
         });
 
@@ -149,19 +167,20 @@ class Voogle extends React.Component {
                 this.matchWavesurfer.pause();
             }
         }
-
-        // If new matches for the target's query are available, render them
-        if (this.state.matches != prevState.matches) {
-            console.log(this.state.matches);
-        }
     }
 
-    clear = () => {
+    clearRecording = () => {
         // Erase the recorded audio
         this.recorder.clear();
         this.wavesurfer.empty();
         this.wavesurfer.clearRegions();
         this.setState({hasRecorded: false});
+    }
+
+    clearMatch = () => {
+        this.matchWavesurfer.empty();
+        this.matchWavesurfer.clearRegions();
+        this.setState({loadedMatch: null});
     }
 
     draw = () => {
@@ -217,13 +236,20 @@ class Voogle extends React.Component {
         this.setState({textInput: event.target.value});
     }
 
-    loadAudio = (filename) => {
-        fetch('/load', {
-            method: 'POST',
-            body: filename
-        }).then(response => {
-            // TODO: decode and load into wavesurfer
-            this.setState({hasLoadedMatch: true});
+    loadAudio = (key) => {
+        // Don't retrieve the audio if we already have it
+        if (key === this.loadedMatch) {
+            return;
+        }
+
+        // Grab the file from the S3 instance
+        this.bucket.getSignedUrl('getObject', {Key: key}, (err, url) => {
+            if (err) {
+                console.log(err);
+            } else {
+                this.matchWavesurfer.load(url);
+                this.setState({loadedMatch: key});
+            }
         });
     }
 
@@ -297,7 +323,7 @@ class Voogle extends React.Component {
                   <button className='btn btn-all btn-blue' onClick={this.search}>
                     Search
                   </button>
-                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                  <button className='btn btn-all btn-green' onClick={this.clearRecording}>
                     Clear
                   </button>
                 </div>
@@ -308,7 +334,7 @@ class Voogle extends React.Component {
                   <button className='btn btn-all btn-blue' onClick={this.search}>
                     Download
                   </button>
-                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                  <button className='btn btn-all btn-green' onClick={this.clearMatch}>
                     Clear
                   </button>
                 </div>
@@ -325,9 +351,13 @@ class Voogle extends React.Component {
     }
 
     sendQuery = (query) => {
+        // Don't send search request if no recording exists
+        if (!this.state.hasRecorded) {
+            return;
+        }
+
         let start = this.wavesurfer.regions.list.queryRegion.start;
         let end = this.wavesurfer.regions.list.queryRegion.end;
-
         let formData = new FormData;
         formData.append('query', query);
         formData.append('start', start);
@@ -373,7 +403,7 @@ class Voogle extends React.Component {
     togglePlayMatch = () => {
         // Event handler for the play/pause button
         this.setState(state => {
-            if (!state.playingMatch && state.hasLoadedMatch) {
+            if (!state.playingMatch && state.loadedMatch) {
                 return {
                     playingMatch: true,
                     playMatchText: 'Pause'
