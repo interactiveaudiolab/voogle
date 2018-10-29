@@ -27,38 +27,29 @@ class QueryByVoiceDataset(ABC):
                 for this dataset.
             model: A QueryByVoiceModel. The model to be used in representation
                 construction.
+            similarity_model_batch_size: An integer or None. The maximum number
+                of representations to load during one batch of model inference.
             representation_batch_size: An integer or None. The maximum number
                 of audio files to load during one batch of representation
                 construction.
-            similarity_model_batch_size: An integer or None. The maximum number
-                of representations to load during one batch of model inference.
         '''
         # Setup logging
         self.logger = logging.getLogger('Dataset')
 
         self.dataset_directory = dataset_directory
         self.representation_directory = representation_directory
+        self.model = model
         self.similarity_model_batch_size = similarity_model_batch_size
         self.representation_batch_size = representation_batch_size
-        self.model = model
 
-        # Get all files in dataset
-        audio_filenames = self._get_audio_filenames()
-        try:
-            # Create representation directory
-            os.makedirs(self.representation_directory)
-            self.logger.info('Representation directory not found. Building all \
-                         representations from scratch')
-            unrepresented = audio_filenames
-        except OSError:
-            # Find the files that don't have representation
-            representation_handles = self._get_representation_handles()
-            unrepresented = self._find_unrepresented(
-                audio_filenames, representation_handles)
-
-        # Build the representations and write them to the representation
-        # directory
-        self._build_representations(unrepresented)
+        if (self._representation_directory_empty() or
+            self._dataset_directory_was_updated() or
+            (self.model.parametric_representation and
+             self._model_was_updated())):
+            # Build the representations and write them to the representation
+            # directory
+            self.logger.info('Building all representations from scratch')
+            self._build_representations()
 
     @abstractmethod
     def data_generator(self, query):
@@ -94,21 +85,6 @@ class QueryByVoiceDataset(ABC):
         Arguments:
             model_output: A python list. The float-valued similarity scores
                 output by the model.
-        '''
-        pass
-
-    @abstractmethod
-    def _find_unrepresented(self, audio_filenames, representation_handles):
-        '''
-        Finds the list of audio files that do not have saved representations.
-
-        Arguments:
-            audio_filenames: A python list. All audio files in this dataset.
-            representation_handles: A python list. The handles of all currently
-                cached representations
-
-        Returns:
-            A python list.
         '''
         pass
 
@@ -182,7 +158,7 @@ class QueryByVoiceDataset(ABC):
         '''
         pass
 
-    def _build_representations(self, audio_filenames):
+    def _build_representations(self):
         '''
         Constructs the audio representations and saves them to disk.
 
@@ -191,6 +167,7 @@ class QueryByVoiceDataset(ABC):
                 dataset_directory that require representation.
         '''
         # Build a generator for reading in audio
+        audio_filenames = self._get_audio_filenames()
         generator = self._build_audio_generator(audio_filenames)
 
         # Build audio representations in batches
@@ -229,6 +206,12 @@ class QueryByVoiceDataset(ABC):
                 filenames = []
 
         yield audio_list, sampling_rates, filenames
+
+    def _dataset_directory_was_updated(self):
+        result = (os.path.getmtime(self.representation_directory) <
+                  os.path.getmtime(self.dataset_directory))
+        if result:
+            self.logger.info('Found updated dataset directory.')
 
     def _linear_data_generator(self, query):
         '''
@@ -279,6 +262,13 @@ class QueryByVoiceDataset(ABC):
                 output by the model.
         '''
         pass
+
+    def _model_was_updated(self):
+        result = (os.path.getmtime(self.representation_directory) <
+                  os.path.getmtime(self.model.model_filepath))
+        if result:
+            logger.info('Found updated model weights.')
+        return result
 
     def _pairwise_batch_generator(self, query, representations, filenames):
         '''
@@ -337,3 +327,15 @@ class QueryByVoiceDataset(ABC):
                 np.array(batch_query),
                 np.array(batch_representations),
                 file_tracker)
+
+    def _representation_directory_empty(self):
+        try:
+            # Create representation directory
+            os.makedirs(self.representation_directory)
+            self.logger.info('Representation directory not found.')
+            return True
+        except OSError:
+            result = len(os.listdir(self.representation_directory)) == 0
+            if result:
+                self.logger.info('Found empty representation directory.')
+            return result

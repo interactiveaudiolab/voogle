@@ -12,8 +12,7 @@ class TestVoogle(unittest.TestCase):
     '''
 
     def setUp(self):
-        model = SiameseStyle()
-        model.load_model(
+        model = SiameseStyle(
             os.path.realpath('server/model/weights/default_model.h5'))
 
         dataset_directory = os.path.realpath(

@@ -8,11 +8,21 @@ class QueryByVoiceModel(ABC):
     '''
     Abstract base class for a query-by-voice machine learning model
     '''
-    def __init__(self, uses_windowing, window_length, hop_length):
+    def __init__(
+        self,
+        model_filepath,
+        parametric_representation,
+        uses_windowing,
+        window_length,
+        hop_length):
         '''
         QueryByVoiceModel constructor.
 
         Arguments:
+            model_filepath: A string. The path to the model weight file on
+                disk.
+            parametric_representation: A boolen. True if the audio
+                representations depend on the model weights.
             uses_windowing: A boolean. Indicates whether the model slices the
                 representation
             window_length: A float. The window length in seconds. Unused if
@@ -23,9 +33,13 @@ class QueryByVoiceModel(ABC):
         self.logger = logging.getLogger('Model')
 
         self.model = None
+        self.model_filepath = model_filepath
+        self.parametric_representation = parametric_representation
         self.uses_windowing = uses_windowing
         self.window_length = window_length
         self.hop_length = hop_length
+
+        self._load_model()
 
     @abstractmethod
     def construct_representation(self, audio_list, sampling_rates, is_query):
@@ -48,21 +62,6 @@ class QueryByVoiceModel(ABC):
         pass
 
     @abstractmethod
-    def load_model(self, model_filepath):
-        '''
-        Loads the model weights from disk. Prepares the model to be able to
-        make predictions.
-
-        Arguments:
-            model_filepath: A string. The path to the model weight file on
-                disk.
-
-        Returns:
-            None
-        '''
-        pass
-
-    @abstractmethod
     def predict(self, query, items):
         '''
         Runs model inference on the query.
@@ -78,6 +77,14 @@ class QueryByVoiceModel(ABC):
             A python list of floats. The similarity score of the query and each
                 element in the dataset. The list order should be the same as
                 in dataset.
+        '''
+        pass
+
+    @abstractmethod
+    def _load_model(self):
+        '''
+        Loads the model weights from disk. Prepares the model to be able to
+        make predictions.
         '''
         pass
 

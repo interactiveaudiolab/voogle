@@ -11,8 +11,7 @@ class TestSiameseStyle(unittest.TestCase):
     def setUp(self):
         self.model_filepath = os.path.realpath(
             'server/model/weights/default_model.h5')
-        self.model = SiameseStyle()
-        self.model.load_model(self.model_filepath)
+        self.model = SiameseStyle(self.model_filepath)
 
         dataset_directory = os.path.realpath(
             'server/data/audio/test_dataset')

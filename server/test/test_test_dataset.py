@@ -15,8 +15,7 @@ class TestTestDataset(unittest.TestCase):
         self.model_filepath = os.path.realpath(
             'server/model/weights/default_model.h5')
 
-        self.model = SiameseStyle()
-        self.model.load_model(self.model_filepath)
+        self.model = SiameseStyle(self.model_filepath)
         self.dataset = TestDataset(
             self.dataset_directory,
             self.representation_directory,

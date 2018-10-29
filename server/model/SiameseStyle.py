@@ -17,11 +17,20 @@ class SiameseStyle(QueryByVoiceModel):
     '''
 
     def __init__(
-        self, uses_windowing=True, window_length=4.0, hop_length=2.0):
+        self,
+        model_filepath,
+        parametric_representation=False,
+        uses_windowing=True,
+        window_length=4.0,
+        hop_length=2.0):
         '''
         SiameseStyle model constructor.
 
         Arguments:
+            model_filepath: A string. The path to the model weight file on
+                disk.
+            parametric_representation: A boolen. True if the audio
+                representations depend on the model weights.
             uses_windowing: A boolean. Indicates whether the model slices the
                 representation
             window_length: A float. The window length in seconds. Unused if
@@ -29,7 +38,12 @@ class SiameseStyle(QueryByVoiceModel):
             hop_length: A float. The hop length between windows in seconds.
                 Unused if uses_windowing is False.
         '''
-        super().__init__(uses_windowing, window_length, hop_length)
+        super().__init__(
+            model_filepath,
+            parametric_representation,
+            uses_windowing,
+            window_length,
+            hop_length)
 
     def construct_representation(self, audio_list, sampling_rates, is_query):
         '''
@@ -59,22 +73,6 @@ class SiameseStyle(QueryByVoiceModel):
                 audio_list, sampling_rates)
         return representation
 
-    def load_model(self, model_filepath):
-        '''
-        Loads the model weights from disk. Prepares the model to be able to
-        make predictions.
-
-        Arguments:
-            model_filepath: A string. The path to the model weight file on
-                disk.
-
-        Returns:
-            None
-        '''
-        self.logger.info('Loading model weights from {}'.format(model_filepath))
-        self.model = load_model(model_filepath)
-        self.graph = tf.get_default_graph()
-
     def predict(self, query, items):
         '''
         Runs model inference on the query.
@@ -99,6 +97,16 @@ class SiameseStyle(QueryByVoiceModel):
             self.logger.debug('Running inference')
             return self.model.predict(
                 [query, items], batch_size=len(query), verbose=1)
+
+    def _load_model(self):
+        '''
+        Loads the model weights from disk. Prepares the model to be able to
+        make predictions.
+        '''
+        self.logger.info(
+            'Loading model weights from {}'.format(self.model_filepath))
+        self.model = load_model(self.model_filepath)
+        self.graph = tf.get_default_graph()
 
     def _construct_representation_query(self, query, sampling_rate):
         self.logger.debug('Constructing query representation')

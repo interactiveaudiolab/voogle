@@ -23,11 +23,9 @@ def model_factory(model_name, model_filepath):
         model_name, model_filepath))
 
     if model_name == 'siamese-style':
-        model = SiameseStyle()
+        model = SiameseStyle(model_filepath)
     else:
         raise ValueError('Model {} is not defined'.format(model_name))
-
-    model.load_model(model_filepath)
 
     logger.debug('Model loading complete')
     return model

@@ -24,11 +24,11 @@ class TestDataset(QueryByVoiceDataset):
                 for this dataset.
             model: A QueryByVoiceModel. The model to be used in representation
                 construction.
+            similarity_model_batch_size: An integer or None. The maximum number
+                of representations to load during one batch of model inference.
             representation_batch_size: An integer or None. The maximum number
                 of audio files to load during one batch of representation
                 construction.
-            similarity_model_batch_size: An integer or None. The maximum number
-                of representations to load during one batch of model inference.
         '''
         super(TestDataset, self).__init__(
             dataset_directory,
@@ -71,45 +71,6 @@ class TestDataset(QueryByVoiceDataset):
                 output by the model.
         '''
         self._linear_generator_feedback(model_output)
-
-    def _find_unrepresented(self, audio_filenames, representation_handles):
-        '''
-        Finds the list of audio files that do not have saved representations.
-
-        Arguments:
-            audio_filenames: A python list. All audio files in this dataset.
-            representation_handles: A python list. The handles of all currently
-                cached representations
-
-        Returns:
-            A python list.
-        '''
-        unrepresented = []
-        i = 0
-        j = 0
-        while i < len(audio_filenames) and j < len(representation_handles):
-            audio = audio_filenames[i]
-            representation = representation_handles[j].rsplit('.', 1)[0]
-
-            # Audio file has not been processed
-            if audio < representation:
-                unrepresented.append(audio)
-                i += 1
-
-            # Representation does not correspond with any audio file
-            elif audio > representation:
-                j += 1
-
-            # Found a corresponding representation for the audio file
-            else:
-                i += 1
-                j += 1
-
-        # Audio files remain that have not been processed
-        if i < len(audio_filenames):
-            unrepresented += audio_filenames[i:]
-
-        return unrepresented
 
     def _get_audio_filenames(self):
         '''
