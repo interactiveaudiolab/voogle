@@ -40,5 +40,6 @@ An example model can be found [here](server/model/SiameseStyle.py).
 - Add the dataset constructor to [`factory.py`](server/factory.py).
 - Place the audio files in [`server/data/audio/<your_dataset_name>`](server/data/audio/).
 - Update the dataset name in [`config.yaml`](server/config.yaml).
+- If frontend audio retrieval is needed, the files must be hosted in the `voogle` S3 bucket. Contact maxrmorrison@gmail.com for more information.
 
 An example dataset can be found [here](server/data/TestDataset.py).

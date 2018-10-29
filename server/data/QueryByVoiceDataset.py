@@ -208,10 +208,24 @@ class QueryByVoiceDataset(ABC):
         yield audio_list, sampling_rates, filenames
 
     def _dataset_directory_was_updated(self):
-        result = (os.path.getmtime(self.representation_directory) <
-                  os.path.getmtime(self.dataset_directory))
+        # Timestamp of representation directory
+        timestamp = os.path.getmtime(self.representation_directory)
+
+        # Has any file been updated?
+        files = self._get_audio_filenames()
+        files = [os.path.join(self.dataset_directory, file) for file in files]
+        file_was_updated = any([
+            timestamp < os.path.getmtime(file) for file in files])
+
+        # Has the directory itself been updated?
+        directory_was_updated = (
+            timestamp < os.path.getmtime(self.dataset_directory))
+
+        result = file_was_updated or directory_was_updated
+
         if result:
             self.logger.info('Found updated dataset directory.')
+        return result
 
     def _linear_data_generator(self, query):
         '''
