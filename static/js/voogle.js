@@ -169,12 +169,18 @@ class Voogle extends React.Component {
         }
     }
 
-    clear = () => {
+    clearRecording = () => {
         // Erase the recorded audio
         this.recorder.clear();
         this.wavesurfer.empty();
         this.wavesurfer.clearRegions();
         this.setState({hasRecorded: false});
+    }
+
+    clearMatch = () => {
+        this.matchWavesurfer.empty();
+        this.matchWavesurfer.clearRegions();
+        this.setState({loadedMatch: null});
     }
 
     draw = () => {
@@ -317,7 +323,7 @@ class Voogle extends React.Component {
                   <button className='btn btn-all btn-blue' onClick={this.search}>
                     Search
                   </button>
-                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                  <button className='btn btn-all btn-green' onClick={this.clearRecording}>
                     Clear
                   </button>
                 </div>
@@ -328,7 +334,7 @@ class Voogle extends React.Component {
                   <button className='btn btn-all btn-blue' onClick={this.search}>
                     Download
                   </button>
-                  <button className='btn btn-all btn-green' onClick={this.clear}>
+                  <button className='btn btn-all btn-green' onClick={this.clearMatch}>
                     Clear
                   </button>
                 </div>
@@ -345,9 +351,13 @@ class Voogle extends React.Component {
     }
 
     sendQuery = (query) => {
+        // Don't send search request if no recording exists
+        if (!this.state.hasRecorded) {
+            return;
+        }
+
         let start = this.wavesurfer.regions.list.queryRegion.start;
         let end = this.wavesurfer.regions.list.queryRegion.end;
-
         let formData = new FormData;
         formData.append('query', query);
         formData.append('start', start);
