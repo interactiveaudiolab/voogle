@@ -1,3 +1,9 @@
+# Project-specific
+server/data/representations/*
+server/data/audio/*
+!server/data/representations/test_dataset/
+!server/data/audio/test_dataset/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
