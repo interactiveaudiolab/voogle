@@ -28,17 +28,17 @@ Unit tests can be run with `npm run test`.
 Voogle can be extended to incorporate additional models and datasets.
 
 ### Adding a model
-- Define your model as a subclass of `QueryByVoiceModel` with all abstract methods implemented [as described in the base class](server/model/QueryByVoiceModel.py).
+- Define your model as a subclass of [`QueryByVoiceModel`](server/model/QueryByVoiceModel.py) with all abstract methods implemented as described.
 - Add the model constructor to [`factory.py`](server/factory.py).
 - Place your model's weights in [`server/model/weights/`](server/model/weights/).
-- Update the model name and filepath in `config.yaml`.
+- Update the model name and filepath in [`config.yaml`](server/config.yaml).
 
 An example model can be found [here](server/model/SiameseStyle.py).
 
 ### Adding a dataset
-- Define your dataset as a subclass of `QueryByVoiceDataset` with all abstract methods implemented [as described in the base class](server/data/QueryByVoiceDataset.py).
+- Define your dataset as a subclass of [`QueryByVoiceDataset`](server/data/QueryByVoiceDataset.py) with all abstract methods implemented as described.
 - Add the dataset constructor to [`factory.py`](server/factory.py).
 - Place the audio files in [`server/data/audio/<your_dataset_name>`](server/data/audio/).
-- Update the dataset name in `config.yaml`.
+- Update the dataset name in [`config.yaml`](server/config.yaml).
 
 An example dataset can be found [here](server/data/TestDataset.py).
