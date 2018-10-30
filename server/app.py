@@ -1,7 +1,9 @@
 import argparse
+import json
 import librosa
 import logging
 import logging.config
+import numpy as np
 import os
 import yaml
 
@@ -30,22 +32,22 @@ def search():
     # fetch user's query
     query_file = request.files['query']
     sampling_rate = request.form['sampling_rate']
-    offset = request.form['start']
-    duration = request.form['length']
     text_input = request.form['text_input']
 
     if query_file:
+        # Upack file stream and read bytes into numpy array
+        query = np.frombuffer(query_file.read(), dtype=np.float32)
         logger.debug('Retrieved user query')
+
+        # Decode sampling_rate from string
+        try:
+            sampling_rate = int(sampling_rate)
+        except ValueError:
+            sampling_rate = 44100
 
         # write query to disk
         query_filepath = app.config.get('query_directory') + '/query.wav'
-        query_file.save(query_filepath)
-
-        query, sampling_rate = librosa.load(
-            query_filepath,
-            sr=None,
-            offset=float(offset),
-            duration=float(duration))
+        librosa.output.write_wav(query_filepath, query, sampling_rate)
 
         # run a similarity search between the query and the audio dataset
         voogle = app.config.get('voogle')

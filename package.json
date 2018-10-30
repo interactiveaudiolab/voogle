@@ -53,6 +53,7 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "audiobuffer-to-wav": "^1.0.0",
     "aws-sdk": "^2.344.0",
     "inline-worker": "^1.1.0",
     "popper.js": "^1.14.4",

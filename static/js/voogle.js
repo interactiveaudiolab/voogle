@@ -1,14 +1,12 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import $ from 'jquery';
 import AudioFiles from './audiofiles.js'
 import AWS from 'aws-sdk'
-import Popper from 'popper.js';
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import WaveSurfer from 'wavesurfer.js';
-
+import toWav from 'audiobuffer-to-wav'
 import '../css/voogle.css';
 
 class Voogle extends React.Component {
@@ -34,6 +32,10 @@ class Voogle extends React.Component {
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
         this.playbackWaveform = React.createRef();
+
+        // The start and end sample indices of the query within the recording
+        this.start = null;
+        this.end = null;
 
         // Connect to the AWS bucket storing audio files
         AWS.config.update({
@@ -171,6 +173,7 @@ class Voogle extends React.Component {
 
     clearRecording = () => {
         // Erase the recorded audio
+        this.queryBuffer = null;
         this.recorder.clear();
         this.wavesurfer.empty();
         this.wavesurfer.clearRegions();
@@ -181,6 +184,15 @@ class Voogle extends React.Component {
         this.matchWavesurfer.empty();
         this.matchWavesurfer.clearRegions();
         this.setState({loadedMatch: null});
+    }
+
+    download = () => {
+        // Don't download if we have no audio loaded
+        if (!this.state.loadedMatch) {
+            return;
+        }
+
+        setTimeout(() => window.location.href = this.state.matchUrl, 100);
     }
 
     draw = () => {
@@ -214,6 +226,10 @@ class Voogle extends React.Component {
             start = 0;
             end = buffer.length;
         }
+
+        // Save buffer indices for sending query
+        this.start = start;
+        this.end = end;
 
         // Convert to seconds and grab the surrounding audio
         start = start / this.samplingRate - this.props.regionTolerance;
@@ -331,7 +347,7 @@ class Voogle extends React.Component {
                   <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
                     {this.state.playMatchText}
                   </button>
-                  <button className='btn btn-all btn-blue' onClick={this.search}>
+                  <button className='btn btn-all btn-blue' onClick={this.download}>
                     Download
                   </button>
                   <button className='btn btn-all btn-green' onClick={this.clearMatch}>
@@ -346,7 +362,14 @@ class Voogle extends React.Component {
     search = () => {
         // Event handler for the search button
         if (this.state.hasRecorded) {
-            this.recorder.exportWAV(this.sendQuery);
+            // Get the full recording
+            let buffer = this.wavesurfer.backend.buffer.getChannelData(0);
+
+            // Grab the segment containing the query
+            let query = buffer.slice(this.start, this.end)
+
+            // Send the underlying data as a bytestream
+            this.sendQuery(new Blob([query.buffer]));
         }
     }
 
@@ -356,12 +379,8 @@ class Voogle extends React.Component {
             return;
         }
 
-        let start = this.wavesurfer.regions.list.queryRegion.start;
-        let end = this.wavesurfer.regions.list.queryRegion.end;
         let formData = new FormData;
         formData.append('query', query);
-        formData.append('start', start);
-        formData.append('length', end - start);
         formData.append('sampling_rate', this.samplingRate);
         formData.append('text_input', this.state.textInput);
 
