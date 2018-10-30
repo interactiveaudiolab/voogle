@@ -7,6 +7,7 @@ model_filepath: weights/default_model.h5
 
 # dataset of audio files to be queried relative to the data directory
 # must match dataset_name used for dataset instantiation in factory.py
+# must match the name of the directory containing the audio files
 dataset_name: test_dataset
 dataset_directory: audio
 
