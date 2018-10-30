@@ -5,8 +5,8 @@ import AWS from 'aws-sdk'
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
+import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
-import toWav from 'audiobuffer-to-wav'
 import '../css/voogle.css';
 
 class Voogle extends React.Component {
@@ -192,7 +192,22 @@ class Voogle extends React.Component {
             return;
         }
 
-        setTimeout(() => window.location.href = this.state.matchUrl, 100);
+        // Encode the audio as a WAV file
+        WavEncoder.encode({
+            sampleRate: this.matchWavesurfer.backend.sampleRate,
+            channelData: [this.matchWavesurfer.backend.getChannelData(0)]
+        }).then((buffer) => {
+            let blob = new Blob([buffer], {type: 'audio/wav'});
+            let filename = this.loadedMatch.slice(
+                this.loadedMatch.lastIndexOf('/') + 1);
+
+            // Download hack: create a ghost element with a download link and
+            // click it
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        });
     }
 
     draw = () => {
