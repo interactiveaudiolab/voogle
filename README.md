@@ -1,5 +1,7 @@
 # Voogle
-Voogle is an audio search engine that uses vocal imitations of the desired sound as the search query.
+Voogle is an audio search engine that uses vocal imitations of the desired sound as the search query.  
+
+Voogle is built in Python 3.6 and Javascript, using Node.js.  
 
 ## Installation
 ### Server
@@ -25,6 +27,8 @@ From there, please follow the directions on the website. Enjoy!
 Unit tests can be run with `npm run test`.
 
 ## Extending
+Voogle, as installed comes with a small test collection of audio files (aka dataset) that can be searched and a default trained deep learning model (a Siamese network) built in Keras.
+
 Voogle can be extended to incorporate additional models and datasets.
 
 ### Adding a model
