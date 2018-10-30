@@ -298,8 +298,8 @@ class Voogle extends React.Component {
                 </div>
               </div>
               <div className='row row-eq-height'>
-                <div className='col-6 mb-2'>
-                  <div className='col-md-12 mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
+                <div className='col-md-6 mb-2'>
+                  <div className='col mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
                      <div className='card btn btn-all blue mb-2 instructions'>
                        Instructions
                      </div>
@@ -313,8 +313,8 @@ class Voogle extends React.Component {
                      </ol>
                   </div>
                 </div>
-                <div className='col-6 mb-2'>
-                  <div className='col-md-12 mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
+                <div className='col-md-6 mb-2'>
+                  <div className='col mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
                     <div className="card btn btn-all green mb-2 instructions">
                       Matches
                     </div>
