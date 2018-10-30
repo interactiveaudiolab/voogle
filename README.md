@@ -10,7 +10,7 @@ Voogle backend dependencies are installed with `pip install -r requirements.txt`
 ### Interface
 Voogle frontend dependencies are installed with `npm install`.
 
-**Note:** You must have [Node.js](https://nodejs.org/en/) installed.
+**Note:** You must have [Node.js](https://nodejs.org/en/) installed, before you can run `npm install`.
 
 ## Setup
 After installing the dependencies, the Voogle app can be deployed.
