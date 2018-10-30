@@ -4,7 +4,7 @@ import '../css/audiofiles.css';
 class AudioFiles extends Component {
     render() {
         const { files, loader } = this.props;
-        const fileList = files.map((file, index) => {
+        const fileList = files.map((file) => {
             return (
                 <div className='row round-box dark-gray mb-1' onClick={() => loader(file.filename)}>
                   <div className='col-9'>

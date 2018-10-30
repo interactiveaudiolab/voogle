@@ -43,7 +43,9 @@ def search():
         try:
             sampling_rate = int(sampling_rate)
         except ValueError:
-            sampling_rate = 44100
+            logger.warning('Couldn\'t decode sampling rate. Attempting search\
+                            with a sampling rate of 48000 Hz.')
+            sampling_rate = 48000
 
         # write query to disk
         query_filepath = app.config.get('query_directory') + '/query.wav'
