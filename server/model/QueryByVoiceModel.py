@@ -24,7 +24,7 @@ class QueryByVoiceModel(ABC):
             parametric_representation: A boolen. True if the audio
                 representations depend on the model weights.
             uses_windowing: A boolean. Indicates whether the model slices the
-                representation
+                representation into fixed-length time windows.
             window_length: A float. The window length in seconds. Unused if
                 uses_windowing is False.
             hop_length: A float. The hop length between windows in seconds.
