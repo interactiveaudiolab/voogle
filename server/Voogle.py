@@ -58,7 +58,7 @@ class Voogle(object):
         for batch_query, batch_items, file_tracker in generator:
 
             # Run inference on this batch
-            ranks = self.model.predict(batch_query, batch_items)
+            ranks = self.model.measure_similarity(batch_query, batch_items)
 
             # Determine the best score for each audio file
             for index, filename in file_tracker.items():

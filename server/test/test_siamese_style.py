@@ -39,7 +39,7 @@ class TestSiameseStyle(unittest.TestCase):
         self.assertTrue(math.isclose(query[0].mean(), 0.0, abs_tol=1e-06))
         self.assertTrue(math.isclose(query[0].std(), 1.0, abs_tol=1e-06))
 
-    def test_predict(self):
+    def test_measure_similarity(self):
         dataset = self.model.construct_representation(
             [self.cat, self.dog], [self.sr_cat, self.sr_dog], is_query=False)
         query = self.model.construct_representation(
@@ -49,9 +49,9 @@ class TestSiameseStyle(unittest.TestCase):
         query = np.repeat(
             np.array(query), len(dataset), axis=0)
 
-        predictions = self.model.predict(query, dataset)
+        similarity = self.model.measure_similarity(query, dataset)
 
-        self.assertEqual(len(predictions), len(dataset))
+        self.assertEqual(len(similarity), len(dataset))
 
 
 if __name__ == '__main__':

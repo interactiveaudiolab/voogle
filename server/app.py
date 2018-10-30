@@ -117,8 +117,8 @@ if __name__ == '__main__':
         config.get('dataset_name'),
         dataset_directory,
         representation_directory,
-        config.get('similarity_model_batch_size'),
-        config.get('representation_batch_size'),
+        config.get('measure_similarity_batch_size'),
+        config.get('construct_representation_batch_size'),
         model)
 
     voogle = Voogle(model, dataset)

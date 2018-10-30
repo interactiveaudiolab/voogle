@@ -73,7 +73,7 @@ class SiameseStyle(QueryByVoiceModel):
                 audio_list, sampling_rates)
         return representation
 
-    def predict(self, query, items):
+    def measure_similarity(self, query, items):
         '''
         Runs model inference on the query.
 
@@ -90,7 +90,8 @@ class SiameseStyle(QueryByVoiceModel):
                 in dataset.
         '''
         if not self.model:
-            raise RuntimeError('No model loaded during call to predict.')
+            raise RuntimeError('No model loaded during call to \
+                               measure_similarity.')
 
         # run model inference
         with self.graph.as_default():
@@ -101,7 +102,7 @@ class SiameseStyle(QueryByVoiceModel):
     def _load_model(self):
         '''
         Loads the model weights from disk. Prepares the model to be able to
-        make predictions.
+        make measure_similarityions.
         '''
         self.logger.info(
             'Loading model weights from {}'.format(self.model_filepath))

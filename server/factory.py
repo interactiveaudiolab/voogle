@@ -31,9 +31,13 @@ def model_factory(model_name, model_filepath):
     return model
 
 
-def dataset_factory(dataset_name, dataset_directory, representation_directory,
-                    representation_batch_size, similarity_model_batch_size,
-                    model):
+def dataset_factory(
+    dataset_name,
+    dataset_directory,
+    representation_directory,
+    construct_representation_batch_size,
+    measure_similarity_batch_size,
+    model):
     '''
     Constructs a dataset object for query-by-voice search.
 
@@ -42,10 +46,10 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
         dataset_directory: A string. The location of the audio files.
         representation_directory: A string. The location of the corresponding
             audio representations.
-        representation_batch_size: An integer or None. The maximum number of
-            audio files to load during one batch of representation
+        construct_representation_batch_size: An integer or None. The maximum
+            number of audio files to load during one batch of representation
             construction.
-        similarity_model_batch_size: An integer or None. The maximum number of
+        measure_similarity_batch_size: An integer or None. The maximum number of
             representations to load during one batch of model inference.
         model: A QueryByVoiceModel. The model being used in the query-by-voice
             system. Defines the audio representation.
@@ -62,8 +66,8 @@ def dataset_factory(dataset_name, dataset_directory, representation_directory,
             dataset_directory,
             representation_directory,
             model,
-            similarity_model_batch_size,
-            representation_batch_size)
+            measure_similarity_batch_size,
+            construct_representation_batch_size)
     else:
         raise ValueError('Dataset {} is not defined'.format(dataset_name))
 

@@ -62,7 +62,7 @@ class QueryByVoiceModel(ABC):
         pass
 
     @abstractmethod
-    def predict(self, query, items):
+    def measure_similarity(self, query, items):
         '''
         Runs model inference on the query.
 
@@ -84,7 +84,7 @@ class QueryByVoiceModel(ABC):
     def _load_model(self):
         '''
         Loads the model weights from disk. Prepares the model to be able to
-        make predictions.
+        make measure_similarityions.
         '''
         pass
 

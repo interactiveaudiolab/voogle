@@ -14,8 +14,8 @@ class QueryByVoiceDataset(ABC):
                  dataset_directory,
                  representation_directory,
                  model,
-                 similarity_model_batch_size,
-                 representation_batch_size):
+                 measure_similarity_batch_size,
+                 construct_representation_batch_size):
         '''
         Dataset constructor.
 
@@ -27,10 +27,11 @@ class QueryByVoiceDataset(ABC):
                 for this dataset.
             model: A QueryByVoiceModel. The model to be used in representation
                 construction.
-            similarity_model_batch_size: An integer or None. The maximum number
-                of representations to load during one batch of model inference.
-            representation_batch_size: An integer or None. The maximum number
-                of audio files to load during one batch of representation
+            measure_similarity_batch_size: An integer or None. The maximum
+                number of representations to load during one batch of model
+                inference.
+            construct_representation_batch_size: An integer or None. The maximum
+                number of audio files to load during one batch of representation
                 construction.
         '''
         # Setup logging
@@ -39,8 +40,9 @@ class QueryByVoiceDataset(ABC):
         self.dataset_directory = dataset_directory
         self.representation_directory = representation_directory
         self.model = model
-        self.similarity_model_batch_size = similarity_model_batch_size
-        self.representation_batch_size = representation_batch_size
+        self.measure_similarity_batch_size = measure_similarity_batch_size
+        self.construct_representation_batch_size = \
+            construct_representation_batch_size
 
         if (self._representation_directory_empty() or
             self._dataset_directory_was_updated() or
@@ -57,14 +59,16 @@ class QueryByVoiceDataset(ABC):
         Provides a generator that returns the necessary data for inference of
         a query-by-voice model. The generator yields the following:
 
-            batch_query: A numpy array of length representation_batch_size. The
-                chunks of the query to be compared with batch_representations.
-                This may be windowed chunks of the query in the case that
-                self.generate_pairs is True.
+            batch_query: A numpy array of length
+                construct_representation_batch_size. The chunks of the query to
+                be compared with batch_representations. This may be windowed
+                chunks of the query in the case that self.generate_pairs is
+                True.
             batch_representations: A numpy array of length
-                representation_batch_size. The chunks of representations to be
-                compared to batch_query. This may be windowed chunks of the
-                original audio in the case that self.generate_pairs is True.
+                construct_representation_batch_size. The chunks of
+                representations to be compared to batch_query. This may be
+                windowed chunks of the original audio in the case that
+                self.generate_pairs is True.
             file_tracker: A dict of (String, int). Maps the audio filenames to
                 their starting index within a batch.
 
@@ -198,7 +202,7 @@ class QueryByVoiceDataset(ABC):
                 continue
 
             # If we've successfully read a batch, yield the batch
-            batch_size = self.similarity_model_batch_size
+            batch_size = self.measure_similarity_batch_size
             if batch_size and len(audio) == batch_size:
                 yield audio_list, sampling_rates, filenames
                 audio_list = []
@@ -241,8 +245,8 @@ class QueryByVoiceDataset(ABC):
         handles = self._get_representation_handles()
 
         # If no batch size is set, load run entire dataset of representations
-        if (self.representation_batch_size):
-            batch_size = self.representation_batch_size
+        if (self.construct_representation_batch_size):
+            batch_size = self.construct_representation_batch_size
         else:
             batch_size = len(handles)
 
@@ -299,7 +303,7 @@ class QueryByVoiceDataset(ABC):
         Returns:
             A python generator.
         '''
-        batch_size = self.representation_batch_size
+        batch_size = self.construct_representation_batch_size
         num_query_windows = len(query)
 
         batch_representations = []
