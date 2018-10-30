@@ -126,6 +126,12 @@ if __name__ == '__main__':
     query_directory = os.path.join(
         parent_directory, 'data', config.get('query_path'))
 
+    # Make the query directory if it doesn't exist
+    try:
+        os.makedirs(query_directory)
+    except OSError:
+        pass
+
     app.config.update(config)
     app.config.update({'voogle': voogle})
     app.config.update({'query_directory': query_directory})

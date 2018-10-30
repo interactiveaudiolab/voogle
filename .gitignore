@@ -1,8 +1,9 @@
 # Project-specific
-server/data/representations/*
 server/data/audio/*
-!server/data/representations/test_dataset/
 !server/data/audio/test_dataset/
+server/data/queries/
+server/data/representations/*
+!server/data/representations/test_dataset/
 feedback.txt
 
 # Byte-compiled / optimized / DLL files
