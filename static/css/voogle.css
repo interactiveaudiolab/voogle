@@ -16,6 +16,33 @@ body {
   background-color: #242A36;
 }
 
+.scrollbox {
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 12px;
+
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #4E6974;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #242A36;
+    border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #242A36;
+}
+
 .text-off-white {
   color: #E8EFF3;
 }

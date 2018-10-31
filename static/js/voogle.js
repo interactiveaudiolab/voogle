@@ -14,6 +14,7 @@ class Voogle extends React.Component {
         super(props);
 
         this.state = {
+            matchDivHeight: 64,
             hasRecorded: false,
             loadedMatch: null,
             matches: [],
@@ -32,6 +33,12 @@ class Voogle extends React.Component {
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
         this.playbackWaveform = React.createRef();
+
+        // Create reference to div holding instructions and textbox in order
+        // to match the height in the match div.
+        this.resizeTopDiv = React.createRef();
+        this.resizeBottomDiv = React.createRef();
+        this.matchesBox = React.createRef();
 
         // The start and end sample indices of the query within the recording
         this.start = null;
@@ -71,7 +78,7 @@ class Voogle extends React.Component {
             plugins: [RegionsPlugin.create()],
             progressColor: '#3D7FB3',
             responsive: true,
-            waveColor: '#4A99D8',
+            waveColor: '#A51FC7',
         });
 
         // Reset the cursor when the audio is done playing
@@ -120,6 +127,10 @@ class Voogle extends React.Component {
         ).catch(
             (error) => console.log(error)
         );
+
+        // Update matches box size when the window is created or resized
+        this.resizeMatches();
+        window.addEventListener('resize', this.resizeMatches);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -287,91 +298,87 @@ class Voogle extends React.Component {
     render() {
         return (
             <div className='container'>
-              <div className='mt-4 ml-1 row'>
-                <div className='col'>
-                  <h1 className='text-off-white'>
-                    Voogle
-                    <small className='text-muted'>
-                      &nbsp;&nbsp;A Vocal-Imitation Search Engine
-                    </small>
-                  </h1>
-                </div>
+              <div className='mt-4 ml-1'>
+                <h1 className='text-off-white'>
+                  Voogle
+                  <small className='text-muted'>
+                    &nbsp;&nbsp;A Vocal-Imitation Search Engine
+                  </small>
+                </h1>
               </div>
-              <div className='row row-eq-height'>
-                <div className='col-md-6 mb-2'>
-                  <div className='col mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
-                     <div className='card btn btn-all blue mb-2 instructions'>
-                       Instructions
-                     </div>
-                     <ol className='big-text'>
-                       <li> Press the <kbd>Record</kbd> button </li>
-                       <li> Imitate your desired sound with your voice </li>
-                       <li> Press the <kbd>Stop Recording</kbd> button </li>
-                       <li> Press Play/Pause to review your recording </li>
-                       <li> Enter a text description of your sound if applicable </li>
-                       <li> <kbd> Search! </kbd> </li>
-                     </ol>
+              <div className='row'>
+                <div className='col-md-6 mb-3'>
+                  <div className='text-off-white gray rounded px-0 pb-1 my-4'>
+                    <div className='card btn btn-all blue mb-2 instructions' ref={this.matchesBox}>
+                      Instructions
+                    </div>
+                    <div ref={this.resizeTopDiv}>
+                        <ol className='big-text'>
+                          <li> Press the <kbd>Record</kbd> button </li>
+                          <li> Imitate your desired sound with your voice </li>
+                          <li> Press the <kbd>Stop Recording</kbd> button </li>
+                          <li> Press Play/Pause to review your recording </li>
+                          <li> Enter a text description of your sound if applicable </li>
+                          <li> <kbd> Search! </kbd> </li>
+                        </ol>
+                    </div>
+                  </div>
+                  <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
+                    <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
+                  </div>
+                  <div className='my-4'>
+                    <div className='waveform' ref={this.recordingWaveform}/>
+                  </div>
+                  <div className='btn-group w-100'>
+                    <button className='btn btn-all btn-red' onClick={this.toggleRecording}>
+                      {this.state.recordButtonText}
+                    </button>
+                    <button className='btn btn-all btn-purple' onClick={this.togglePlayRecording}>
+                      {this.state.playRecordingText}
+                    </button>
+                    <button className='btn btn-all btn-blue' onClick={this.search}>
+                      Search
+                    </button>
+                    <button className='btn btn-all btn-green' onClick={this.clearRecording}>
+                      Clear
+                    </button>
                   </div>
                 </div>
                 <div className='col-md-6 mb-2'>
-                  <div className='col mx-auto text-off-white gray rounded px-0 mt-3 h-100'>
-                    <div className="card btn btn-all green mb-2 instructions">
+                  <div className='text-off-white gray rounded px-0 my-4'>
+                    <div className="card btn btn-all purple mb-2 instructions">
                       Matches
                     </div>
-                    <div className='scrollbox mx-4 pt-1'>
-                        <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
+                      <div className='scrollbox m-2' style={{height: this.state.matchDivHeight}}>
+                        <div className='pb-2'>
+                          <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div className='row'>
-                <div className='col-6 mt-4 mb-1'>
-                  <div className='waveform' ref={this.recordingWaveform}/>
-                </div>
-                <div className='col-6 mt-4 mb-1'>
-                  <div className='waveform' ref={this.playbackWaveform}/>
-                </div>
-              </div>
-              <div className='row'>
-                <div className='col-6'>
-                  <div className="form-group form-group-lg mb-3">
-                    <span className="awesomplete mb-3">
-                      <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
-                    </span>
+                  <div className='my-4'>
+                    <div className='waveform' ref={this.playbackWaveform}/>
                   </div>
-                </div>
-                <div className='col-6'>
-                </div>
-              </div>
-              <div className='row'>
-                <div className='col-6 btn-group'>
-                  <button className='btn btn-all btn-red' onClick={this.toggleRecording}>
-                    {this.state.recordButtonText}
-                  </button>
-                  <button className='btn btn-all btn-purple' onClick={this.togglePlayRecording}>
-                    {this.state.playRecordingText}
-                  </button>
-                  <button className='btn btn-all btn-blue' onClick={this.search}>
-                    Search
-                  </button>
-                  <button className='btn btn-all btn-green' onClick={this.clearRecording}>
-                    Clear
-                  </button>
-                </div>
-                <div className='col-6 btn-group'>
-                  <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
-                    {this.state.playMatchText}
-                  </button>
-                  <button className='btn btn-all btn-blue' onClick={this.download}>
-                    Download
-                  </button>
-                  <button className='btn btn-all btn-green' onClick={this.clearMatch}>
-                    Clear
-                  </button>
+                  <div className='btn-group w-100'>
+                    <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
+                      {this.state.playMatchText}
+                    </button>
+                    <button className='btn btn-all btn-blue' onClick={this.download}>
+                      Download
+                    </button>
+                    <button className='btn btn-all btn-green' onClick={this.clearMatch}>
+                      Clear
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
         )
+    }
+
+    resizeMatches = () => {
+        const top = this.resizeTopDiv.current.getBoundingClientRect().top;
+        const btm = this.resizeBottomDiv.current.getBoundingClientRect().bottom;
+        this.setState({matchDivHeight: btm - top});
     }
 
     search = () => {
