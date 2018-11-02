@@ -2,6 +2,7 @@ import logging
 import logging.config
 import os
 from model.SiameseStyle import SiameseStyle
+from model.VGGishEmbedding import VGGishEmbedding
 from data.TestDataset import TestDataset
 
 logger = logging.getLogger('factory')
@@ -24,6 +25,8 @@ def model_factory(model_name, model_filepath):
 
     if model_name == 'siamese-style':
         model = SiameseStyle(model_filepath)
+    elif model_name == 'VGGish-embedding':
+        model = VGGishEmbedding(model_filepath)
     else:
         raise ValueError('Model {} is not defined'.format(model_name))
 

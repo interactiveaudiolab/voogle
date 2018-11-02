@@ -1,8 +1,10 @@
 # similarity model
-model_name: siamese-style
+#model_name: siamese-style
+model_name: VGGish-embedding
 
 # model weight filename relative to the model directory
-model_filepath: weights/default_model.h5
+#model_filepath: weights/default_model.h5
+model_filepath: weights/vggish_pretrained.pth
 
 # dataset of audio files to be queried relative to the data directory
 dataset_name: test_dataset
@@ -16,7 +18,9 @@ representation_directory: representations
 query_path: queries
 
 # batch size of audio representation construction
-representation_batch_size: 128
+#representation_batch_size: 128
+representation_batch_size:
 
 # batch size of similarity inference
-similarity_model_batch_size: 128
+#similarity_model_batch_size: 128
+similarity_model_batch_size:
