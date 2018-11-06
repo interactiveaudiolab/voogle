@@ -57,17 +57,18 @@ def waveform_to_examples(data, sample_rate):
       lower_edge_hertz=vggish_params.MEL_MIN_HZ,
       upper_edge_hertz=vggish_params.MEL_MAX_HZ)
 
-  # Frame features into examples.
-  # features_sample_rate = 1.0 / vggish_params.STFT_HOP_LENGTH_SECONDS
-  # example_window_length = int(round(
-  #     vggish_params.EXAMPLE_WINDOW_SECONDS * features_sample_rate))
-  # example_hop_length = int(round(
-  #     vggish_params.EXAMPLE_HOP_SECONDS * features_sample_rate))
-  # log_mel_examples = mel_features.frame(
-  #     log_mel,
-  #     window_length=example_window_length,
-  #     hop_length=example_hop_length)
-  return log_mel
+  #Frame features into examples.
+  features_sample_rate = 1.0 / vggish_params.STFT_HOP_LENGTH_SECONDS
+  example_window_length = int(round(
+      vggish_params.EXAMPLE_WINDOW_SECONDS * features_sample_rate))
+  example_hop_length = int(round(
+      vggish_params.EXAMPLE_HOP_SECONDS * features_sample_rate))
+  log_mel_examples = mel_features.frame(
+      log_mel,
+      window_length=example_window_length,
+      hop_length=example_hop_length)
+
+  return log_mel_examples #log_mel
 
 
 def wavfile_to_examples(wav_file):

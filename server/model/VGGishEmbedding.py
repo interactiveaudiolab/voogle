@@ -5,7 +5,7 @@ import tensorflow as tf
 from keras.models import load_model
 from model.QueryByVoiceModel import QueryByVoiceModel
 from vggish_utils import vggish_input_bk
-from model.vggish_model_architecture import VGGish
+from model.vggish_model_architecture import VGGish2s 
 from scipy import spatial
 import torch
 from torch.autograd import Variable
@@ -13,12 +13,13 @@ from torch.autograd import Variable
 
 class VGGishEmbedding(QueryByVoiceModel):
     '''
-    A siamese-style neural network for query-by-voice applications.
+    A VGGish model to extract feature embeddings for query-by-voice applications.
 
-    citation: Y. Zhang, B. Pardo, and Z. Duan, "Siamese Style Convolutional
-        Neural Networks for Sound Search by Vocal Imitation," in IEEE/ACM
-        Transactions on Audio, Speech, and Language Processing, pp. 99-112,
-        2018.
+    citation: S.Hershey,S.Chaudhuri,D.P.Ellis,J.F.Gemmeke,A.Jansen, R. C. Moore, 
+    M. Plakal, D. Platt, R. A. Saurous, B. Seybold, et al., 
+    “Cnn architectures for large-scale audio classification,” 
+    in Acoustics, Speech and Signal Processing (ICASSP), 
+    2017 IEEE International Conference on. IEEE, 2017, pp. 131–135.
     '''
 
     def __init__(
@@ -68,8 +69,6 @@ class VGGishEmbedding(QueryByVoiceModel):
                 the same as in audio_list.
         '''
 
-        # Siamese-style network requires different representation of query
-        # and dataset audio
         if is_query:
             representation = self._construct_representation_query(
                 audio_list[0], sampling_rates[0])
@@ -98,12 +97,6 @@ class VGGishEmbedding(QueryByVoiceModel):
             raise RuntimeError('No model loaded during call to predict.')
 
         # run model inference
-         
-        # with self.graph.as_default():
-        #     self.logger.debug('Running inference')
-        #     return self.model.predict(
-        #         [query, items], batch_size=len(query), verbose=1)
-
         self.logger.debug('Running inference')
         simlarities=[]
         for q, i in zip(query, items):
@@ -118,7 +111,7 @@ class VGGishEmbedding(QueryByVoiceModel):
         '''
         self.logger.info(
             'Loading model weights from {}'.format(self.model_filepath))
-        self.model = VGGish()
+        self.model = VGGish2s()
         self.model.load_state_dict(torch.load(self.model_filepath))
         self.model.eval()
 
@@ -130,30 +123,19 @@ class VGGishEmbedding(QueryByVoiceModel):
         query = librosa.resample(query, sampling_rate, new_sampling_rate)
         sampling_rate = new_sampling_rate
 
-        # if self.uses_windowing:
-        #     windows = self._window(query, sampling_rate)
-        # else:
-        #     windows = [librosa.util.fix_length(query, 4 * sampling_rate)]
-
-        # construct the logmelspectrogram of the signal
-        # representation = []
-        # for window in windows:
-        #     melspec = librosa.feature.melspectrogram(
-        #         window, sr=sampling_rate, n_fft=133,
-        #         hop_length=133, power=2, n_mels=39,
-        #         fmin=0.0, fmax=5000)
-        #     melspec = melspec[:, :482]
-        #     logmelspec = librosa.power_to_db(melspec, ref=np.max)
-        #     representation.append(logmelspec)
-
-        # # normalize to zero mean and unit variance
-        # representation = np.array(representation)
-        # representation = self._normalize(representation).astype('float32')
-
+        # zero-padding 
+        target_length = int(np.ceil(query.shape[0]/sampling_rate))
+        if target_length % 2 != 0:
+            target_length+=1
+        pad = np.zeros((target_length*sampling_rate-query.shape[0]))
+        query = np.append(query, pad)
+        # if query.shape[0] < 2*sampling_rate:
+        #     pad = np.zeros((2*sampling_rate-query.shape[0]))
+        #     query = np.append(query, pad)
 
         melspec = vggish_input_bk.waveform_to_examples(query, sampling_rate)
         melspec = melspec.astype('float32')
-        melspec = melspec.reshape(1, melspec.shape[0], melspec.shape[1])
+        #melspec = melspec.reshape(1, melspec.shape[0], melspec.shape[1])
         representation = self.model(Variable(torch.from_numpy(melspec)))
         representation = representation.detach().numpy()
 
@@ -164,37 +146,23 @@ class VGGishEmbedding(QueryByVoiceModel):
         representations = []
         for audio, sampling_rate in zip(dataset, sampling_rates):
 
-            # resample audio at 44.1k
+            # resample audio at 16k
             audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
             sampling_rate = new_sampling_rate
 
-            # if self.uses_windowing:
-            #     windows = self._window(audio, sampling_rate)
-            # else:
-            #     windows = [librosa.util.fix_length(audio, 4 * sampling_rate)]
-
-            # representation = []
-            # for window in windows:
-            #     # construct the logmelspectrogram of the signal
-            #     melspec = librosa.feature.melspectrogram(
-            #         window,
-            #         sr=sampling_rate,
-            #         n_fft=1024,
-            #         hop_length=1024,
-            #         power=2)
-            #     melspec = melspec[:, 0:128]
-            #     logmelspec = librosa.power_to_db(melspec, ref=np.max)
-            #     representation.append(logmelspec)
-
-            # normalize to zero mean and unit variance
-            # representation = np.array(representation)
-            # representation = self._normalize(representation).astype('float32')
-            # representation = np.expand_dims(representation, axis=1)
-            # representations.append(representation)
+            # zero-padding
+            target_length = int(np.ceil(audio.shape[0]/sampling_rate))
+            if target_length % 2 != 0:
+                target_length+=1 
+            pad = np.zeros((target_length*sampling_rate-audio.shape[0]))
+            audio = np.append(audio, pad)
+            # if audio.shape[0] < 2*sampling_rate:
+            #     pad = np.zeros((2*sampling_rate-audio.shape[0]))
+            #     audio = np.append(audio, pad)
 
             melspec = vggish_input_bk.waveform_to_examples(audio, sampling_rate)
             melspec = melspec.astype('float32')
-            melspec = melspec.reshape(1, melspec.shape[0], melspec.shape[1])
+            #melspec = melspec.reshape(1, melspec.shape[0], melspec.shape[1])
             representation = self.model(Variable(torch.from_numpy(melspec)))
             representation = representation.detach().numpy()
             representations.append(representation)
