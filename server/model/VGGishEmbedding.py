@@ -100,7 +100,7 @@ class VGGishEmbedding(QueryByVoiceModel):
         self.logger.debug('Running inference')
         simlarities=[]
         for q, i in zip(query, items):
-            simlarities.append(1-spatial.distance.cosine(q, i))
+            simlarities.append(spatial.distance.cosine(q, i))
 
         return np.array(simlarities)
 
