@@ -20,10 +20,6 @@ class VGGish(nn.Module):
 		self.layer9_conv4_2 = nn.Sequential(nn.Conv2d(512, 512,kernel_size=3, stride=1,padding=1), nn.ReLU())
 		self.layer10_pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-		self.layer11_fc1 = nn.Sequential(nn.Linear(12288, 4096), nn.ReLU())
-		self.layer12_fc2 = nn.Sequential(nn.Linear(4096, 4096), nn.ReLU())
-		self.layer13_fc3 = nn.Sequential(nn.Linear(4096, 128), nn.ReLU())
-
 	
 	def forward(self, x):
 		
@@ -69,10 +65,6 @@ class VGGish2s(nn.Module):
 		self.layer8_conv4_1 = nn.Sequential(nn.Conv2d(256, 512,kernel_size=3, stride=1,padding=1), nn.ReLU())
 		self.layer9_conv4_2 = nn.Sequential(nn.Conv2d(512, 512,kernel_size=3, stride=1,padding=1), nn.ReLU())
 		self.layer10_pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-		self.layer11_fc1 = nn.Sequential(nn.Linear(12288, 4096), nn.ReLU())
-		self.layer12_fc2 = nn.Sequential(nn.Linear(4096, 4096), nn.ReLU())
-		self.layer13_fc3 = nn.Sequential(nn.Linear(4096, 128), nn.ReLU())
 
 	
 	def forward(self, x):
