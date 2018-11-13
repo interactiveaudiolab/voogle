@@ -305,7 +305,8 @@ class Voogle extends React.Component {
 
     loadAudio = (key) => {
         // Don't retrieve the audio if we already have it
-        if (key === this.loadedMatch) {
+        if (key === this.state.loadedMatch) {
+            console.log('audio file already downloaded from s3')
             return;
         }
 
