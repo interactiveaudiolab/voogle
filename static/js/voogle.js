@@ -27,8 +27,12 @@ class Voogle extends React.Component {
             textInput: ''
         }
 
-        // A handle for the periodic drawing event
-        this.timerId = null;
+        // A handle for the periodically drawing the waveform while recording
+        this.drawIntervalId = null;
+
+        // A handle for stopping recording when the maximum recording length
+        // has been reached
+        this.recordingTimerId = null;
 
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
@@ -138,14 +142,32 @@ class Voogle extends React.Component {
         // send the update to the recorder.
         if (this.state.recording != prevState.recording) {
             if (this.state.recording) {
-                // Clear the level-detected region on the waveform
-                this.wavesurfer.clearRegions();
+                // Stop playback
+                if (this.state.playingRecording) {
+                    this.setState({
+                        playingRecording: false,
+                        playRecordingText: 'Play'
+                    })
+                }
+
+                // Reset the waveform
+                this.clearRecording();
 
                 // Start recording
                 this.recorder.record();
 
-                // Periodically draw the recorded waveform
-                this.timerId = setInterval(this.draw, this.props.drawingRate);
+                // Periodically draw the waveform while recording
+                this.drawIntervalId = setInterval(
+                    this.draw, this.props.drawingRate);
+
+                // Stop recording after the maximum allowed recording length
+                // has been reached
+                this.recordingTimerId = setTimeout(
+                    () => this.setState({
+                        recording: false,
+                        recordButtonText: 'Record'
+                    }),
+                    this.props.maxRecordingLength * 1000);
             } else {
                 // Stop recording
                 this.recorder.stop();
@@ -153,8 +175,11 @@ class Voogle extends React.Component {
                 // Indicate that a query is available
                 this.setState({ hasRecorded: true });
 
-                // Stop drawing new audio
-                clearInterval(this.timerId);
+                // Stop periodically drawing the waveform while recording
+                clearInterval(this.drawIntervalId);
+
+                // Stop the recording timer
+                clearTimeout(this.recordingTimerId);
 
                 // Find the user's audio via level detection
                 this.drawRegion();
@@ -485,6 +510,9 @@ class Voogle extends React.Component {
 Voogle.defaultProps = {
     // The time (in milliseconds) between waveform updates
     drawingRate: 500,
+
+    // The maximum duration (in seconds) of a user's recording
+    maxRecordingLength: 10,
 
     // The minimum audio buffer value above which automatic region placement
     // will begin
