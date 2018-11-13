@@ -5,7 +5,7 @@ import tensorflow as tf
 from keras.models import load_model
 from model.QueryByVoiceModel import QueryByVoiceModel
 from vggish_utils import vggish_input_bk
-from model.vggish_model_architecture import VGGish2s 
+from model.vggish_model_architecture import VGGish2s
 from scipy import spatial
 import torch
 from torch.autograd import Variable
@@ -15,10 +15,10 @@ class VGGishEmbedding(QueryByVoiceModel):
     '''
     A VGGish model to extract feature embeddings for query-by-voice applications.
 
-    citation: S.Hershey,S.Chaudhuri,D.P.Ellis,J.F.Gemmeke,A.Jansen, R. C. Moore, 
-    M. Plakal, D. Platt, R. A. Saurous, B. Seybold, et al., 
-    “Cnn architectures for large-scale audio classification,” 
-    in Acoustics, Speech and Signal Processing (ICASSP), 
+    citation: S.Hershey,S.Chaudhuri,D.P.Ellis,J.F.Gemmeke,A.Jansen, R. C. Moore,
+    M. Plakal, D. Platt, R. A. Saurous, B. Seybold, et al.,
+    “Cnn architectures for large-scale audio classification,”
+    in Acoustics, Speech and Signal Processing (ICASSP),
     2017 IEEE International Conference on. IEEE, 2017, pp. 131–135.
     '''
 
@@ -77,7 +77,7 @@ class VGGishEmbedding(QueryByVoiceModel):
                 audio_list, sampling_rates)
         return representation
 
-    def predict(self, query, items):
+    def measure_similarity(self, query, items):
         '''
         Runs model inference on the query.
 
@@ -100,7 +100,7 @@ class VGGishEmbedding(QueryByVoiceModel):
         self.logger.debug('Running inference')
         simlarities=[]
         for q, i in zip(query, items):
-            simlarities.append(spatial.distance.cosine(q, i))
+            simlarities.append(1 - spatial.distance.cosine(q, i))
 
         return np.array(simlarities)
 
@@ -123,7 +123,7 @@ class VGGishEmbedding(QueryByVoiceModel):
         query = librosa.resample(query, sampling_rate, new_sampling_rate)
         sampling_rate = new_sampling_rate
 
-        # zero-padding 
+        # zero-padding
         target_length = int(np.ceil(query.shape[0]/sampling_rate))
         if target_length % 2 != 0:
             target_length+=1
@@ -153,7 +153,7 @@ class VGGishEmbedding(QueryByVoiceModel):
             # zero-padding
             target_length = int(np.ceil(audio.shape[0]/sampling_rate))
             if target_length % 2 != 0:
-                target_length+=1 
+                target_length+=1
             pad = np.zeros((target_length*sampling_rate-audio.shape[0]))
             audio = np.append(audio, pad)
             # if audio.shape[0] < 2*sampling_rate:

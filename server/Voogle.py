@@ -75,7 +75,9 @@ class Voogle(object):
                 model_output, previous_filename, max_file_rank)
 
         # Retrieve the top audio filenames
-        match_list = sorted(model_output, key=model_output.get)[:self.matches]
+        print(model_output)
+        match_list = sorted(model_output, key=model_output.get)[-self.matches:]
+        match_list.reverse()
 
         # Find the audio files also containing the user's text query
         text = text_input.lower()

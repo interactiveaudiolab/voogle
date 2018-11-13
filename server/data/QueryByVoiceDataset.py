@@ -246,15 +246,15 @@ class QueryByVoiceDataset(ABC):
 
         # If no batch size is set, load run entire dataset of representations
         if (self.construct_representation_batch_size):
-            batch_size = self.construct_representation_batch_size
+            max_batch_size = self.construct_representation_batch_size
         else:
-            batch_size = len(handles)
+            max_batch_size = len(handles)
 
         start = 0
         end = len(handles)
         while start < end:
             representations = self._load_representations(
-                handles[start:min(start+batch_size, end)])
+                handles[start:min(start+max_batch_size, end)])
             filenames = [self._handle_to_filename(handle) for handle in handles]
 
             # Handle pairwise comparisons
@@ -265,10 +265,11 @@ class QueryByVoiceDataset(ABC):
             else:
                 batch_query = np.repeat(
                     np.array(query), len(representations), axis=0)
+                batch_size = min(len(representations), max_batch_size)
                 file_tracker = {i : filenames[i] for i in range(batch_size)}
                 yield batch_query, np.array(representations), file_tracker
 
-            start += batch_size
+            start += max_batch_size
 
     def _linear_generator_feedback(self, model_output):
         '''
