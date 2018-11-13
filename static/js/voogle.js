@@ -324,7 +324,7 @@ class Voogle extends React.Component {
                     </div>
                   </div>
                   <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
-                    <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput}/>
+                    <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput} onKeyPress={this.submit}/>
                   </div>
                   <div className='my-4'>
                     <div className='waveform' ref={this.recordingWaveform}/>
@@ -392,6 +392,12 @@ class Voogle extends React.Component {
 
             // Send the underlying data as a bytestream
             this.sendQuery(new Blob([query.buffer]));
+        }
+    }
+
+    submit = (event) => {
+        if (event.key == 'Enter') {
+            this.search();
         }
     }
 
