@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import os
-# from text.FilenameContains import FilenameContains
+from model.text.ContainsText import ContainsText
 
 
 class Voogle(object):
@@ -9,7 +9,13 @@ class Voogle(object):
     A query-by-voice system.
     '''
 
-    def __init__(self, model, dataset, text_handler=None, matches=10):
+    def __init__(
+        self,
+        model,
+        dataset,
+        require_text_match,
+        text_handler=ContainsText(),
+        matches=10):
         '''
         Voogle constructor
 
@@ -18,6 +24,8 @@ class Voogle(object):
                 calculations
             dataset: A python generator. The generator used to load audio
                 representations for similarity ranking.
+            require_text_match: A boolean. If true ranking is performed only on
+                dataset items that match the user's text query.
             text_handler: A TextHandler object. The model for determining if the
                 user's text matches the audio text description.
             matches: An int. The number of matches to return during search.
@@ -27,6 +35,7 @@ class Voogle(object):
 
         self.model = model
         self.dataset = dataset
+        self.require_text_match = require_text_match
         self.text_handler = text_handler
         self.matches = matches
 
@@ -50,46 +59,54 @@ class Voogle(object):
         query = self.model.construct_representation(
             [query], [sampling_rate], is_query=True)
 
+        # Seed the text handler with the user's text query
+        self.text_handler.set_query_text(text_input)
+
         # Retrieve the similarity measure between query and each dataset entry
         model_output = {}
         previous_filename = ''
         previous_index = 0
-        generator = self.dataset.data_generator(query)
+        generator = self.dataset.data_generator(
+            query, self.text_handler, self.require_text_match)
         for batch_query, batch_items, file_tracker in generator:
 
             # Run inference on this batch
             ranks = self.model.measure_similarity(batch_query, batch_items)
 
             # Determine the best score for each audio file
-            for index, filename in file_tracker.items():
-                if index != 0 and previous_filename != '':
+            for index, handle in file_tracker.items():
+                if index != 0 and previous_handle != '':
                     max_file_rank = np.max(ranks[previous_index:index])
                     model_output = self._update_model_output(
-                        model_output, previous_filename, max_file_rank)
+                        model_output, previous_handle, max_file_rank)
 
-                previous_filename = filename
+                previous_handle = handle
                 previous_index = index
 
             max_file_rank = np.max(ranks[previous_index:])
             model_output = self._update_model_output(
-                model_output, previous_filename, max_file_rank)
+                model_output, previous_handle, max_file_rank)
 
         # Retrieve the top audio filenames
-        print(model_output)
         match_list = sorted(model_output, key=model_output.get)[-self.matches:]
         match_list.reverse()
+        filenames = [self.dataset.handle_to_filename(m) for m in match_list]
 
         # Find the audio files also containing the user's text query
-        text = text_input.lower()
-        text_matches = [
-            text and text in filename.lower() for filename in match_list]
-
-        return match_list, text_matches
-
-    def _update_model_output(self, model_output, filename, max_file_rank):
-        if filename in model_output:
-            model_output[filename] = max(
-                model_output[filename], max_file_rank)
+        if self.require_text_match or not text_input:
+            text_matches = [False] * len(match_list)
         else:
-            model_output[filename] = max_file_rank
+            text_features = [
+                self.dataset.handle_to_text_features(m) for m in match_list]
+            text_matches = [
+                self.text_handler.is_match([t]) for t in text_features]
+
+        return filenames, text_matches
+
+    def _update_model_output(self, model_output, handle, max_file_rank):
+        if handle in model_output:
+            model_output[handle] = max(
+                model_output[handle], max_file_rank)
+        else:
+            model_output[handle] = max_file_rank
         return model_output

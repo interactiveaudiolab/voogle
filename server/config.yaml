@@ -25,3 +25,6 @@ construct_representation_batch_size: 128
 
 # batch size of similarity inference
 measure_similarity_batch_size: 128
+
+# Toggle whether search results must match the user-specified text
+require_text_match: false

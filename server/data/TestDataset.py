@@ -38,7 +38,7 @@ class TestDataset(QueryByVoiceDataset):
             measure_similarity_batch_size,
             construct_representation_batch_size)
 
-    def data_generator(self, query):
+    def data_generator(self, query, text_handler, require_text_match):
         '''
         Provides a generator that returns the necessary data for inference of
         a query-by-voice model. The generator yields the following:
@@ -58,11 +58,17 @@ class TestDataset(QueryByVoiceDataset):
 
         Arguments:
             query: A numpy array. The audio representation of the user's query.
+            text_handler: A TextHandler. Determines whether a file's text
+                information is compatible with the user's text query.
+            require_text_match: A boolean. If true, only representations of
+                audio files with text data matching the user's text query are
+                provided by the generator.
 
         Returns:
             A python generator.
         '''
-        return self._linear_data_generator(query)
+        return self._linear_data_generator(
+            query, text_handler, require_text_match)
 
     def generator_feedback(self, model_output):
         '''
@@ -74,6 +80,34 @@ class TestDataset(QueryByVoiceDataset):
                 output by the model.
         '''
         self._linear_generator_feedback(model_output)
+
+    def handle_to_filename(self, handle):
+        '''
+        Given an audio representation handle, returns the original audio
+        filename
+
+        Arguments:
+            handle: The audio representation handle as defined by the dataset.
+
+        Returns:
+            A string. The path to the audio file relative to dataset_directory.
+        '''
+        print(handle, handle.rsplit('.', 1)[0])
+        return handle.rsplit('.', 1)[0]
+
+    def handle_to_text_features(self, handle):
+        '''
+        Given a representation handle, returns the text features associated with
+        the underlying audio file
+
+        Arguments:
+            handle: A representation handle
+
+        Returns:
+            A list of strings
+        '''
+        # The test dataset handle is just the filename
+        return self.handle_to_filename(handle)
 
     def _get_audio_filenames(self):
         '''
@@ -99,19 +133,6 @@ class TestDataset(QueryByVoiceDataset):
             A python list.
         '''
         return sorted(os.listdir(self.representation_directory))
-
-    def _handle_to_filename(self, handle):
-        '''
-        Given an audio representation handle, returns the original audio
-        filename
-
-        Arguments:
-            handle: The audio representation handle as defined by the dataset.
-
-        Returns:
-            A string. The path to the audio file relative to dataset_directory.
-        '''
-        return handle.rsplit('.', 1)[0]
 
     def _load_representations(self, handles):
         '''

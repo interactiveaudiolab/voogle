@@ -213,13 +213,21 @@ class Voogle extends React.Component {
         this.recorder.clear();
         this.wavesurfer.empty();
         this.wavesurfer.clearRegions();
-        this.setState({hasRecorded: false});
+        this.setState({
+            hasRecorded: false,
+            playingRecording: false,
+            playRecordingText: 'Play'
+        });
     }
 
     clearMatch = () => {
         this.matchWavesurfer.empty();
         this.matchWavesurfer.clearRegions();
-        this.setState({loadedMatch: null});
+        this.setState({
+            loadedMatch: null,
+            playingMatch: false,
+            playMatchText: 'Play'
+        });
     }
 
     download = () => {
@@ -306,7 +314,8 @@ class Voogle extends React.Component {
     loadAudio = (key) => {
         // Don't retrieve the audio if we already have it
         if (key === this.state.loadedMatch) {
-            console.log('audio file already downloaded from s3')
+            this.matchWavesurfer.seekTo(0);
+            this.setState({playingMatch: true, playMatchText: 'Pause'});
             return;
         }
 

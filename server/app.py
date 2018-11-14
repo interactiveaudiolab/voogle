@@ -121,7 +121,7 @@ if __name__ == '__main__':
         config.get('construct_representation_batch_size'),
         model)
 
-    voogle = Voogle(model, dataset)
+    voogle = Voogle(model, dataset, config.get('require_text_match'))
 
     query_directory = os.path.join(
         parent_directory, 'data', config.get('query_path'))

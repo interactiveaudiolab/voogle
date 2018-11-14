@@ -10,7 +10,7 @@
     "production": "npm run build && npm run serve",
     "development": "npm run start && npm run serve-dev",
     "serve": "python server/app.py",
-    "serve-dev": "python server/app.py -d True"
+    "serve-dev": "python server/app.py -d"
   },
   "repository": {
     "type": "git",

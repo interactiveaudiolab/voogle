@@ -69,8 +69,8 @@ class QueryByVoiceDataset(ABC):
                 representations to be compared to batch_query. This may be
                 windowed chunks of the original audio in the case that
                 self.generate_pairs is True.
-            file_tracker: A dict of (String, int). Maps the audio filenames to
-                their starting index within a batch.
+            file_tracker: A dict. Maps the representation handles to their
+                starting index within a batch.
 
         Arguments:
             query: A numpy array. The audio representation of the user's query.
@@ -89,6 +89,34 @@ class QueryByVoiceDataset(ABC):
         Arguments:
             model_output: A python list. The float-valued similarity scores
                 output by the model.
+        '''
+        pass
+
+    @abstractmethod
+    def handle_to_filename(self, handle):
+        '''
+        Given an audio representation handle, returns the original audio
+        filename
+
+        Arguments:
+            handle: The audio representation handle as defined by the dataset.
+
+        Returns:
+            A string. The path to the audio file relative to dataset_directory.
+        '''
+        pass
+
+    @abstractmethod
+    def handle_to_text_features(self, handle):
+        '''
+        Given a representation handle, returns the text features associated with
+        the underlying audio file
+
+        Arguments:
+            handle: A representation handle
+
+        Returns:
+            A list of strings
         '''
         pass
 
@@ -116,20 +144,6 @@ class QueryByVoiceDataset(ABC):
 
         Returns:
             A python list.
-        '''
-        pass
-
-    @abstractmethod
-    def _handle_to_filename(self, handle):
-        '''
-        Given an audio representation handle, returns the original audio
-        filename
-
-        Arguments:
-            handle: The audio representation handle as defined by the dataset.
-
-        Returns:
-            A string. The path to the audio file relative to dataset_directory.
         '''
         pass
 
@@ -231,20 +245,44 @@ class QueryByVoiceDataset(ABC):
             self.logger.info('Found updated dataset directory.')
         return result
 
-    def _linear_data_generator(self, query):
+    def _linear_data_generator(self, query, text_handler, require_text_match):
         '''
         Provides a generator that iterates linearly through all points in the
-        dataset during inference.
+        dataset during inference. The generator yields the following:
+
+            batch_query: A numpy array of length
+                construct_representation_batch_size. The chunks of the query to
+                be compared with batch_representations. This may be windowed
+                chunks of the query in the case that self.generate_pairs is
+                True.
+            batch_representations: A numpy array of length
+                construct_representation_batch_size. The chunks of
+                representations to be compared to batch_query. This may be
+                windowed chunks of the original audio in the case that
+                self.generate_pairs is True.
+            file_tracker: A dict. Maps the representation handles to their
+                starting index within a batch.
 
         Arguments:
             query: A numpy array. The audio representation of the user's query.
+            text_handler: A TextHandler. Determines whether a file's text
+                information is compatible with the user's text query.
+            require_text_match: A boolean. If true, only representations of
+                audio files with text data matching the user's text query are
+                provided by the generator.
 
         Returns:
             A python generator.
         '''
         handles = self._get_representation_handles()
 
-        # If no batch size is set, load run entire dataset of representations
+        # Reduce the set of representation handles to only those with file
+        # text data matching the user's text query
+        if require_text_match:
+            handles = [h for h in handles if text_handler.is_match(
+                [self.handle_to_text_features(h)])]
+
+        # If no batch size is set, load entire dataset of representations
         if (self.construct_representation_batch_size):
             max_batch_size = self.construct_representation_batch_size
         else:
@@ -253,20 +291,19 @@ class QueryByVoiceDataset(ABC):
         start = 0
         end = len(handles)
         while start < end:
-            representations = self._load_representations(
-                handles[start:min(start+max_batch_size, end)])
-            filenames = [self._handle_to_filename(handle) for handle in handles]
+            batch_handles = handles[start:min(start+max_batch_size, end)]
+            representations = self._load_representations(batch_handles)
 
             # Handle pairwise comparisons
             if self.model.uses_windowing:
                 for batch in self._pairwise_batch_generator(
-                    query, representations, filenames):
+                    query, representations, batch_handles):
                     yield batch
             else:
                 batch_query = np.repeat(
                     np.array(query), len(representations), axis=0)
                 batch_size = min(len(representations), max_batch_size)
-                file_tracker = {i : filenames[i] for i in range(batch_size)}
+                file_tracker = {i : batch_handles[i] for i in range(batch_size)}
                 yield batch_query, np.array(representations), file_tracker
 
             start += max_batch_size
@@ -289,7 +326,7 @@ class QueryByVoiceDataset(ABC):
             logger.info('Found updated model weights.')
         return result
 
-    def _pairwise_batch_generator(self, query, representations, filenames):
+    def _pairwise_batch_generator(self, query, representations, handles):
         '''
         Provides a generator that returns batches of pairs of windows of the
         query and representation. Also returns a file tracker that tracks the
@@ -298,7 +335,7 @@ class QueryByVoiceDataset(ABC):
         Arguments:
             query: A numpy array. The audio representation of the user's query.
             representations: A python list. The windowed representations.
-            filenames: A python list. The filenames corresponding to each
+            handles: A python list. The handles corresponding to each
                 representation.
 
         Returns:
@@ -311,7 +348,7 @@ class QueryByVoiceDataset(ABC):
         batch_query = []
         file_tracker = {}
         index = 0
-        for representation, filename in zip(representations, filenames):
+        for representation, handle in zip(representations, handles):
             num_representation_windows = len(representation)
             num_pairs = num_query_windows * num_representation_windows
 
@@ -324,7 +361,7 @@ class QueryByVoiceDataset(ABC):
 
             # All above pairs belong to one representation. Mark the start point
             # of that representation in the batch.
-            file_tracker[index] = filename
+            file_tracker[index] = handle
             index += num_pairs
 
             if batch_size and index >= batch_size:
