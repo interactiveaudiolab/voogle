@@ -3,6 +3,7 @@ import os
 import unittest
 from data.TestDataset import TestDataset
 from model.SiameseStyle import SiameseStyle
+from model.text.ContainsText import ContainsText
 
 
 class TestTestDataset(unittest.TestCase):
@@ -28,6 +29,10 @@ class TestTestDataset(unittest.TestCase):
         self.query = self.model.construct_representation(
             [self.query_audio], [self.sr_query], is_query=True)[0]
 
+        self.text_handler = ContainsText()
+        self.text_handler.set_query_text('')
+        self.require_text_match = False
+
     def test_dataset_audio_filenames(self):
         filenames = self.dataset._get_audio_filenames()
         self.assertEqual(len(filenames), 120)
@@ -38,7 +43,7 @@ class TestTestDataset(unittest.TestCase):
         handles = self.dataset._get_representation_handles()
         representations = self.dataset._load_representations(handles)
         filenames = [
-            self.dataset._handle_to_filename(handle) for handle in handles]
+            self.dataset.handle_to_filename(handle) for handle in handles]
         generator = self.dataset._pairwise_batch_generator(
             self.query, representations, filenames)
         gen_output = list(generator)
@@ -55,7 +60,8 @@ class TestTestDataset(unittest.TestCase):
 
     def test_generator_default(self):
         filenames = []
-        generator = self.dataset.data_generator(self.query)
+        generator = self.dataset.data_generator(
+            self.query, self.text_handler, self.require_text_match)
         for batch_items, batch_audio, file_tracker in generator:
             # Every representation should have a corresponding filename
             self.assertEqual(len(batch_items), len(batch_audio))

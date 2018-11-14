@@ -21,7 +21,7 @@ class TestVoogle(unittest.TestCase):
             'server/data/representations/test_dataset/siamese-style')
         dataset = TestDataset(
             dataset_directory, representation_directory, model)
-        self.voogle = Voogle(model, dataset, matches=10)
+        self.voogle = Voogle(model, dataset, False, matches=10)
 
         self.query, self.sr_query = librosa.load(
             os.path.join(dataset_directory, 'cat.wav'), sr=None)
