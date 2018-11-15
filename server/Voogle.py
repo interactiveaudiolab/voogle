@@ -1,7 +1,7 @@
-import logging
 import numpy as np
 import os
 from model.text.ContainsText import ContainsText
+from log import get_logger
 
 
 class Voogle(object):
@@ -30,7 +30,8 @@ class Voogle(object):
                 user's text matches the audio text description.
             matches: An int. The number of matches to return during search.
         '''
-        self.logger = logging.getLogger('Voogle')
+        self.logger = get_logger('Voogle')
+
         self.logger.debug('Initializing')
 
         self.model = model

@@ -1,5 +1,6 @@
-import logging
 from abc import ABC, abstractmethod
+from log import get_logger
+
 
 class TextHandler(ABC):
     '''
@@ -10,7 +11,7 @@ class TextHandler(ABC):
         '''
         TextHandler constructor.
         '''
-        self.logger = logging.getLogger('TextHandler')
+        self.logger = get_logger('TextHandler')
 
         self.query_text = None
 

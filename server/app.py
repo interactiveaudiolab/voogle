@@ -1,16 +1,12 @@
 import argparse
 import json
 import librosa
-import logging
-import logging.config
 import numpy as np
 import os
 import yaml
+from log import get_logger
 
-# Setup logging
-logging.config.fileConfig(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
-logger = logging.getLogger('root')
+logger = get_logger('root')
 
 from flask import Flask, jsonify, request, send_from_directory
 from factory import dataset_factory, model_factory

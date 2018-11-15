@@ -1,9 +1,9 @@
 import librosa
-import logging
 import numpy as np
 import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
+from log import get_logger
 
 
 class QueryByVoiceDataset(ABC):
@@ -34,8 +34,7 @@ class QueryByVoiceDataset(ABC):
                 number of audio files to load during one batch of representation
                 construction.
         '''
-        # Setup logging
-        self.logger = logging.getLogger('Dataset')
+        self.logger = get_logger('Dataset')
 
         self.dataset_directory = dataset_directory
         self.representation_directory = representation_directory

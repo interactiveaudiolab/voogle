@@ -1,11 +1,10 @@
-import logging
-import logging.config
 import os
 from model.SiameseStyle import SiameseStyle
 from model.VGGishEmbedding import VGGishEmbedding
 from data.TestDataset import TestDataset
+from log import get_logger
 
-logger = logging.getLogger('factory')
+logger = get_logger('factory')
 
 
 def model_factory(model_name, model_filepath):

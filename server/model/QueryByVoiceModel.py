@@ -1,7 +1,7 @@
 import librosa
-import logging
 import numpy as np
 from abc import ABC, abstractmethod
+from log import get_logger
 
 
 class QueryByVoiceModel(ABC):
@@ -30,7 +30,7 @@ class QueryByVoiceModel(ABC):
             hop_length: A float. The hop length between windows in seconds.
                 Unused if uses_windowing is False.
         '''
-        self.logger = logging.getLogger('Model')
+        self.logger = get_logger('Model')
 
         self.model = None
         self.model_filepath = model_filepath
