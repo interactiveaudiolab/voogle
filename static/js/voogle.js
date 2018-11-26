@@ -293,10 +293,6 @@ class Voogle extends React.Component {
             end = buffer.length;
         }
 
-        // Save buffer indices for sending query
-        this.start = start;
-        this.end = end;
-
         // Convert to seconds and grab the surrounding audio
         start = start / this.samplingRate - this.props.regionTolerance;
         end = end / this.samplingRate + this.props.regionTolerance;
@@ -304,6 +300,10 @@ class Voogle extends React.Component {
         // Clip the audio to the bounds of the buffer
         start = Math.max(0, start);
         end = Math.min(this.wavesurfer.getDuration(), end);
+
+        // Save buffer indices for sending query
+        this.start = start * this.samplingRate;
+        this.end = end * this.samplingRate;
 
         // Add the region
         this.wavesurfer.addRegion({
@@ -316,14 +316,22 @@ class Voogle extends React.Component {
         // Start playback at region start
         this.recordingPlaybackStart = start;
 
+        let region = this.wavesurfer.regions.list.queryRegion;
+
         // Stop playback when region bound is passed
-        this.wavesurfer.regions.list.queryRegion.on('out', () => {
+        region.on('out', () => {
             this.wavesurfer.stop();
             this.recordingPlaybackStart = start;
             this.setState({
                 playingRecording: false,
                 playRecordingText: 'Play'
             });
+        });
+
+        // Change the bounds of the query when the region is resized
+        region.on('update-end', () => {
+            this.start = region.start * this.samplingRate;
+            this.end = region.end * this.samplingRate;
         });
     }
 
