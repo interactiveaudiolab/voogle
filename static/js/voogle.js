@@ -416,7 +416,7 @@ class Voogle extends React.Component {
                       Matches
                     </div>
                       <div className='scrollbox m-2' style={{height: this.state.matchDivHeight}}>
-                        <div className='pb-2'>
+                        <div className='pb-2 pt-1'>
                           <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
                       </div>
                     </div>

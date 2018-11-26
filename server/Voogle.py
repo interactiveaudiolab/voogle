@@ -15,7 +15,7 @@ class Voogle(object):
         dataset,
         require_text_match,
         text_handler=ContainsText(),
-        matches=10):
+        matches=15):
         '''
         Voogle constructor
 

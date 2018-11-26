@@ -10,7 +10,6 @@ loggers = {}
 
 def get_logger(name):
     global loggers
-    print(loggers)
     if loggers.get(name):
         return loggers.get(name)
     else:

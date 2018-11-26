@@ -21,7 +21,7 @@ class TestVoogle(unittest.TestCase):
             'server/data/representations/test_dataset/siamese-style')
         dataset = TestDataset(
             dataset_directory, representation_directory, model)
-        self.voogle = Voogle(model, dataset, False, matches=10)
+        self.voogle = Voogle(model, dataset, False)
 
         self.query, self.sr_query = librosa.load(
             os.path.join(dataset_directory, 'cat.wav'), sr=None)
@@ -32,9 +32,9 @@ class TestVoogle(unittest.TestCase):
         '''
         match_list, text_query, similarity_scores = self.voogle.search(
             self.query, self.sr_query)
-        self.assertEqual(len(match_list), 10)
-        self.assertEqual(len(text_query), 10)
-        self.assertEqual(len(similarity_scores), 10)
+        self.assertEqual(len(match_list), 15)
+        self.assertEqual(len(text_query), 15)
+        self.assertEqual(len(similarity_scores), 15)
         for i in range(len(similarity_scores) - 1):
             self.assertGreater(similarity_scores[i], similarity_scores[i + 1])
 
