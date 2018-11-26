@@ -1,41 +1,49 @@
-# vocalsearch
-VocalSearch is an audio search engine that uses vocal imitations of the desired sound as the search query.
+# Voogle
+Voogle is an audio search engine that uses vocal imitations of the desired sound as the search query.  
 
+Voogle is built in Python 3.6 and Javascript, using Node.js.  
 
-## Use
-**Note, you must be using Python 2.7. It is advisable to make a Virtual Environment in which to install the dependencies.**
+## Installation
+### Server
+Voogle backend dependencies are installed with `pip install -r requirements.txt`.
 
+**Note:** Windows and Linux users must have [FFmpeg](https://www.ffmpeg.org/) installed.
 
-Clone the repository, then navigate to /Recording/FlaskApp, then:
-```
-pip install -r requirements.txt
-```
-If this did not work, you may need to upgrade pip. To do so, please activate the virtual environment you created and:
-```
-curl https://bootstrap.pypa.io/get-pip.py | python
-```
-Then, please try the above pip install again.
+### Interface
+Voogle frontend dependencies are installed with `npm install`.
 
-After this, in order to host the app on your local machine, run: 
-```
-python app.py
-```
+**Note:** You must have [Node.js](https://nodejs.org/en/) installed, before you can run `npm install`.
 
-There are also some optional arguments you can pass in to the app.py program. 
-* `-m` lets you specify a filepath to a model so you can hotswap models (default is `./model/model_11-10_top_pair.h5`)
-* `-d` lets you specify whether the debug option in Flask is to be used (default is False)
-* `-t` lets you specify whether the threading option in Flask should be used (default is False)
-* `-db` lets you specify a directory you would like to use for audio files (default is `./static/`)... this is not working for search just yet, but it does work when generating the list of suggestions for autocomplete. Please see the issue on this in the Issues section.
+## Setup
+After installing the dependencies, the Voogle app can be deployed.
 
+### Deploying Locally
+1. Start the server process by executing `npm run production`.
+2. Navigate to `localhost:5000` in your browser.
 
-
-This will start the web server. To access the app, please open your internet browser (Google Chrome preferred) and navigate to 
-```
-127.0.0.1:5000/
-```
 From there, please follow the directions on the website. Enjoy!
 
-## Note 
-The microphone request for access, recording, and wav file generation is handled by code from Record.js, a JavaScript plugin for recording/exporting the output of Web Audio API nodes. It is licensed under the MIT license.
+## Testing
+Unit tests can be run with `npm run test`.
 
-The plugin can be found here: https://github.com/mattdiamond/Recorderjs
+## Extending
+Voogle, as installed comes with a small test collection of audio files (aka dataset) that can be searched and a default trained deep learning model (a Siamese network) built in Keras.
+
+Voogle can be extended to incorporate additional models and datasets.
+
+### Adding a model
+- Define your model as a subclass of [`QueryByVoiceModel`](server/model/QueryByVoiceModel.py) with all abstract methods implemented as described.
+- Add the model constructor to [`factory.py`](server/factory.py).
+- Place your model's weights in [`server/model/weights/`](server/model/weights/).
+- Update the model name and filepath in [`config.yaml`](server/config.yaml).
+
+An example model can be found [here](server/model/SiameseStyle.py).
+
+### Adding a dataset
+- Define your dataset as a subclass of [`QueryByVoiceDataset`](server/data/QueryByVoiceDataset.py) with all abstract methods implemented as described.
+- Add the dataset constructor to [`factory.py`](server/factory.py).
+- Place the audio files in [`server/data/audio/<your_dataset_name>`](server/data/audio/).
+- Update the dataset name in [`config.yaml`](server/config.yaml).
+- If frontend audio retrieval is needed, the files must be hosted in the `voogle` S3 bucket. Contact maxrmorrison@gmail.com for more information.
+
+An example dataset can be found [here](server/data/TestDataset.py).

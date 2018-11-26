@@ -1,0 +1,30 @@
+# similarity model
+# must match model_name used for model instantiation in factory.py
+# model_name: siamese-style
+model_name: VGGish-embedding
+
+# model weight filename relative to the model directory
+# model_filepath: weights/default_model.h5
+model_filepath: weights/vggish_pretrained_convs.pth
+
+# dataset of audio files to be queried relative to the data directory
+# must match dataset_name used for dataset instantiation in factory.py
+# must match the name of the directory containing the audio files
+dataset_name: test_dataset
+dataset_directory: audio
+
+# directory for storing preprocessed or embedded data relative to the data
+# directory
+representation_directory: representations
+
+# directory for storing user queries relative to the data directory
+query_path: queries
+
+# batch size of audio representation construction
+construct_representation_batch_size: 128
+
+# batch size of similarity inference
+measure_similarity_batch_size: 128
+
+# Toggle whether search results must match the user-specified text
+require_text_match: false

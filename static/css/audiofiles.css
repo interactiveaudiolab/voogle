@@ -1,0 +1,32 @@
+.dark-gray {
+  background-color: #333C4D;
+}
+
+.round-box {
+    border-radius: 6px;
+    color: #E8EFF3;
+    font-size: 18px;
+    border-style: none;
+}
+
+.round-box:hover {
+    background-color: #445066;
+    cursor: pointer;
+}
+
+.filename {
+    display: table-cell;
+    width: 75%;
+}
+
+.green {
+  background-color: #13CCA2;
+}
+
+.purple {
+  background-color: #A51FC7;
+}
+
+.rounded {
+    border-radius: 6px;
+}
