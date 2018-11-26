@@ -30,10 +30,13 @@ class TestVoogle(unittest.TestCase):
         '''
         Test a basic query
         '''
-        match_list, text_query = self.voogle.search(
+        match_list, text_query, similarity_scores = self.voogle.search(
             self.query, self.sr_query)
         self.assertEqual(len(match_list), 10)
         self.assertEqual(len(text_query), 10)
+        self.assertEqual(len(similarity_scores), 10)
+        for i in range(len(similarity_scores) - 1):
+            self.assertGreater(similarity_scores[i], similarity_scores[i + 1])
 
 if __name__ == '__main__':
     unittest.main()
