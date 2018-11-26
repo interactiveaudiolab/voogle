@@ -3,6 +3,7 @@ import json
 import librosa
 import numpy as np
 import os
+import time
 import yaml
 from flask import Flask, jsonify, request, send_from_directory
 # from multiprocessing import Process
@@ -47,7 +48,9 @@ def search():
             sampling_rate = 48000
 
         # write query to disk
-        query_filepath = app.config.get('query_directory') + '/query.wav'
+        query_filepath = os.path.join(
+            app.config.get('query_directory'),
+            str(int(time.time())) + '_' + text_input + '.wav')
         save_start = timer()
         librosa.output.write_wav(query_filepath, query, sampling_rate)
         # async_save = Process(
