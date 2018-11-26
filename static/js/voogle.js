@@ -48,6 +48,9 @@ class Voogle extends React.Component {
         this.start = null;
         this.end = null;
 
+        // Position to start playback in seconds
+        this.recordingPlaybackStart = 0;
+
         // Connect to the AWS bucket storing audio files
         AWS.config.update({
             region: 'us-east-2',
@@ -190,8 +193,12 @@ class Voogle extends React.Component {
         // the recorded audio
         if (this.state.playingRecording != prevState.playingRecording) {
             if (this.state.playingRecording) {
-                this.wavesurfer.play();
+                this.wavesurfer.play(this.recordingPlaybackStart);
             } else {
+                let currentTime = this.wavesurfer.getCurrentTime();
+                if (currentTime > this.recordingPlaybackStart) {
+                    this.recordingPlaybackStart = currentTime;
+                }
                 this.wavesurfer.pause();
             }
         }
@@ -304,6 +311,19 @@ class Voogle extends React.Component {
             start: start,
             end: end,
             color: 'rgb(36,42,54,0.1)'
+        });
+
+        // Start playback at region start
+        this.recordingPlaybackStart = start;
+
+        // Stop playback when region bound is passed
+        this.wavesurfer.regions.list.queryRegion.on('out', () => {
+            this.wavesurfer.stop();
+            this.recordingPlaybackStart = start;
+            this.setState({
+                playingRecording: false,
+                playRecordingText: 'Play'
+            });
         });
     }
 
