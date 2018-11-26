@@ -83,7 +83,7 @@ class Voogle extends React.Component {
             hideScrollbar: true,
             pixelRatio: 1,
             plugins: [RegionsPlugin.create()],
-            progressColor: '#3D7FB3',
+            progressColor: '#8519A1',
             responsive: true,
             waveColor: '#A51FC7',
         });
@@ -369,17 +369,20 @@ class Voogle extends React.Component {
                     </div>
                     <div ref={this.resizeTopDiv}>
                         <ol className='big-text'>
-                          <li> Press the <kbd>Record</kbd> button </li>
+                          <li> Press <mark className='rounded btn-all red'> &nbsp;Record&nbsp; </mark> </li>
                           <li> Imitate your desired sound with your voice </li>
-                          <li> Press the <kbd>Stop Recording</kbd> button </li>
-                          <li> Press Play/Pause to review your recording </li>
-                          <li> Enter a text description of your sound if applicable </li>
-                          <li> <kbd> Search! </kbd> </li>
+                          <li> Press <mark className='rounded btn-all red'> &nbsp;Stop Recording&nbsp; </mark> </li>
+                          <li> Press <mark className='rounded btn-all purple'> &nbsp;Play&nbsp; </mark>/<mark className='rounded btn-all purple'>Pause</mark> to review your recording </li>
+                          <li> (Optional) Fit the region bounds to your imitation </li>
+                          <li> (Optional) Enter a text description of your sound </li>
+                          <li> Press <mark className='rounded btn-all blue'> &nbsp;Search&nbsp; </mark> </li>
+                          <li> Click on an audio file in <mark className='rounded btn-all purple'> &nbsp;Matches&nbsp;</mark> to hear the match </li>
+                          <li> Press <mark className='rounded btn-all blue'> &nbsp;Download&nbsp;</mark> to download the audio file </li>
                         </ol>
                     </div>
                   </div>
                   <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
-                    <input type="text" className="form-control" placeholder="Enter Text Description of Sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput} onKeyPress={this.submit}/>
+                    <input type="text" className="form-control" placeholder="Enter a text description of your sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput} onKeyPress={this.submit}/>
                   </div>
                   <div className='my-4'>
                     <div className='waveform' ref={this.recordingWaveform}/>
@@ -477,7 +480,8 @@ class Voogle extends React.Component {
                     newMatches.push({
                         rank: i,
                         filename: results.matches[i],
-                        textMatch: results.text_matches[i]
+                        textMatch: results.text_matches[i],
+                        similarityScore: results.similarity_scores[i]
                     })
                 }
                 this.setState({ matches: newMatches });

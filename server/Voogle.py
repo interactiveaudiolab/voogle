@@ -26,8 +26,8 @@ class Voogle(object):
                 representations for similarity ranking.
             require_text_match: A boolean. If true ranking is performed only on
                 dataset items that match the user's text query.
-            text_handler: A TextHandler object. The model for determining if the
-                user's text matches the audio text description.
+            text_handler: A TextHandler object. The model for determining if
+                the user's text matches the audio text description.
             matches: An int. The number of matches to return during search.
         '''
         self.logger = get_logger('Voogle')
@@ -53,8 +53,14 @@ class Voogle(object):
                 sound.
 
         Returns:
-            A list. The names of audio files within the database sorted in
-                descending order of similarity with the user query.
+            Three equal-sized lists.
+                - The names of audio files within the database sorted in
+                    descending order of similarity with the user query.
+                - A list of booleans indicating if the audio file text matches
+                    the user's text query.
+                - A list of float-valued similarities corresponding to the
+                    similarity score of the audio file located at the same
+                    index.
         '''
         # Construct query representation
         query = self.model.construct_representation(
@@ -65,7 +71,7 @@ class Voogle(object):
 
         # Retrieve the similarity measure between query and each dataset entry
         model_output = {}
-        previous_filename = ''
+        previous_handle = ''
         previous_index = 0
         generator = self.dataset.data_generator(
             query, self.text_handler, self.require_text_match)
@@ -102,7 +108,11 @@ class Voogle(object):
             text_matches = [
                 self.text_handler.is_match([t]) for t in text_features]
 
-        return filenames, text_matches
+        # Retrieve the normalized similarity scores of the matches
+        max_score = model_output[match_list[0]]
+        similarity_scores = [model_output[m] / max_score for m in match_list]
+
+        return filenames, text_matches, similarity_scores
 
     def _update_model_output(self, model_output, handle, max_file_rank):
         if handle in model_output:

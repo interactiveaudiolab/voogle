@@ -7,10 +7,14 @@ class AudioFiles extends Component {
         const fileList = files.map((file) => {
             return (
                 <div className='row round-box dark-gray mb-1 mx-2' onClick={() => loader(file.filename)}>
-                  <div className='col-9'>
+                  <div className='col-4'>
                     { file.filename.slice(file.filename.lastIndexOf('/') + 1) }
                   </div>
-                  { this.renderTextMatch(file.textMatch) }
+                  <div className='col-8 p-0'>
+                    <div className='score-box' style={this.renderScore(file.similarityScore)}>
+                      { this.renderTextMatch(file.textMatch) }
+                    </div>
+                  </div>
                 </div>
             )
         });
@@ -21,11 +25,17 @@ class AudioFiles extends Component {
         )
     }
 
+    renderScore = (similarityScore) => {
+        const percentage = Math.round((similarityScore * 0.6 + 0.34) * 100);
+
+        return { width: percentage.toString() + '%' };
+    }
+
     renderTextMatch = (isMatch) => {
         if (isMatch) {
-            return (<div className='col-3 purple rounded text-center'> Text Match </div>)
+            return (<div className='text-match pr-3'>Text Match</div>)
         } else {
-            return (<div className='col-3'/>)
+            return (<div>&nbsp;</div>)
         }
     }
 }
