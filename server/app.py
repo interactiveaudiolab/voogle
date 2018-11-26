@@ -49,7 +49,7 @@ def search():
 
         # run a similarity search between the query and the audio dataset
         voogle = app.config.get('voogle')
-        ranked_matches, text_matches = voogle.search(
+        ranked_matches, text_matches, similarity_scores = voogle.search(
             query, sampling_rate, text_input)
         logger.info('Produced matches {} with text-match array {}\
                     '.format(ranked_matches, text_matches))
@@ -62,7 +62,8 @@ def search():
         logger.debug('Sending search request results to client')
         return jsonify({
             'matches': ranked_matches,
-            'text_matches': text_matches
+            'text_matches': text_matches,
+            'similarity_scores': similarity_scores
         })
     else:
         # User did not provide a query

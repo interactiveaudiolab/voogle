@@ -3,20 +3,20 @@
 }
 
 .round-box {
-    border-radius: 6px;
-    color: #E8EFF3;
-    font-size: 18px;
-    border-style: none;
+  border-radius: 6px;
+  color: #E8EFF3;
+  font-size: 18px;
+  border-style: none;
 }
 
 .round-box:hover {
-    background-color: #445066;
-    cursor: pointer;
+  background-color: #445066;
+  cursor: pointer;
 }
 
 .filename {
-    display: table-cell;
-    width: 75%;
+  display: table-cell;
+  width: 75%;
 }
 
 .green {
@@ -28,5 +28,16 @@
 }
 
 .rounded {
-    border-radius: 6px;
+  border-radius: 6px;
+}
+
+.score-box {
+  background-color: #4A99D8;
+  border-radius: 6px;
+  float: right;
+  padding: 0px;
+}
+
+.text-match {
+  float: right;
 }

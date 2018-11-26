@@ -54,6 +54,11 @@ body {
   width: 100%;
 }
 
+.rounded {
+  font-size: 18px;
+  border-radius: 3px;
+}
+
 .blue {
   background-color: #4A99D8;
 }
