@@ -4,11 +4,13 @@ import librosa
 import numpy as np
 import os
 import yaml
-from log import get_logger
+from flask import Flask, jsonify, request, send_from_directory
+# from multiprocessing import Process
+from timeit import default_timer as timer
 
+from log import get_logger
 logger = get_logger('root')
 
-from flask import Flask, jsonify, request, send_from_directory
 from factory import dataset_factory, model_factory
 from Voogle import Voogle
 
@@ -23,6 +25,7 @@ def index():
 
 @app.route('/search', methods=['POST'])
 def search():
+    start = timer()
     logger.debug('Retrieved search request')
 
     # fetch user's query
@@ -45,7 +48,14 @@ def search():
 
         # write query to disk
         query_filepath = app.config.get('query_directory') + '/query.wav'
+        save_start = timer()
         librosa.output.write_wav(query_filepath, query, sampling_rate)
+        # async_save = Process(
+        #     target=async_write, args=(query_filepath, query, sampling_rate))
+        # async_save.start()
+        save_end = timer()
+
+        logger.info('Saved query in {} seconds'.format(save_end - save_start))
 
         # run a similarity search between the query and the audio dataset
         voogle = app.config.get('voogle')
@@ -60,6 +70,11 @@ def search():
 
         # Pass the results to the frontend
         logger.debug('Sending search request results to client')
+
+        end = timer()
+        logger.info(
+            'Completed search request in {} seconds'.format(end - start))
+
         return jsonify({
             'matches': ranked_matches,
             'text_matches': text_matches,
@@ -69,6 +84,10 @@ def search():
         # User did not provide a query
         logger.warning('A search was attempted with no query')
         return jsonify({'matches': [], 'text_matches': []})
+
+
+# def async_write(filepath, query, sampling_rate):
+#     librosa.output.write_wav(filepath, query, sampling_rate)
 
 
 if __name__ == '__main__':

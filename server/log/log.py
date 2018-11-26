@@ -10,10 +10,12 @@ loggers = {}
 
 def get_logger(name):
     global loggers
+    print(loggers)
     if loggers.get(name):
         return loggers.get(name)
     else:
         logger = logging.getLogger(name)
-        logger.propagate = False
+        if name != 'root':
+            logger.propagate = False
         loggers[name] = logger
         return logger
