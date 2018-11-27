@@ -1,13 +1,27 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import AudioFiles from './audiofiles.js'
-import AWS from 'aws-sdk'
+import AWS from 'aws-sdk/global'
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
+import S3 from 'aws-sdk/clients/s3'
 import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
 import '../css/voogle.css';
+
+/* Match list for testing
+{ filename: 'a.wav', textMatch: true, similarityScore: 1.0},
+{ filename: 'a.wav', textMatch: false, similarityScore: 0.9},
+{ filename: 'a.wav', textMatch: true, similarityScore: 0.8},
+{ filename: 'a.wav', textMatch: false, similarityScore: 0.7},
+{ filename: 'a.wav', textMatch: true, similarityScore: 0.6},
+{ filename: 'a.wav', textMatch: false, similarityScore: 0.5},
+{ filename: 'a.wav', textMatch: true, similarityScore: 0.4},
+{ filename: 'a.wav', textMatch: false, similarityScore: 0.3},
+{ filename: 'a.wav', textMatch: true, similarityScore: 0.2},
+{ filename: 'a.wav', textMatch: false, similarityScore: 0.1},
+*/
 
 class Voogle extends React.Component {
     constructor(props) {
@@ -58,7 +72,7 @@ class Voogle extends React.Component {
                 IdentityPoolId: 'us-east-2:be4dd070-23b0-4a6b-ade4-99bb48caaf24',
             })
         });
-        this.bucket = new AWS.S3({
+        this.bucket = new S3({
           apiVersion: '2006-03-01',
           params: {Bucket: 'voogle'}
         });

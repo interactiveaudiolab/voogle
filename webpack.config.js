@@ -73,7 +73,6 @@ const devSettings = {
 }
 
 const prodSettings = {
-  devtool: 'source-map',
   output: {
     path: paths.build,
     filename: 'bundle.[hash].js',
@@ -88,6 +87,7 @@ const prodSettings = {
     }}),
     new OptimizeCssAssetsPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.DefinePlugin({'process.env.NODE_ENV': '"production"'})
   ]
 }
 

@@ -26,7 +26,7 @@ class AudioFiles extends Component {
     }
 
     renderScore = (similarityScore) => {
-        const percentage = Math.round((similarityScore * 0.6 + 0.34) * 100);
+        const percentage = Math.round((similarityScore * 0.5 + 0.34) * 100);
 
         return { width: percentage.toString() + '%' };
     }
