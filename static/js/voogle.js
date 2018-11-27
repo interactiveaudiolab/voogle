@@ -69,7 +69,7 @@ class Voogle extends React.Component {
         AWS.config.update({
             region: 'us-east-2',
             credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: 'us-east-2:be4dd070-23b0-4a6b-ade4-99bb48caaf24',
+                IdentityPoolId: 'us-east-2:be4dd070-23b0-4a6b-ade4-99bb48caaf24'
             })
         });
         this.bucket = new S3({
@@ -324,7 +324,7 @@ class Voogle extends React.Component {
             id: 'queryRegion',
             start: start,
             end: end,
-            color: 'rgb(36,42,54,0.1)'
+            color: 'rgb(36,42,54,0.25)'
         });
 
         // Start playback at region start
@@ -334,18 +334,22 @@ class Voogle extends React.Component {
 
         // Stop playback when region bound is passed
         region.on('out', () => {
-            this.wavesurfer.stop();
-            this.recordingPlaybackStart = start;
-            this.setState({
-                playingRecording: false,
-                playRecordingText: 'Play'
-            });
+            if (this.wavesurfer.getCurrentTime() > region.end - 0.001) {
+                this.wavesurfer.stop();
+                this.recordingPlaybackStart = start;
+                this.setState({
+                    playingRecording: false,
+                    playRecordingText: 'Play'
+                });
+            }
         });
 
         // Change the bounds of the query when the region is resized
-        region.on('update-end', () => {
-            this.start = region.start * this.samplingRate;
-            this.end = region.end * this.samplingRate;
+        region.on('update-end', (event) => {
+            let newRegion = this.wavesurfer.regions.list.queryRegion;
+            this.recordingPlaybackStart = newRegion.start + 0.001;
+            this.start = Math.ceil(newRegion.start * this.samplingRate);
+            this.end = Math.floor(newRegion.end * this.samplingRate);
         });
     }
 
@@ -394,17 +398,41 @@ class Voogle extends React.Component {
                           <li> Press <mark className='rounded btn-all red'> &nbsp;Record&nbsp; </mark> </li>
                           <li> Imitate your desired sound with your voice </li>
                           <li> Press <mark className='rounded btn-all red'> &nbsp;Stop Recording&nbsp; </mark> </li>
-                          <li> Press <mark className='rounded btn-all purple'> &nbsp;Play&nbsp; </mark>/<mark className='rounded btn-all purple'>Pause</mark> to review your recording </li>
+                          <li> Press&nbsp;
+                            <mark className='rounded btn-all purple'>
+                              &nbsp;Play&nbsp;
+                            </mark>
+                            &nbsp;/&nbsp;
+                            <mark className='rounded btn-all purple'>
+                              Pause
+                            </mark>
+                            &nbsp;to review your recording
+                          </li>
                           <li> (Optional) Fit the region bounds to your imitation </li>
                           <li> (Optional) Enter a text description of your sound </li>
                           <li> Press <mark className='rounded btn-all blue'> &nbsp;Search&nbsp; </mark> </li>
-                          <li> Click on an audio file in <mark className='rounded btn-all purple'> &nbsp;Matches&nbsp;</mark> to hear the match </li>
-                          <li> Press <mark className='rounded btn-all blue'> &nbsp;Download&nbsp;</mark> to download the audio file </li>
+                          <li> Click on an audio file in&nbsp;
+                            <mark className='rounded btn-all purple'>
+                              &nbsp;Matches&nbsp;
+                            </mark>
+                            &nbsp;to hear the match
+                          </li>
+                          <li> Press&nbsp;
+                            <mark className='rounded btn-all blue'>
+                              &nbsp;Download&nbsp;
+                            </mark>
+                            &nbsp;to download the audio file
+                          </li>
                         </ol>
                     </div>
                   </div>
                   <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
-                    <input type="text" className="form-control" placeholder="Enter a text description of your sound (Optional)" aria-describedby="inputGroup-sizing-sm" value={this.state.textInput} onChange={this.handleTextInput} onKeyPress={this.submit}/>
+                    <input type="text" className="form-control"
+                      placeholder="Enter a text description of your sound (Optional)"
+                      aria-describedby="inputGroup-sizing-sm"
+                      value={this.state.textInput}
+                      onChange={this.handleTextInput}
+                      onKeyPress={this.submit}/>
                   </div>
                   <div className='my-4'>
                     <div className='waveform' ref={this.recordingWaveform}/>
@@ -514,7 +542,9 @@ class Voogle extends React.Component {
     togglePlayRecording = () => {
         // Event handler for the play/pause button
         this.setState(state => {
-            if (!state.playingRecording && !state.recording && state.hasRecorded) {
+            if (!state.playingRecording &&
+                !state.recording &&
+                state.hasRecorded) {
                 return {
                     playingRecording: true,
                     playRecordingText: 'Pause'
