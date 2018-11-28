@@ -98,7 +98,7 @@ class TestDataset(QueryByVoiceDataset):
         Returns:
             A string. The path to the audio file relative to dataset_directory.
         '''
-        return handle.rsplit('.', 1)[0]
+        return handle
 
     def handle_to_text_features(self, handle):
         '''
