@@ -1,13 +1,15 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import AudioFiles from './audiofiles.js'
-import AWS from 'aws-sdk/global'
+import AudioFiles from './audiofiles.js';
+import AWS from 'aws-sdk/global';
+import CircularProgressbar from 'react-circular-progressbar';
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
-import S3 from 'aws-sdk/clients/s3'
+import S3 from 'aws-sdk/clients/s3';
 import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
+import 'react-circular-progressbar/dist/styles.css'
 import '../css/voogle.css';
 
 /* Match list for testing
@@ -29,6 +31,7 @@ class Voogle extends React.Component {
 
         this.state = {
             matchDivHeight: 64,
+            matchDivWidth: 64,
             hasRecorded: false,
             loadedMatch: null,
             matches: [],
@@ -38,6 +41,7 @@ class Voogle extends React.Component {
             playingRecording: false,
             recordButtonText: 'Record',
             recording: false,
+            recordingProgress: 0.0,
             textInput: ''
         }
 
@@ -46,7 +50,11 @@ class Voogle extends React.Component {
 
         // A handle for stopping recording when the maximum recording length
         // has been reached
+        this.timerAnimationId = null;
         this.recordingTimerId = null;
+
+        // The time at which the recording timer was last initiated
+        this.recordingStartTime = null;
 
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
@@ -166,9 +174,19 @@ class Voogle extends React.Component {
                         playRecordingText: 'Play'
                     })
                 }
+                if (this.state.playingMatch) {
+                    this.setState({
+                        playingMatch: false,
+                        playMatchText: 'Play'
+                    });
+                }
 
-                // Reset the waveform
+                // Reset the waveforms
                 this.clearRecording();
+                this.clearMatch();
+
+                // Clear the existing matches
+                this.setState({ matches: [] });
 
                 // Start recording
                 this.recorder.record();
@@ -177,23 +195,45 @@ class Voogle extends React.Component {
                 this.drawIntervalId = setInterval(
                     this.draw, this.props.drawingRate);
 
+                // Update the timer animation every 100 ms
+                this.recordingStartTime = (new Date()).getTime();
+                this.timerAnimationId = setInterval(
+                    () => {
+                        let currentTime = (new Date()).getTime();
+                        let elapsed = (currentTime - this.recordingStartTime) /
+                            10;
+                        let recordingProgress = elapsed /
+                            this.props.maxRecordingLength;
+                        this.setState({ recordingProgress: recordingProgress });
+                    },
+                    100
+                );
+
                 // Stop recording after the maximum allowed recording length
                 // has been reached
                 this.recordingTimerId = setTimeout(
-                    () => this.setState({
-                        recording: false,
-                        recordButtonText: 'Record'
-                    }),
-                    this.props.maxRecordingLength * 1000);
+                    () => {
+                        clearInterval(this.timerAnimationId);
+                        this.setState({
+                            recording: false,
+                            recordButtonText: 'Record'
+                        })
+                    },
+                    this.props.maxRecordingLength * 1000
+                );
+
             } else {
                 // Stop recording
                 this.recorder.stop();
 
                 // Indicate that a query is available
-                this.setState({ hasRecorded: true });
+                this.setState({ hasRecorded: true, recordingProgress: 0 });
 
                 // Stop periodically drawing the waveform while recording
                 clearInterval(this.drawIntervalId);
+
+                // Stop updating the timer animation
+                clearInterval(this.timerAnimationId);
 
                 // Stop the recording timer
                 clearTimeout(this.recordingTimerId);
@@ -353,6 +393,10 @@ class Voogle extends React.Component {
         });
     }
 
+    getRecordingProgress = () => {
+        return this.state.recordingProgress;
+    }
+
     handleTextInput = (event) => {
         this.setState({textInput: event.target.value});
     }
@@ -376,7 +420,37 @@ class Voogle extends React.Component {
         });
     }
 
+    matchesBoxContents = (recordingProgress) => {
+        if (this.state.recording) {
+            return (
+                <div className='timer' style={{
+                    width: Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 1.75,
+                    paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 3.3}}>
+                    <CircularProgressbar
+                        percentage={recordingProgress}
+                        strokeWidth={50}
+                        styles={{
+                            path: { strokeLinecap: 'butt', stroke: '#DD3C6D' },
+                            text: { fill: '#E8EFF3' },
+                            trail: { stroke: '#333C4D' },
+                        }}
+                        text={ (this.props.maxRecordingLength - Math.ceil(recordingProgress / 10)).toString() }
+                    />
+                </div>
+            );
+        }
+        else if (this.state.matches) {
+            return (
+                <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
+            );
+        }
+        else {
+            return null;
+        }
+    }
+
     render() {
+        const recordingProgress = this.getRecordingProgress();
         return (
             <div className='container'>
               <div className='mt-4 ml-1'>
@@ -459,7 +533,7 @@ class Voogle extends React.Component {
                     </div>
                       <div className='scrollbox m-2' style={{height: this.state.matchDivHeight}}>
                         <div className='pb-2 pt-1'>
-                          <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
+                          {this.matchesBoxContents(recordingProgress)}
                       </div>
                     </div>
                   </div>
@@ -486,7 +560,9 @@ class Voogle extends React.Component {
     resizeMatches = () => {
         const top = this.resizeTopDiv.current.getBoundingClientRect().top;
         const btm = this.resizeBottomDiv.current.getBoundingClientRect().bottom;
-        this.setState({matchDivHeight: btm - top});
+        const lft = this.resizeTopDiv.current.getBoundingClientRect().left;
+        const rgt = this.resizeBottomDiv.current.getBoundingClientRect().right;
+        this.setState({ matchDivHeight: btm - top, matchDivWidth: rgt - lft });
     }
 
     search = () => {

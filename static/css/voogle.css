@@ -16,6 +16,11 @@ body {
   background-color: #242A36;
 }
 
+.timer {
+  padding: 0;
+  margin: 0 auto;
+}
+
 .scrollbox {
   overflow-y: auto !important;
   overflow-x: visible !important;
