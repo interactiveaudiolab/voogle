@@ -42,6 +42,8 @@ class Voogle extends React.Component {
             recordButtonText: 'Record',
             recording: false,
             recordingProgress: 0.0,
+            searching: false,
+            searchTime: 0,
             textInput: ''
         }
 
@@ -52,9 +54,14 @@ class Voogle extends React.Component {
         // has been reached
         this.timerAnimationId = null;
         this.recordingTimerId = null;
-
         // The time at which the recording timer was last initiated
         this.recordingStartTime = null;
+
+        // A handle for search animation updates
+        this.searchTimerId = null;
+
+        // The time at which search began
+        this.searchStartTime = null;
 
         // Create references to DOM nodes to place the waveforms
         this.recordingWaveform = React.createRef();
@@ -240,6 +247,24 @@ class Voogle extends React.Component {
 
                 // Find the user's audio via level detection
                 this.drawRegion();
+            }
+        }
+
+        // If we start searching, being search animation
+        if (this.state.searching != prevState.searching) {
+            if (this.state.searching) {
+                this.searchTimerId = setInterval(
+                    () => {
+                        let currentTime = (new Date()).getTime();
+                        let elapsed = Math.floor(
+                            (currentTime - this.searchStartTime) / 1000);
+                        this.setState({ searchTime: elapsed });
+                    },
+                    1000
+                );
+            } else {
+                clearInterval(this.searchTimerId);
+                this.setState({ searchTime: 0 });
             }
         }
 
@@ -438,13 +463,19 @@ class Voogle extends React.Component {
                     />
                 </div>
             );
-        }
-        else if (this.state.matches) {
+        } else if (this.state.searching) {
+            const styles = {
+                paddingLeft: this.state.matchDivWidth / 2.85,
+                paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 10
+            };
+            return (
+                <h2 style={styles}> Searching{'.'.repeat(this.state.searchTime % 4)} </h2>
+            );
+        } else if (this.state.matches) {
             return (
                 <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
             );
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -596,6 +627,8 @@ class Voogle extends React.Component {
         formData.append('sampling_rate', this.samplingRate);
         formData.append('text_input', this.state.textInput);
 
+        this.setState({ searching: true });
+        this.searchStartTime = (new Date()).getTime();
         fetch('/search', {
             method: 'POST',
             body: formData
@@ -610,7 +643,7 @@ class Voogle extends React.Component {
                         similarityScore: results.similarity_scores[i]
                     })
                 }
-                this.setState({ matches: newMatches });
+                this.setState({ matches: newMatches, searching: false });
             });
         });
     }
