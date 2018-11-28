@@ -21,10 +21,10 @@ representation_directory: representations
 query_path: queries
 
 # batch size of audio representation construction
-construct_representation_batch_size: 128
+construct_representation_batch_size:
 
 # batch size of similarity inference
-measure_similarity_batch_size: 128
+measure_similarity_batch_size:
 
 # Toggle whether search results must match the user-specified text
 require_text_match: false

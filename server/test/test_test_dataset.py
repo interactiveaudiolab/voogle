@@ -69,7 +69,7 @@ class TestTestDataset(unittest.TestCase):
         # Every audio file should have a representation
         self.assertEqual(
             len(os.listdir(self.dataset_directory)),
-            len(os.listdir(self.representation_directory)))
+            len(self.dataset.data_dict))
 
         # Each audio file should map to a unique representation
         for filename in filenames:

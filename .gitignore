@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-node_modules/
-
-server/
-
-static/
-
-build/
-=======
 # Project-specific
 server/data/audio/*
 !server/data/audio/test_dataset/
@@ -203,4 +194,3 @@ typings/
 
 # Serverless directories
 .serverless
->>>>>>> e42325053b87d137ed9b60c911a545c97ad755ed

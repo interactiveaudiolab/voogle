@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import pickle
 from data.QueryByVoiceDataset import QueryByVoiceDataset
 
 class TestDataset(QueryByVoiceDataset):
@@ -31,12 +32,17 @@ class TestDataset(QueryByVoiceDataset):
                 number of audio files to load during one batch of representation
                 construction.
         '''
+        self.binary_filename = os.path.join(
+            representation_directory, 'test_dataset.pickle')
+        self.data_dict = None
+
         super(TestDataset, self).__init__(
             dataset_directory,
             representation_directory,
             model,
             measure_similarity_batch_size,
             construct_representation_batch_size)
+
 
     def data_generator(self, query, text_handler, require_text_match):
         '''
@@ -131,7 +137,7 @@ class TestDataset(QueryByVoiceDataset):
         Returns:
             A python list.
         '''
-        return sorted(os.listdir(self.representation_directory))
+        return self._get_audio_filenames()
 
     def _load_representations(self, handles):
         '''
@@ -145,12 +151,16 @@ class TestDataset(QueryByVoiceDataset):
             A python list. Representations should be in the same order as the
                 handles
         '''
-        representations = []
-        for handle in handles:
-            filepath = os.path.join(self.representation_directory, handle)
-            representation = np.load(filepath)
-            representations.append(representation)
-        return representations
+        # representations = []
+        # for handle in handles:
+        #     filepath = os.path.join(self.representation_directory, handle)
+        #     representation = np.load(filepath)
+        #     representations.append(representation)
+        # return representations
+        if not self.data_dict:
+            with open(self.binary_filename, 'rb') as file:
+                self.data_dict = pickle.load(file)
+        return [self.data_dict[handle] for handle in handles]
 
     def _save_representations(self, representations, filenames):
         '''
@@ -164,9 +174,11 @@ class TestDataset(QueryByVoiceDataset):
                     representations[i] is the audio representation of
                     filenames[i]).
         '''
-        # Save each representation as its own .npy file
-        for representation, filename in zip(representations, filenames):
-            filepath = os.path.join(
-                self.representation_directory, filename)
-            np.save(filepath + '.npy', representation)
-
+        # # Save each representation as its own .npy file
+        # for representation, filename in zip(representations, filenames):
+        #     filepath = os.path.join(
+        #         self.representation_directory, filename)
+        #     np.save(filepath + '.npy', representation)
+        self.data_dict = {f : r for (f, r) in zip(filenames, representations)}
+        with open(self.binary_filename, 'wb') as file:
+            pickle.dump(self.data_dict, file)
