@@ -102,8 +102,7 @@ class Voogle extends React.Component {
             pixelRatio: 1,
             plugins: [RegionsPlugin.create()],
             progressColor: '#3D7FB3',
-            responsive: true,
-            waveColor: '#4A99D8',
+            waveColor: '#4A99D8'
         });
 
         this.matchWavesurfer = WaveSurfer.create({
@@ -113,8 +112,7 @@ class Voogle extends React.Component {
             pixelRatio: 1,
             plugins: [RegionsPlugin.create()],
             progressColor: '#8519A1',
-            responsive: true,
-            waveColor: '#A51FC7',
+            waveColor: '#A51FC7'
         });
 
         // Reset the cursor when the audio is done playing
@@ -589,6 +587,7 @@ class Voogle extends React.Component {
     }
 
     resizeMatches = () => {
+        console.log('resized')
         const top = this.resizeTopDiv.current.getBoundingClientRect().top;
         const btm = this.resizeBottomDiv.current.getBoundingClientRect().bottom;
         const lft = this.resizeTopDiv.current.getBoundingClientRect().left;
