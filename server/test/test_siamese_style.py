@@ -3,23 +3,33 @@ import math
 import numpy as np
 import os
 import unittest
+from data.TestDataset import TestDataset
 from model.SiameseStyle import SiameseStyle
 
 
 class TestSiameseStyle(unittest.TestCase):
 
     def setUp(self):
+        self.dataset_directory = os.path.realpath(
+            'server/data/audio/test_dataset')
+        self.representation_directory = os.path.realpath(
+            'server/data/representations/test_dataset/siamese-style')
         self.model_filepath = os.path.realpath(
             'server/model/weights/default_model.h5')
         self.model = SiameseStyle(self.model_filepath)
 
-        dataset_directory = os.path.realpath(
-            'server/data/audio/test_dataset')
+        # Make sure the test dataset has been downloaded from dropbox
+        self.dataset = TestDataset(
+            self.dataset_directory,
+            self.representation_directory,
+            self.model,
+            120,
+            120)
 
         self.cat, self.sr_cat = librosa.load(
-            os.path.join(dataset_directory, 'cat.wav'), sr=None)
+            os.path.join(self.dataset_directory, 'cat.wav'), sr=None)
         self.dog, self.sr_dog = librosa.load(
-            os.path.join(dataset_directory, 'dog_barking.wav'), sr=None)
+            os.path.join(self.dataset_directory, 'dog_barking.wav'), sr=None)
 
     def test_construct_representation(self):
         dataset = self.model.construct_representation(

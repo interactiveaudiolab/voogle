@@ -3,6 +3,7 @@ import numpy as np
 import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
+from data import download_dataset
 from log import get_logger
 
 
@@ -43,7 +44,8 @@ class QueryByVoiceDataset(ABC):
         self.construct_representation_batch_size = \
             construct_representation_batch_size
 
-        if (self._representation_directory_empty() or
+        if (self._dataset_directory_empty() or
+            self._representation_directory_empty() or
             self._dataset_directory_was_updated() or
             (self.model.parametric_representation and
              self._model_was_updated())):
@@ -183,6 +185,13 @@ class QueryByVoiceDataset(ABC):
             audio_filenames: A list. The filenames of the audio within
                 dataset_directory that require representation.
         '''
+        try:
+            # Create representation directory
+            os.makedirs(self.representation_directory)
+            self.logger.info('Created representation directory')
+        except OSError:
+            pass
+
         # Build a generator for reading in audio
         audio_filenames = self._get_audio_filenames()
         generator = self._build_audio_generator(audio_filenames)
@@ -223,6 +232,21 @@ class QueryByVoiceDataset(ABC):
                 filenames = []
 
         yield audio_list, sampling_rates, filenames
+
+    def _dataset_directory_empty(self):
+        # Build the dataset directory if it does not exist
+        try:
+            os.makedirs(os.path.dirname(self.dataset_directory))
+            logger.info('Created audio directory')
+        except:
+            pass
+
+        # Download the dataset if it is not mounted
+        if not os.path.isdir(self.dataset_directory):
+            download_dataset(self.dataset_directory)
+            return True
+        else:
+            return False
 
     def _dataset_directory_was_updated(self):
         # Timestamp of representation directory
@@ -387,7 +411,7 @@ class QueryByVoiceDataset(ABC):
         try:
             # Create representation directory
             os.makedirs(self.representation_directory)
-            self.logger.info('Representation directory not found.')
+            self.logger.info('Created representation directory')
             return True
         except OSError:
             result = len(os.listdir(self.representation_directory)) == 0
