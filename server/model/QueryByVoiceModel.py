@@ -1,6 +1,8 @@
 import librosa
 import numpy as np
+import os
 from abc import ABC, abstractmethod
+from data import download_model_weights
 from log import get_logger
 
 
@@ -39,7 +41,7 @@ class QueryByVoiceModel(ABC):
         self.window_length = window_length
         self.hop_length = hop_length
 
-        self._load_model()
+        self._download_and_load_model()
 
     @abstractmethod
     def construct_representation(self, audio_list, sampling_rates, is_query):
@@ -87,6 +89,19 @@ class QueryByVoiceModel(ABC):
         make measure_similarityions.
         '''
         pass
+
+    def _download_and_load_model(self):
+        try:
+            os.makedirs(os.path.dirname(self.model_filepath))
+            self.logger.info('Created model weights directory')
+        except OSError:
+            pass
+
+        # Download model if it is not mounted
+        if not os.path.isfile(self.model_filepath):
+            download_model_weights(self.model_filepath)
+
+        self._load_model()
 
     def _window(self, audio, sampling_rate):
         '''
