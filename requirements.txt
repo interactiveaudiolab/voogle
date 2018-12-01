@@ -3,10 +3,10 @@ astor==0.7.1
 audioread==2.1.6
 Click==7.0
 decorator==4.3.0
+dropbox==9.2.0
 Flask==1.0.2
 gast==0.2.0
 grpcio==1.15.0
-h5py==2.8.0
 itsdangerous==0.24
 Jinja2==2.10
 joblib==0.12.5
