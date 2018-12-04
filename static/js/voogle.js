@@ -422,7 +422,7 @@ class Voogle extends React.Component {
         formData.append('filename', key);
 
         fetch('/retrieve', {
-            method: 'GET',
+            method: 'POST',
             body: formData
         })
         .then(response => {

@@ -5,15 +5,14 @@ import numpy as np
 import os
 import time
 import yaml
+from factory import dataset_factory, model_factory
 from flask import Flask, jsonify, request, send_from_directory, send_file
-# from multiprocessing import Process
 from timeit import default_timer as timer
+from voogle import Voogle
 
 from log import get_logger
 logger = get_logger('root')
 
-from factory import dataset_factory, model_factory
-from Voogle import Voogle
 
 app = Flask(__name__, static_url_path='', static_folder='')
 
@@ -24,12 +23,12 @@ def index():
     return send_from_directory('build', 'index.html')
 
 
-@app.route('/retrieve')
+@app.route('/retrieve', methods=['POST'])
 def retrieve():
-    start = timer()
     logger.debug('Retrieved request for audio file')
     filename = request.form['filename']
-    send_file(os.path.join(app.config.get('dataset_directory'), filename))
+    return send_file(
+        os.path.join(app.config.get('dataset_directory'), filename))
 
 
 @app.route('/search', methods=['POST'])
@@ -61,9 +60,6 @@ def search():
             str(int(time.time())) + '_' + text_input + '.wav')
         save_start = timer()
         librosa.output.write_wav(query_filepath, query, sampling_rate)
-        # async_save = Process(
-        #     target=async_write, args=(query_filepath, query, sampling_rate))
-        # async_save.start()
         save_end = timer()
 
         logger.info('Saved query in {} seconds'.format(save_end - save_start))
@@ -74,10 +70,6 @@ def search():
             query, sampling_rate, text_input)
         logger.info('Produced matches {} with text-match array {}\
                     '.format(ranked_matches, text_matches))
-
-        # Prepend the file location for S3 retreival
-        bucket_directory = 'audio/' + app.config.get('dataset_name') + '/'
-        ranked_matches = [bucket_directory + match for match in ranked_matches]
 
         # Pass the results to the frontend
         logger.debug('Sending search request results to client')
@@ -95,11 +87,6 @@ def search():
         # User did not provide a query
         logger.warning('A search was attempted with no query')
         return jsonify({'matches': [], 'text_matches': []})
-
-
-# def async_write(filepath, query, sampling_rate):
-#     librosa.output.write_wav(filepath, query, sampling_rate)
-
 
 if __name__ == '__main__':
     # set up parser to grab optional inputs:
@@ -161,5 +148,6 @@ if __name__ == '__main__':
 
     app.config.update(config)
     app.config.update({'voogle': voogle})
+    app.config.update({'dataset_directory': dataset_directory})
     app.config.update({'query_directory': query_directory})
     app.run(debug=args.debug, threaded=args.threaded)

@@ -3,7 +3,7 @@ import os
 import unittest
 from model.SiameseStyle import SiameseStyle
 from data.TestDataset import TestDataset
-from Voogle import Voogle
+from voogle import Voogle
 
 
 class TestVoogle(unittest.TestCase):

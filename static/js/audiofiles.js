@@ -8,7 +8,7 @@ class AudioFiles extends Component {
             return (
                 <div className='row round-box dark-gray mb-1 mx-2' onClick={() => loader(file.filename)}>
                   <div className='col-4'>
-                    { file.filename.slice(file.filename.lastIndexOf('/') + 1) }
+                    { file.filename }
                   </div>
                   <div className='col-8 p-0'>
                     <div className='score-box' style={this.renderScore(file.similarityScore)}>
