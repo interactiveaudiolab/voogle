@@ -426,12 +426,16 @@ class Voogle extends React.Component {
             body: formData
         })
         .then(response => {
-            return response.blob()
+            if (response.ok) {
+                response.blob().then(blob => {
+                    this.matchWavesurfer.loadBlob(blob);
+                    this.setState({ loadedMatch: key });
+                });
+            } else {
+                console.log('Audio file ${key} could not be found');
+            }
         })
-        .then(blob => {
-            this.matchWavesurfer.loadBlob(blob);
-            this.setState({ loadedMatch: key });
-        });
+
     }
 
     matchesBoxContents = (recordingProgress) => {
@@ -578,7 +582,6 @@ class Voogle extends React.Component {
     }
 
     resizeMatches = () => {
-        console.log('resized')
         const top = this.resizeTopDiv.current.getBoundingClientRect().top;
         const btm = this.resizeBottomDiv.current.getBoundingClientRect().bottom;
         const lft = this.resizeTopDiv.current.getBoundingClientRect().left;

@@ -7,13 +7,12 @@ import time
 import yaml
 from factory import dataset_factory, model_factory
 from flask import Flask, jsonify, request, send_from_directory, send_file
+from log import get_logger
 from timeit import default_timer as timer
 from voogle import Voogle
+from werkzeug.exceptions import BadRequest
 
-from log import get_logger
 logger = get_logger('root')
-
-
 app = Flask(__name__, static_url_path='', static_folder='')
 
 
@@ -27,8 +26,11 @@ def index():
 def retrieve():
     logger.debug('Retrieved request for audio file')
     filename = request.form['filename']
-    return send_file(
-        os.path.join(app.config.get('dataset_directory'), filename))
+    file = os.path.join(app.config.get('dataset_directory'), filename)
+    try:
+        return send_file(file)
+    except FileNotFoundError:
+        raise BadRequest('Audio file {} cannot be found'.format(filename))
 
 
 @app.route('/search', methods=['POST'])
