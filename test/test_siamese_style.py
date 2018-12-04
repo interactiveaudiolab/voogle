@@ -15,10 +15,10 @@ class TestSiameseStyle(unittest.TestCase):
         self.representation_directory = os.path.realpath(
             'data/representations/test_dataset/siamese-style')
         self.model_filepath = os.path.realpath(
-            'model/weights/default_model.h5')
+            'model/weights/siamese_style.h5')
         self.model = SiameseStyle(self.model_filepath)
 
-        # Make sure the test dataset has been downloaded from dropbox
+        # Make sure the test dataset has been downloaded
         self.dataset = TestDataset(
             self.dataset_directory,
             self.representation_directory,

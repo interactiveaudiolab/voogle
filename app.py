@@ -119,10 +119,7 @@ if __name__ == '__main__':
 
     # Setup the dataset
     dataset_directory = os.path.join(
-        parent_directory,
-        'data',
-        config.get('dataset_directory'),
-        config.get('dataset_name'))
+        parent_directory, 'data', 'audio', config.get('dataset_name'))
     representation_directory = os.path.join(
         parent_directory,
         'data',
@@ -140,7 +137,7 @@ if __name__ == '__main__':
     voogle = Voogle(model, dataset, config.get('require_text_match'))
 
     query_directory = os.path.join(
-        parent_directory, 'data', config.get('query_path'))
+        parent_directory, 'data', 'weights', config.get('query_path'))
 
     # Make the query directory if it doesn't exist
     try:

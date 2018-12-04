@@ -13,7 +13,7 @@ class TestVoogle(unittest.TestCase):
 
     def setUp(self):
         model = SiameseStyle(
-            os.path.realpath('model/weights/default_model.h5'))
+            os.path.realpath('model/weights/siamese_style.h5'))
 
         dataset_directory = os.path.realpath(
             'data/audio/test_dataset')
