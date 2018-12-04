@@ -14,15 +14,6 @@ Voogle frontend dependencies are installed with `npm install`.
 
 **Note:** You must have [Node.js](https://nodejs.org/en/) installed before you can run `npm install`.
 
-## Setup
-After installing the dependencies, the Voogle app can be deployed.
-
-### Deploying Locally
-1. Start the server by running `npm run production`.
-2. Navigate to `localhost:5000` in your browser.
-
-From there, please follow the directions on the website. Enjoy!
-
 ## Available Datasets
 Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8). A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
 
@@ -37,6 +28,15 @@ Interactive Audio Lab has released the following models for query-by-vocal-imita
     - [weight file](https://www.dropbox.com/s/5x5ceczislmyk0y/vggish_pretrained_convs.pth?dl=1)
 
 Weight files should be placed in [`model/weights`](model/weights/). The model used during execution can be specified in [`config.yaml`](config.yaml).
+
+## Setup
+After installing the dependencies, a dataset, and a model, the Voogle app can be deployed.
+
+### Deploying Locally
+1. Start the server by running `npm run production`.
+2. Navigate to `localhost:5000` in your browser.
+
+From there, please follow the directions on the website. Enjoy!
 
 ## Testing
 Unit tests can be run with `npm run test`.
