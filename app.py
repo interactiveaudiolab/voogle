@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
     # Setup the model on the server
     model_filepath = os.path.join(
-        parent_directory, 'model', config.get('model_filepath'))
+        parent_directory, 'model', 'weights', config.get('model_filepath'))
     model = model_factory(
         config.get('model_name'), os.path.abspath(model_filepath))
 
@@ -136,8 +136,7 @@ if __name__ == '__main__':
 
     voogle = Voogle(model, dataset, config.get('require_text_match'))
 
-    query_directory = os.path.join(
-        parent_directory, 'data', 'weights', config.get('query_path'))
+    query_directory = os.path.join(parent_directory, 'data', 'queries')
 
     # Make the query directory if it doesn't exist
     try:

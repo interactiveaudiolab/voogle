@@ -16,9 +16,6 @@ dataset_name: test_dataset
 # directory
 representation_directory: representations
 
-# directory for storing user queries relative to the data directory
-query_path: queries
-
 # batch size of audio representation construction
 construct_representation_batch_size:
 

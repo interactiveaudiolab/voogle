@@ -3,7 +3,6 @@ import numpy as np
 import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
-from data import download_dataset
 from log import get_logger
 
 
@@ -44,8 +43,11 @@ class QueryByVoiceDataset(ABC):
         self.construct_representation_batch_size = \
             construct_representation_batch_size
 
-        if (self._dataset_directory_empty() or
-            self._representation_directory_empty() or
+        if self._dataset_directory_empty():
+            self.logger.error('No dataset found!')
+            raise FileNotFoundError('No dataset found!')
+
+        if (self._representation_directory_empty() or
             self._dataset_directory_was_updated() or
             (self.model.parametric_representation and
              self._model_was_updated())):
@@ -237,15 +239,9 @@ class QueryByVoiceDataset(ABC):
         # Build the dataset directory if it does not exist
         try:
             os.makedirs(os.path.dirname(self.dataset_directory))
-            logger.info('Created audio directory')
-        except:
-            pass
-
-        # Download the dataset if it is not mounted
-        if not os.path.isdir(self.dataset_directory):
-            download_dataset(self.dataset_directory)
+            self.logger.info('Created audio directory')
             return True
-        else:
+        except OSError:
             return False
 
     def _dataset_directory_was_updated(self):
