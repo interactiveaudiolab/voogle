@@ -24,7 +24,7 @@ After installing the dependencies, the Voogle app can be deployed.
 From there, please follow the directions on the website. Enjoy!
 
 ## Available Datasets
-Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8). A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=0).
+Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8). A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
 
 Audio files should be placed in [`data/audio/<dataset_name>`](data/audio/). The dataset used during exection can be specified in [`config.yaml`](config.yaml).
 
