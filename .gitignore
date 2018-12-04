@@ -1,8 +1,8 @@
 # Project-specific
-server/data/audio/
-server/data/queries/
-server/data/representations/
-server/model/weights/
+data/audio/
+data/queries/
+data/representations/
+model/weights/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

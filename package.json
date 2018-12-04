@@ -4,13 +4,13 @@
   "description": "VocalSearch is an audio search engine that uses vocal imitations of the desired sound as the search query.",
   "main": "scripts/js/index.js",
   "scripts": {
-    "test": "python -m unittest discover server",
+    "test": "python -m unittest discover",
     "build": "webpack --mode production",
     "start": "webpack-dev-server --open --mode development",
     "production": "npm run build && npm run serve",
     "development": "npm run start && npm run serve-dev",
-    "serve": "python server/app.py",
-    "serve-dev": "python server/app.py -d"
+    "serve": "python app.py",
+    "serve-dev": "python app.py -d"
   },
   "repository": {
     "type": "git",
@@ -45,7 +45,6 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
-    "aws-sdk": "^2.344.0",
     "inline-worker": "^1.1.0",
     "popper.js": "^1.14.4",
     "react-circular-progressbar": "^1.0.0",

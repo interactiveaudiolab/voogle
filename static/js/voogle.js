@@ -1,12 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import AudioFiles from './audiofiles.js';
-import AWS from 'aws-sdk/global';
 import CircularProgressbar from 'react-circular-progressbar';
 import React from 'react';
 import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
-import S3 from 'aws-sdk/clients/s3';
 import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
 import 'react-circular-progressbar/dist/styles.css'
@@ -79,18 +77,6 @@ class Voogle extends React.Component {
 
         // Position to start playback in seconds
         this.recordingPlaybackStart = 0;
-
-        // Connect to the AWS bucket storing audio files
-        AWS.config.update({
-            region: 'us-east-2',
-            credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: 'us-east-2:be4dd070-23b0-4a6b-ade4-99bb48caaf24'
-            })
-        });
-        this.bucket = new S3({
-          apiVersion: '2006-03-01',
-          params: {Bucket: 'voogle'}
-        });
     }
 
     componentDidMount() {
@@ -432,14 +418,19 @@ class Voogle extends React.Component {
             return;
         }
 
-        // Grab the file from the S3 instance
-        this.bucket.getSignedUrl('getObject', {Key: key}, (err, url) => {
-            if (err) {
-                console.log(err);
-            } else {
-                this.matchWavesurfer.load(url);
-                this.setState({loadedMatch: key});
-            }
+        let formData = new FormData;
+        formData.append('filename', key);
+
+        fetch('/retrieve', {
+            method: 'GET',
+            body: formData
+        })
+        .then(response => {
+            return response.blob()
+        })
+        .then(blob => {
+            this.matchWavesurfer.loadBlob(blob);
+            this.setState({ loadedMatch: key });
         });
     }
 

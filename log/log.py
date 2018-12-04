@@ -8,6 +8,7 @@ logging.config.fileConfig(
 
 loggers = {}
 
+
 def get_logger(name):
     global loggers
     if loggers.get(name):

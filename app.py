@@ -5,7 +5,7 @@ import numpy as np
 import os
 import time
 import yaml
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, send_file
 # from multiprocessing import Process
 from timeit import default_timer as timer
 
@@ -15,13 +15,21 @@ logger = get_logger('root')
 from factory import dataset_factory, model_factory
 from Voogle import Voogle
 
-app = Flask(__name__, static_folder='../build')
+app = Flask(__name__, static_url_path='', static_folder='')
 
 
 @app.route('/')
 def index():
     logger.debug('Rendering index.html')
-    return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory('build', 'index.html')
+
+
+@app.route('/retrieve')
+def retrieve():
+    start = timer()
+    logger.debug('Retrieved request for audio file')
+    filename = request.form['filename']
+    send_file(os.path.join(app.config.get('dataset_directory'), filename))
 
 
 @app.route('/search', methods=['POST'])
