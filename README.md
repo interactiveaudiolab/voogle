@@ -39,12 +39,12 @@ From there, please follow the directions on the website. Enjoy!
 
 ### Deploying on the Web
 The following steps are required to prepare Voogle for deployment as a web application:
-- [] Get a domain name
-- [] Determine server location (e.g., AWS)
-- [] Setup server
-- [] Serve audio files outside of the main event loop (e.g., with Apache or nginx)
-- [] Update query file naming. Depending on the scale, multiple users could send a query at the same time. This would require query names to include a unique id that is not exclusively associated with the timestamp.
-- [] Test with multiple simultaneous users
+- [ ] Get a domain name
+- [ ] Determine server location (e.g., AWS)
+- [ ] Setup server
+- [ ] Serve audio files outside of the main event loop (e.g., with Apache or nginx)
+- [ ] Update query file naming. Depending on the scale, multiple users could send a query at the same time. This would require query names to include a unique id that is not exclusively associated with the timestamp.
+- [ ] Test with multiple simultaneous users
 
 ## Testing
 Unit tests can be run with `npm run test`.
