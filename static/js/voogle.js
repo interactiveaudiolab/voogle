@@ -10,19 +10,6 @@ import WaveSurfer from 'wavesurfer.js';
 import 'react-circular-progressbar/dist/styles.css'
 import '../css/voogle.css';
 
-/* Match list for testing
-{ filename: 'a.wav', textMatch: true, similarityScore: 1.0},
-{ filename: 'a.wav', textMatch: false, similarityScore: 0.9},
-{ filename: 'a.wav', textMatch: true, similarityScore: 0.8},
-{ filename: 'a.wav', textMatch: false, similarityScore: 0.7},
-{ filename: 'a.wav', textMatch: true, similarityScore: 0.6},
-{ filename: 'a.wav', textMatch: false, similarityScore: 0.5},
-{ filename: 'a.wav', textMatch: true, similarityScore: 0.4},
-{ filename: 'a.wav', textMatch: false, similarityScore: 0.3},
-{ filename: 'a.wav', textMatch: true, similarityScore: 0.2},
-{ filename: 'a.wav', textMatch: false, similarityScore: 0.1},
-*/
-
 class Voogle extends React.Component {
     constructor(props) {
         super(props);
@@ -332,22 +319,35 @@ class Voogle extends React.Component {
     }
 
     drawRegion = () => {
-        // Grab the audio buffer
-        let buffer = this.wavesurfer.backend.buffer.getChannelData(0);
+        // Grab a copy of the audio buffer
+        let buffer = this.wavesurfer.backend.buffer.getChannelData(0).slice();
+
+        // Take absolute value of each sample for level detection
+        let max = 0.0;
+        for (let i = 0; i < buffer.length; i++) {
+            buffer[i] = Math.abs(buffer[i]);
+
+            // Store maximum sample value
+            if (buffer[i] > max) {
+                max = buffer[i];
+            }
+        }
+
+        // Normalize the buffer
+        for (let i = 0; i < buffer.length; i++) {
+            buffer[i] /= max;
+        }
 
         // Find the first location at which the audio exceeds the threshold
         // level
         let start = buffer.findIndex((x) => {
-            return Math.abs(x) > this.props.regionStartThreshold;
+            return x > this.props.regionStartThreshold;
         });
 
         // Find the last location at which the audio exceeds the threshold level
         let end = buffer.length - buffer.reverse().findIndex((x) => {
-            return Math.abs(x) > this.props.regionEndThreshold;
+            return x > this.props.regionEndThreshold;
         });
-
-        // This is the actual array buffer--not a copy. Undo our reversal.
-        buffer.reverse();
 
         // If audio never exceeded either threshold, set the entire buffer as
         // the region
@@ -357,8 +357,8 @@ class Voogle extends React.Component {
         }
 
         // Convert to seconds and grab the surrounding audio
-        start = start / this.samplingRate - this.props.regionTolerance;
-        end = end / this.samplingRate + this.props.regionTolerance;
+        start = start / this.samplingRate - this.props.regionStartTolerance;
+        end = end / this.samplingRate + this.props.regionEndTolerance;
 
         // Clip the audio to the bounds of the buffer
         start = Math.max(0, start);
@@ -707,10 +707,13 @@ Voogle.defaultProps = {
     regionStartThreshold: 0.10,
 
     // The level below which the automatically placed region will end
-    regionEndThreshold: 0.05,
+    regionEndThreshold: 0.03,
 
-    // The amount of time (in seconds) to add to either side
-    regionTolerance: 0.25
+    // The amount of time (in seconds) to add to the beginning of the query
+    regionStartTolerance: 0.01,
+
+    // The amount of time (in seconds) to add to the end of the query
+    regionEndTolerance: 0.20
 };
 
 export default Voogle;
