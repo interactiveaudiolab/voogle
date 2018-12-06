@@ -15,14 +15,13 @@ Voogle frontend dependencies are installed with `npm install`.
 **Note:** You must have [Node.js](https://nodejs.org/en/) installed before you can run `npm install`.
 
 ## Available Datasets
-Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8). A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
+Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8) [1, 2]. A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
 
 Audio files should be placed in [`data/audio/<dataset_name>`](data/audio/). The dataset used during exection can be specified in [`config.yaml`](config.yaml).
 
 ## Available Models
 Interactive Audio Lab has released the following models for query-by-vocal-imitation:
- - `siamese-style`: a siamese-style neural network
-    - [paper link](https://www.researchgate.net/publication/327407400_Siamese_Style_Convolutional_Neural_Networks_for_Sound_Search_by_Vocal_Imitation)
+ - `siamese-style`: a siamese-style neural network [3]
     - [weight file](https://www.dropbox.com/s/234i2ft9sfcdpty/siamese_style.h5?dl=1)
  - `VGGish-embedding`: cosine similarity of VGGish embeddings
     - [weight file](https://www.dropbox.com/s/5x5ceczislmyk0y/vggish_pretrained_convs.pth?dl=1)
@@ -59,3 +58,8 @@ An example model can be found [here](model/SiameseStyle.py).
 - Update the dataset name in [`config.yaml`](config.yaml).
 
 An example dataset can be found [here](data/TestDataset.py).
+
+## References
+- [1] Bongjun Kim, Madhav Ghei, Bryan Pardo, and Zhiyao Duan, "Vocal Imitation Set: a dataset of vocally imitated sound events using the AudioSet ontology," Proceedings of the Detection and Classification of Acoustic Scenes and Events 2018 Workshop (DCASE2018), Surrey, UK, Nov. 2018. [[paper link](http://dcase.community/documents/workshop2018/proceedings/DCASE2018Workshop_Kim_135.pdf)]
+- [2] Mark Cartwright and Bryan Pardo, "Vocalsketch: Vocally imitating audio concepts," Proceedings of the 33rd Annual ACM Conference on Human Factors in Computing Systems (ACM), 2015. [[paper link](http://music.cs.northwestern.edu/publications/cartwright_pardo_chi2015.pdf)]
+- [3] Yichi Zhang, Bryan Pardo, and Zhiyao Duan, "Siamese Style Convolutional Neural Networks for Sound Search by Vocal Imitation," IEEE/ACM Transactions on Audio Speech and Language Processing. [[paper link](https://ieeexplore.ieee.org/document/8453811)]
