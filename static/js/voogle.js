@@ -373,7 +373,7 @@ class Voogle extends React.Component {
             id: 'queryRegion',
             start: start,
             end: end,
-            color: 'rgb(36,42,54,0.25)'
+            color: 'rgb(36,42,54,0.4)'
         });
 
         // Start playback at region start
@@ -533,6 +533,8 @@ class Voogle extends React.Component {
                       onKeyPress={this.submit}/>
                   </div>
                   <div className='my-4'>
+                    <div className='arrow-down'></div>
+                    <div className='arrow-down'></div>
                     <div className='waveform' ref={this.recordingWaveform}/>
                   </div>
                   <div className='btn-group w-100'>
@@ -710,7 +712,7 @@ Voogle.defaultProps = {
     regionEndThreshold: 0.03,
 
     // The amount of time (in seconds) to add to the beginning of the query
-    regionStartTolerance: 0.01,
+    regionStartTolerance: 0.02,
 
     // The amount of time (in seconds) to add to the end of the query
     regionEndTolerance: 0.20
