@@ -15,10 +15,10 @@ class Voogle extends React.Component {
         super(props);
 
         this.state = {
-            matchDivHeight: 64,
-            matchDivWidth: 64,
             hasRecorded: false,
             loadedMatch: null,
+            matchDivHeight: 64,
+            matchDivWidth: 64,
             matches: [],
             playMatchText: 'Play',
             playRecordingText: 'Play',
@@ -273,13 +273,15 @@ class Voogle extends React.Component {
         this.setState({
             hasRecorded: false,
             playingRecording: false,
-            playRecordingText: 'Play'
+            playRecordingText: 'Play',
+            showCursorTriangles: false
         });
     }
 
     clearMatch = () => {
         this.matchWavesurfer.empty();
         this.matchWavesurfer.clearRegions();
+        window.removeEventListener('resize', this.placeCursorTriangles);
         this.setState({
             loadedMatch: null,
             playingMatch: false,
@@ -400,6 +402,12 @@ class Voogle extends React.Component {
             this.start = Math.ceil(newRegion.start * this.samplingRate);
             this.end = Math.floor(newRegion.end * this.samplingRate);
         });
+
+        // region.on('update', (event) => {
+        //     this.placeCursorTriangles();
+        // });
+
+        // window.addEventListener('resize', this.placeCursorTriangles);
     }
 
     getRecordingProgress = () => {
@@ -473,6 +481,34 @@ class Voogle extends React.Component {
         }
     }
 
+    // placeCursorTriangles() {
+    //     // Traverse to the region handles
+    //     let div = this.recordingWaveform.current;
+    //     console.log(div.getBoundingClientRect());
+    //     let waveformRect = div.getBoundingClientRect();
+    //     let offset = waveformRect.left;
+    //     let top = waveformRect.top - 0.5 * waveformRect.height;
+    //     let wave = div.children[0];
+    //     let rgn = wave.getElementsByClassName('wavesurfer-region')[0];
+    //     // let start = rgn.getElementsByClassName('wavesurfer-handle-start');
+    //     // let end = rgn.getElementsByClassName('wavesurfer-handle-end');
+    //     // console.log(start[0], end[0]);
+    //     // Get the bounding boxes of the handles
+    //     let regionRect = rgn.getBoundingClientRect();
+    //     // let startRect = rgn[0].getBoundingClientRect();
+    //     // let endRect = end[0].getBoundingClientRect();
+    //     // console.log(startRect, endRect);
+
+    //     this.setState({
+    //         cursorStartX: regionRect.left,
+    //         cursorEndX: regionRect.right
+    //     });
+
+    //     if (!this.state.showCursorTriangles) {
+    //         this.setState({showCursorTriangles: true});
+    //     }
+    // }
+
     render() {
         const recordingProgress = this.getRecordingProgress();
         return (
@@ -533,8 +569,6 @@ class Voogle extends React.Component {
                       onKeyPress={this.submit}/>
                   </div>
                   <div className='my-4'>
-                    <div className='arrow-down'></div>
-                    <div className='arrow-down'></div>
                     <div className='waveform' ref={this.recordingWaveform}/>
                   </div>
                   <div className='btn-group w-100'>
@@ -582,6 +616,30 @@ class Voogle extends React.Component {
             </div>
         )
     }
+
+    // renderCursors = () => {
+    //     if (this.state.showCursorTriangles) {
+    //         console.log('drawing cursors')
+    //         let startStyle = {
+    //             position: 'absolute',
+    //             top: this.state.cursorY,
+    //             left: this.state.cursorStartX
+    //         };
+    //         let endStyle = {
+    //             position: 'absolute',
+    //             top: this.state.cursorY,
+    //             left: this.state.cursorEndX
+    //         };
+    //         return (
+    //             <div>
+    //               <div className='arrow' style={startStyle}></div>
+    //               <div className='arrow' style={endStyle}></div>
+    //             </div>
+    //         );
+    //     } else{
+    //         return null;
+    //     }
+    // }
 
     resizeMatches = () => {
         const top = this.resizeTopDiv.current.getBoundingClientRect().top;
@@ -712,7 +770,7 @@ Voogle.defaultProps = {
     regionEndThreshold: 0.03,
 
     // The amount of time (in seconds) to add to the beginning of the query
-    regionStartTolerance: 0.02,
+    regionStartTolerance: 0.03,
 
     // The amount of time (in seconds) to add to the end of the query
     regionEndTolerance: 0.20

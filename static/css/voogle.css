@@ -1,9 +1,14 @@
-.arrow-down {
+.arrow {
   width: 0;
   height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-top: 20px solid #4A99D8;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid #8519A1;
+  padding: 0 auto;
+  display: inline;
+}
+
+.arrows {
 }
 
 .waveform {
@@ -165,42 +170,20 @@ small{
   margin: 0px;
 }
 
-/*.wavesurfer-handle.wavesurfer-handle-start:hover{
-  background-color: black;
-}
-
-.wavesurfer-handle.wavesurfer-handle-end:hover{
-  background-color: lightblue;
-}*/
-
 .wavesurfer-region::before {
-  /*content: attr(data-region-label);*/
   position: absolute;
   border-style: solid;
-  border-width: 1px;
+  border-width: 10px;
   top: 2px;
   color: 'hsla(0, 0%, 100%, 0.15)';
 }
-/*
-.wavesurfer-handle.wavesurfer-handle-start {
-  max-width: 15px !important;
-  width: 100% !important;
-}
-
-.wavesurfer-handle.wavesurfer-handle-end {
-  max-width: 15px !important;
-  width: 100% !important;
-  left: 99% !important;
-}*/
 
 .wavesurfer-region[data-id="queryRegion"] {
-border-left: 4px solid #13CCA2;
-border-right: 4px solid #DD3C6D;
-width: 100%;
+  width: 100%;
+  border: none;
 }
 
-
-/*.wavesurfer-region[data-region-highlight] {
-  border: 3px solid rgb(86, 180, 239);
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
-}*/
+.wavesurfer-handle {
+  background-color: transparent;
+  border: 2.5px solid #4A9AD9;
+}
