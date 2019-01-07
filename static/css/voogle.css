@@ -180,10 +180,22 @@ small{
 
 .wavesurfer-region[data-id="queryRegion"] {
   width: 100%;
-  border: none;
+  /* border: none; */
+  border-right: 5px solid #4A9AD9;
 }
 
-.wavesurfer-handle {
+.wavesurfer-handle-start {
   background-color: transparent;
+  width: 5% !important;
+  max-width: 8px !important;
   border: 2.5px solid #4A9AD9;
 }
+
+.wavesurfer-handle-end {
+  background-color: transparent;
+  width: 5% !important;
+  max-width: 8px !important;
+  border: 5px solid transparent;
+}
+
+
