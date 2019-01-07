@@ -144,80 +144,11 @@ class Voogle extends React.Component {
         // If the update was the user starting or stopping the recording,
         // send the update to the recorder.
         if (this.state.recording != prevState.recording) {
-            if (this.state.recording) {
-                // Stop playback
-                if (this.state.playingRecording) {
-                    this.setState({
-                        playingRecording: false,
-                        playRecordingText: 'Play'
-                    })
-                }
-                if (this.state.playingMatch) {
-                    this.setState({
-                        playingMatch: false,
-                        playMatchText: 'Play'
-                    });
-                }
-
-                // Reset the waveforms
-                this.clearRecording();
-                this.clearMatch();
-
-                // Clear the existing matches
-                this.setState({ matches: [] });
-
-                // Start recording
-                this.recorder.record();
-
-                // Periodically draw the waveform while recording
-                this.drawIntervalId = setInterval(
-                    this.draw, this.props.drawingRate);
-
-                // Update the timer animation every 100 ms
-                this.recordingStartTime = (new Date()).getTime();
-                this.timerAnimationId = setInterval(
-                    () => {
-                        let currentTime = (new Date()).getTime();
-                        let elapsed = (currentTime - this.recordingStartTime) /
-                            10;
-                        let recordingProgress = elapsed /
-                            this.props.maxRecordingLength;
-                        this.setState({ recordingProgress: recordingProgress });
-                    },
-                    100
-                );
-
-                // Stop recording after the maximum allowed recording length
-                // has been reached
-                this.recordingTimerId = setTimeout(
-                    () => {
-                        clearInterval(this.timerAnimationId);
-                        this.setState({
-                            recording: false,
-                            recordButtonText: 'Record'
-                        })
-                    },
-                    this.props.maxRecordingLength * 1000
-                );
-
-            } else {
-                // Stop recording
-                this.recorder.stop();
-
-                // Indicate that a query is available
-                this.setState({ hasRecorded: true, recordingProgress: 0 });
-
-                // Stop periodically drawing the waveform while recording
-                clearInterval(this.drawIntervalId);
-
-                // Stop updating the timer animation
-                clearInterval(this.timerAnimationId);
-
-                // Stop the recording timer
-                clearTimeout(this.recordingTimerId);
-
-                // Find the user's audio via level detection
-                this.drawRegion();
+            console.log(this.audioContext.state, this.audioContext);
+            if (this.audioContext.state === 'running') {
+                this.handleRecording();
+            } else if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => this.handleRecording());
             }
         }
 
@@ -412,6 +343,84 @@ class Voogle extends React.Component {
 
     getRecordingProgress = () => {
         return this.state.recordingProgress;
+    }
+
+    handleRecording = () => {
+        if (this.state.recording) {
+            // Stop playback
+            if (this.state.playingRecording) {
+                this.setState({
+                    playingRecording: false,
+                    playRecordingText: 'Play'
+                })
+            }
+            if (this.state.playingMatch) {
+                this.setState({
+                    playingMatch: false,
+                    playMatchText: 'Play'
+                });
+            }
+
+            // Reset the waveforms
+            this.clearRecording();
+            this.clearMatch();
+
+            // Clear the existing matches
+            this.setState({ matches: [] });
+
+            // Start recording
+            this.recorder.record();
+
+            // Periodically draw the waveform while recording
+            this.drawIntervalId = setInterval(
+                this.draw, this.props.drawingRate);
+
+            // Update the timer animation every 100 ms
+            this.recordingStartTime = (new Date()).getTime();
+            this.timerAnimationId = setInterval(
+                () => {
+                    let currentTime = (new Date()).getTime();
+                    let elapsed = (currentTime - this.recordingStartTime) /
+                        10;
+                    let recordingProgress = elapsed /
+                        this.props.maxRecordingLength;
+                    this.setState({ recordingProgress: recordingProgress });
+                },
+                100
+            );
+
+            // Stop recording after the maximum allowed recording length
+            // has been reached
+            this.recordingTimerId = setTimeout(
+                () => {
+                    clearInterval(this.timerAnimationId);
+                    this.setState({
+                        recording: false,
+                        recordButtonText: 'Record'
+                    })
+                },
+                this.props.maxRecordingLength * 1000
+            );
+
+        } else {
+            // Stop recording
+            this.recorder.stop();
+
+            // Indicate that a query is available
+            this.setState({ hasRecorded: true, recordingProgress: 0 });
+
+            // Stop periodically drawing the waveform while recording
+            clearInterval(this.drawIntervalId);
+
+            // Stop updating the timer animation
+            clearInterval(this.timerAnimationId);
+
+            // Stop the recording timer
+            clearTimeout(this.recordingTimerId);
+
+            // Find the user's audio via level detection
+            this.drawRegion();
+        }
     }
 
     handleTextInput = (event) => {
