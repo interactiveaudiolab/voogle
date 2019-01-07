@@ -519,6 +519,20 @@ class Voogle extends React.Component {
     // }
 
     render() {
+        if (this.props.interface === 'old') {
+            return this.renderOldInterface();
+        } else if (this.props.interface === 'new') {
+            return this.renderNewInterface(false);
+        } else if (this.props.interface === 'foley') {
+            return this.renderNewInterface(true);
+        }
+    }
+
+    renderNewInterface = () => {
+
+    }
+
+    renderOldInterface = () => {
         const recordingProgress = this.getRecordingProgress();
         return (
             <div className='container'>
@@ -767,6 +781,9 @@ class Voogle extends React.Component {
 Voogle.defaultProps = {
     // The time (in milliseconds) between waveform updates
     drawingRate: 500,
+
+    // The user interface to display: one of 'old', 'new', or 'foley'
+    interface: 'old',
 
     // The maximum duration (in seconds) of a user's recording
     maxRecordingLength: 10,
