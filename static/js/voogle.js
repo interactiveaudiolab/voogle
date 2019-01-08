@@ -212,7 +212,7 @@ class Voogle extends React.Component {
     clearMatch = () => {
         this.matchWavesurfer.empty();
         this.matchWavesurfer.clearRegions();
-        window.removeEventListener('resize', this.placeCursorTriangles);
+        // window.removeEventListener('resize', this.placeCursorTriangles);
         this.setState({
             loadedMatch: null,
             playingMatch: false,
