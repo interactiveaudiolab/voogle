@@ -7,11 +7,10 @@ import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
-import logo from '../images/logo.png'
 import 'react-circular-progressbar/dist/styles.css'
-import '../css/newinterface.css';
+import '../css/oldinterface.css';
 
-class Voogle extends React.Component {
+class OldInterface extends React.Component {
     constructor(props) {
         super(props);
 
@@ -68,79 +67,77 @@ class Voogle extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.interface === 'old') {
-            // Construct the waveform display
-            this.wavesurfer = WaveSurfer.create({
-                container: this.recordingWaveform.current,
-                cursorColor: '#242A36',
-                hideScrollbar: true,
-                pixelRatio: 1,
-                plugins: [RegionsPlugin.create()],
-                progressColor: '#3D7FB3',
-                waveColor: '#4A99D8'
+        // Construct the waveform display
+        this.wavesurfer = WaveSurfer.create({
+            container: this.recordingWaveform.current,
+            cursorColor: '#242A36',
+            hideScrollbar: true,
+            pixelRatio: 1,
+            plugins: [RegionsPlugin.create()],
+            progressColor: '#3D7FB3',
+            waveColor: '#4A99D8'
+        });
+
+        this.matchWavesurfer = WaveSurfer.create({
+            container: this.playbackWaveform.current,
+            cursorColor: '#242A36',
+            hideScrollbar: true,
+            pixelRatio: 1,
+            plugins: [RegionsPlugin.create()],
+            progressColor: '#8519A1',
+            waveColor: '#A51FC7'
+        });
+
+        // Reset the cursor when the audio is done playing
+        this.wavesurfer.on('finish', () => {
+            this.wavesurfer.stop();
+            this.setState({
+                playingRecording: false,
+                playRecordingText: 'Play'
             });
+        });
 
-            this.matchWavesurfer = WaveSurfer.create({
-                container: this.playbackWaveform.current,
-                cursorColor: '#242A36',
-                hideScrollbar: true,
-                pixelRatio: 1,
-                plugins: [RegionsPlugin.create()],
-                progressColor: '#8519A1',
-                waveColor: '#A51FC7'
+        this.matchWavesurfer.on('finish', () => {
+            this.matchWavesurfer.stop();
+            this.setState({
+                playingMatch: false,
+                playMatchText: 'Play'
             });
+        });
 
-            // Reset the cursor when the audio is done playing
-            this.wavesurfer.on('finish', () => {
-                this.wavesurfer.stop();
-                this.setState({
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                });
+        this.matchWavesurfer.on('ready',  () => {
+            this.matchWavesurfer.play();
+            this.setState({
+                playingMatch: true,
+                playMatchText: 'Pause'
             });
+        });
 
-            this.matchWavesurfer.on('finish', () => {
-                this.matchWavesurfer.stop();
-                this.setState({
-                    playingMatch: false,
-                    playMatchText: 'Play'
-                });
-            });
+        // Grab the audio routing graph
+        this.audioContext = this.wavesurfer.backend.getAudioContext();
 
-            this.matchWavesurfer.on('ready',  () => {
-                this.matchWavesurfer.play();
-                this.setState({
-                    playingMatch: true,
-                    playMatchText: 'Pause'
-                });
-            });
+        // Get the sampling rate at which audio processing occurs
+        this.samplingRate = this.audioContext.sampleRate;
 
-            // Grab the audio routing graph
-            this.audioContext = this.wavesurfer.backend.getAudioContext();
+        // Request mic access
+        navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
+            (stream) => {
+                // Plug the user's mic into the graph
+                this.audioStream = this.audioContext.createMediaStreamSource(
+                    stream);
 
-            // Get the sampling rate at which audio processing occurs
-            this.samplingRate = this.audioContext.sampleRate;
+                // Plug mic into recorder and recorder into waveform
+                this.recorder = new Recorder(
+                    this.audioStream, { numChannels: 1});
 
-            // Request mic access
-            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
-                (stream) => {
-                    // Plug the user's mic into the graph
-                    this.audioStream = this.audioContext.createMediaStreamSource(
-                        stream);
+            }
+        ).catch(
+            (error) => console.log(error)
+        );
 
-                    // Plug mic into recorder and recorder into waveform
-                    this.recorder = new Recorder(
-                        this.audioStream, { numChannels: 1});
-
-                }
-            ).catch(
-                (error) => console.log(error)
-            );
-
-            // Update matches box size when the window is created or resized
-            this.resizeMatches();
-            window.addEventListener('resize', this.resizeMatches);
-        }
+        // Update matches box size when the window is created or resized
+        this.resizeMatches();
+        window.addEventListener('resize', this.resizeMatches);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -199,11 +196,7 @@ class Voogle extends React.Component {
     }
 
     componentWillMount() {
-        if (this.props.interface === 'old'){
-            document.body.style.backgroundColor = '#242A36';
-        } else {
-            document.body.style.backgroundColor = '#1C142D';
-        }
+        document.body.style.backgroundColor = '#242A36';
     }
 
     componentWillUnmount() {
@@ -498,54 +491,7 @@ class Voogle extends React.Component {
     }
 
     render() {
-        if (this.props.interface === 'old') {
-            return this.renderOldInterface();
-        } else if (this.props.interface === 'new') {
-            return this.renderNewInterface(false);
-        } else if (this.props.interface === 'foley') {
-            return this.renderNewInterface(true);
-        }
-    }
-
-    renderNewInterface = (foley) => {
-        const searchWidth = foley ? 'col-4' : 'col-8';
-        return (
-          <div className='container'>
-            <div className='row header d-flex align-items-center'>
-              <p className='text48 open-sans400 light-purple-text m-0 ml-4 my-2'>Voogle</p>
-              <button className='btn no-border light-purple dark-text lato400 float-right ml-auto h-50 mr-4'>Show Instructions</button>
-            </div>
-            <div className='row'>
-              <div className={searchWidth}>
-                <div className='text-center h-100'>
-                  <div>
-                    <p className='open-sans400 text32 light-purple-text'>Click to search</p>
-                    <img className='img-fluid mx-auto d-block' src={logo}/>
-                  </div>
-                </div>
-                <div className='light rounded-top'>
-                  <p className='text-box-text-color lato400 text32 ml-3'>Describe your sound</p>
-                </div>
-              </div>
-              <div className='col-4'>
-                {this.renderNewInterfaceMatches()}
-              </div>
-              {foley ? this.renderFoley() : null}
-            </div>
-          </div>
-        );
-    }
-
-    renderNewInterfaceMatches = () => {
-        if (this.matches && !this.recording) {
-        } else {
-            const grayedBoxes = [...Array(10).keys()].map(value => {
-                const color = value % 2 ? 'search-light' : 'search-dark';
-                return <div className={'tenth-height ' + color} key={value}></div>
-            });
-            console.log(grayedBoxes)
-            return <div>{grayedBoxes}</div>
-        }
+        return this.renderOldInterface();
     }
 
     renderOldInterface = () => {
@@ -770,12 +716,9 @@ class Voogle extends React.Component {
     }
 }
 
-Voogle.defaultProps = {
+OldInterface.defaultProps = {
     // The time (in milliseconds) between waveform updates
     drawingRate: 500,
-
-    // The user interface to display: one of 'old', 'new', or 'foley'
-    interface: 'new',
 
     // The maximum duration (in seconds) of a user's recording
     maxRecordingLength: 10,
@@ -794,4 +737,4 @@ Voogle.defaultProps = {
     regionEndTolerance: 0.20
 };
 
-export default Voogle;
+export default OldInterface;

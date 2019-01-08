@@ -1,0 +1,110 @@
+/* Colors */
+
+.header {
+  background-color: #312C42;
+}
+
+.light-purple {
+  background-color: #B4A5CB;
+}
+
+.dark {
+  background-color: #1C142D;
+}
+
+.nu-purple {
+  background-color: #4E2A83;
+}
+
+.light {
+  background-color: #E7EEF2;
+}
+
+.search-light {
+  background-color: #414159;
+}
+
+.search-dark {
+  background-color: #291F44;
+}
+
+/* opacity 50% */
+.region-color {
+  background-color:  #5E57B2;
+}
+
+.region-handle-color {
+  background-color:  #291F44;
+}
+
+.cursor-color {
+  background-color:  #252547;
+}
+
+/* Text */
+
+.text32 {
+  font-size: 32px;
+}
+
+.text48 {
+  font-size: 48px;
+}
+
+.lato300 {
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+}
+
+.lato400 {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+}
+
+.open-sans300 {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 300;
+}
+
+.open-sans400 {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+}
+
+.dark-text {
+  color: #1C142D;
+}
+
+.light-purple-text {
+  color: #B4A5CB;
+}
+
+.text-box-text-color {
+  color: #7F7E88;
+}
+
+
+/* Sizing */
+
+.eighth-height {
+  height: 12.5%;
+}
+
+.tenth-height: {
+  display: block;
+  height: 10% !important;
+}
+
+
+/* Buttons */
+
+.no-border {
+  border-style: none !important;
+}
+
+
+/* Target specific divs */
+
+.rounded-top {
+  border-radius: 10px 10px 0px 0px !important;
+}
