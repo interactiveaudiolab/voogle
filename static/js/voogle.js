@@ -9,7 +9,7 @@ import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
 import logo from '../images/logo.png'
 import 'react-circular-progressbar/dist/styles.css'
-import '../css/newinterface.css';
+import '../css/voogle.css';
 
 class Voogle extends React.Component {
     constructor(props) {
@@ -18,28 +18,22 @@ class Voogle extends React.Component {
         this.state = {
             hasRecorded: false,
             loadedMatch: null,
-            matchDivHeight: 64,
-            matchDivWidth: 64,
             matches: [],
-            playMatchText: 'Play',
-            playRecordingText: 'Play',
+            matchesHeight: 0,
             playingMatch: false,
-            playingRecording: false,
-            recordButtonText: 'Record',
             recording: false,
             recordingProgress: 0.0,
+            searchHeight: 0,
             searching: false,
             searchTime: 0,
             textInput: ''
         }
 
-        // A handle for the periodically drawing the waveform while recording
-        this.drawIntervalId = null;
-
         // A handle for stopping recording when the maximum recording length
         // has been reached
         this.timerAnimationId = null;
         this.recordingTimerId = null;
+
         // The time at which the recording timer was last initiated
         this.recordingStartTime = null;
 
@@ -49,187 +43,49 @@ class Voogle extends React.Component {
         // The time at which search began
         this.searchStartTime = null;
 
-        // Create references to DOM nodes to place the waveforms
-        this.recordingWaveform = React.createRef();
-        this.playbackWaveform = React.createRef();
-
-        // Create reference to div holding instructions and textbox in order
-        // to match the height in the match div.
-        this.resizeTopDiv = React.createRef();
-        this.resizeBottomDiv = React.createRef();
-        this.matchesBox = React.createRef();
-
         // The start and end sample indices of the query within the recording
         this.start = null;
         this.end = null;
 
         // Position to start playback in seconds
         this.recordingPlaybackStart = 0;
+
+        // Refs for height calculations
+        this.headerRef = React.createRef();
+        this.footerRef = React.createRef();
+        this.searchRef = React.createRef();
     }
 
     componentDidMount() {
-        if (this.props.interface === 'old') {
-            // Construct the waveform display
-            this.wavesurfer = WaveSurfer.create({
-                container: this.recordingWaveform.current,
-                cursorColor: '#242A36',
-                hideScrollbar: true,
-                pixelRatio: 1,
-                plugins: [RegionsPlugin.create()],
-                progressColor: '#3D7FB3',
-                waveColor: '#4A99D8'
-            });
-
-            this.matchWavesurfer = WaveSurfer.create({
-                container: this.playbackWaveform.current,
-                cursorColor: '#242A36',
-                hideScrollbar: true,
-                pixelRatio: 1,
-                plugins: [RegionsPlugin.create()],
-                progressColor: '#8519A1',
-                waveColor: '#A51FC7'
-            });
-
-            // Reset the cursor when the audio is done playing
-            this.wavesurfer.on('finish', () => {
-                this.wavesurfer.stop();
-                this.setState({
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                });
-            });
-
-            this.matchWavesurfer.on('finish', () => {
-                this.matchWavesurfer.stop();
-                this.setState({
-                    playingMatch: false,
-                    playMatchText: 'Play'
-                });
-            });
-
-            this.matchWavesurfer.on('ready',  () => {
-                this.matchWavesurfer.play();
-                this.setState({
-                    playingMatch: true,
-                    playMatchText: 'Pause'
-                });
-            });
-
-            // Grab the audio routing graph
-            this.audioContext = this.wavesurfer.backend.getAudioContext();
-
-            // Get the sampling rate at which audio processing occurs
-            this.samplingRate = this.audioContext.sampleRate;
-
-            // Request mic access
-            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
-                (stream) => {
-                    // Plug the user's mic into the graph
-                    this.audioStream = this.audioContext.createMediaStreamSource(
-                        stream);
-
-                    // Plug mic into recorder and recorder into waveform
-                    this.recorder = new Recorder(
-                        this.audioStream, { numChannels: 1});
-
-                }
-            ).catch(
-                (error) => console.log(error)
-            );
-
-            // Update matches box size when the window is created or resized
-            this.resizeMatches();
-            window.addEventListener('resize', this.resizeMatches);
-        }
+        this.updateSearchHeight();
+        window.addEventListener('resize', this.updateSearchHeight);
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // If the update was the user starting or stopping the recording,
-        // send the update to the recorder.
-        if (this.state.recording != prevState.recording) {
-            console.log(this.audioContext.state, this.audioContext);
-            if (this.audioContext.state === 'running') {
-                this.handleRecording();
-            } else if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume().then(() => this.handleRecording());
-            }
-        }
-
-        // If we start searching, being search animation
-        if (this.state.searching != prevState.searching) {
-            if (this.state.searching) {
-                this.searchTimerId = setInterval(
-                    () => {
-                        let currentTime = (new Date()).getTime();
-                        let elapsed = Math.floor(
-                            (currentTime - this.searchStartTime) / 1000);
-                        this.setState({ searchTime: elapsed });
-                    },
-                    1000
-                );
-            } else {
-                clearInterval(this.searchTimerId);
-                this.setState({ searchTime: 0 });
-            }
-        }
-
-        // If the user pressed the play/pause button, signal wavesurfer to play
-        // the recorded audio
-        if (this.state.playingRecording != prevState.playingRecording) {
-            if (this.state.playingRecording) {
-                this.wavesurfer.play(this.recordingPlaybackStart);
-            } else {
-                let currentTime = this.wavesurfer.getCurrentTime();
-                if (currentTime > this.recordingPlaybackStart) {
-                    this.recordingPlaybackStart = currentTime;
-                }
-                this.wavesurfer.pause();
-            }
-        }
-
-        // If the user pressed the play/pause button, signal wavesurfer to play
-        // the recorded audio
-        if (this.state.playingMatch != prevState.playingMatch) {
-            if (this.state.playingMatch) {
-                this.matchWavesurfer.play();
-            } else {
-                this.matchWavesurfer.pause();
-            }
-        }
-    }
+    componentDidUpdate(prevProps, prevState) {}
 
     componentWillMount() {
-        if (this.props.interface === 'old'){
-            document.body.style.backgroundColor = '#242A36';
-        } else {
-            document.body.style.backgroundColor = '#1C142D';
-        }
+        document.body.style.backgroundColor = '#1C142D';
     }
 
     componentWillUnmount() {
         document.body.style.backgroundColor = null;
+        window.removeEventListener('resize', this.updateSearchHeight);
     }
 
     clearRecording = () => {
         // Erase the recorded audio
         this.queryBuffer = null;
         this.recorder.clear();
-        this.wavesurfer.empty();
-        this.wavesurfer.clearRegions();
         this.setState({
             hasRecorded: false,
             playingRecording: false,
-            playRecordingText: 'Play',
         });
     }
 
     clearMatch = () => {
-        this.matchWavesurfer.empty();
-        this.matchWavesurfer.clearRegions();
         this.setState({
             loadedMatch: null,
             playingMatch: false,
-            playMatchText: 'Play'
         });
     }
 
@@ -254,13 +110,6 @@ class Voogle extends React.Component {
             link.href = window.URL.createObjectURL(blob);
             link.download = filename;
             link.click();
-        });
-    }
-
-    draw = () => {
-        // Update the waveform with the new audio
-        this.recorder.exportWAV((blob) => {
-            this.wavesurfer.loadBlob(blob);
         });
     }
 
@@ -346,10 +195,6 @@ class Voogle extends React.Component {
             this.start = Math.ceil(newRegion.start * this.samplingRate);
             this.end = Math.floor(newRegion.end * this.samplingRate);
         });
-    }
-
-    getRecordingProgress = () => {
-        return this.state.recordingProgress;
     }
 
     handleRecording = () => {
@@ -462,198 +307,47 @@ class Voogle extends React.Component {
 
     }
 
-    matchesBoxContents = (recordingProgress) => {
-        if (this.state.recording) {
-            return (
-                <div className='timer' style={{
-                    width: Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 1.75,
-                    paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 3.3}}>
-                    <CircularProgressbar
-                        percentage={recordingProgress}
-                        strokeWidth={50}
-                        styles={{
-                            path: { strokeLinecap: 'butt', stroke: '#DD3C6D' },
-                            text: { fill: '#E8EFF3' },
-                            trail: { stroke: '#333C4D' },
-                        }}
-                        text={ (this.props.maxRecordingLength - Math.ceil(recordingProgress / 10)).toString() }
-                    />
-                </div>
-            );
-        } else if (this.state.searching) {
-            const styles = {
-                paddingLeft: this.state.matchDivWidth / 2.85,
-                paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 10
-            };
-            return (
-                <h2 style={styles}> Searching{'.'.repeat(this.state.searchTime % 4)} </h2>
-            );
-        } else if (this.state.matches) {
-            return (
-                <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
-            );
-        } else {
-            return null;
-        }
-    }
-
     render() {
-        if (this.props.interface === 'old') {
-            return this.renderOldInterface();
-        } else if (this.props.interface === 'new') {
-            return this.renderNewInterface(false);
-        } else if (this.props.interface === 'foley') {
-            return this.renderNewInterface(true);
-        }
-    }
-
-    renderNewInterface = (foley) => {
-        const searchWidth = foley ? 'col-4' : 'col-8';
+        const searchWidth = this.props.foley ? 'col-4' : 'col-8';
+        console.log(this.state.searchHeight);
         return (
           <div className='container'>
-            <div className='row header d-flex align-items-center'>
+            <div ref={this.headerRef} className='row header d-flex align-items-center'>
               <p className='text48 open-sans400 light-purple-text m-0 ml-4 my-2'>Voogle</p>
               <button className='btn no-border light-purple dark-text lato400 float-right ml-auto h-50 mr-4'>Show Instructions</button>
             </div>
             <div className='row'>
-              <div className={searchWidth}>
-                <div className='text-center h-100'>
+              <div className={'col p-0 ' + searchWidth}>
+                <div className='d-flex justify-content-center align-items-center' style={{height: this.state.searchHeight}}>
                   <div>
-                    <p className='open-sans400 text32 light-purple-text'>Click to search</p>
-                    <img className='img-fluid mx-auto d-block' src={logo}/>
+                  <p className='open-sans400 text32 light-purple-text mb-2'>Click to search</p>
+                  <img className='img-fluid mx-auto d-block pb-5' src={logo}/>
                   </div>
                 </div>
-                <div className='light rounded-top'>
+                <div ref={this.footerRef} className='light rounded-top'>
                   <p className='text-box-text-color lato400 text32 ml-3'>Describe your sound</p>
                 </div>
               </div>
-              <div className='col-4'>
-                {this.renderNewInterfaceMatches()}
+              <div className='col-4 p-0'>
+                {this.renderMatches()}
               </div>
-              {foley ? this.renderFoley() : null}
+              {this.props.foley ? this.renderFoley() : null}
             </div>
           </div>
         );
     }
 
-    renderNewInterfaceMatches = () => {
+    renderMatches = () => {
+        const height = this.state.matchesHeight / 10;
         if (this.matches && !this.recording) {
         } else {
             const grayedBoxes = [...Array(10).keys()].map(value => {
                 const color = value % 2 ? 'search-light' : 'search-dark';
-                return <div className={'tenth-height ' + color} key={value}></div>
+                return <div className={color} style={{height: height}} key={value}></div>
             });
             console.log(grayedBoxes)
             return <div>{grayedBoxes}</div>
         }
-    }
-
-    renderOldInterface = () => {
-        const recordingProgress = this.getRecordingProgress();
-        return (
-            <div className='container'>
-              <div className='mt-4 ml-1'>
-                <h1 className='text-off-white'>
-                  Voogle
-                  <small className='text-muted'>
-                    &nbsp;&nbsp;A Vocal-Imitation Search Engine
-                  </small>
-                </h1>
-              </div>
-              <div className='row'>
-                <div className='col-md-6 mb-3'>
-                  <div className='text-off-white gray rounded px-0 pb-1 my-4'>
-                    <div className='card btn btn-all blue mb-2 instructions' ref={this.matchesBox}>
-                      Instructions
-                    </div>
-                    <div ref={this.resizeTopDiv}>
-                        <ol className='big-text'>
-                          <li> Press <mark className='rounded btn-all red'> &nbsp;Record&nbsp; </mark> </li>
-                          <li> Imitate your desired sound with your voice </li>
-                          <li> Press <mark className='rounded btn-all red'> &nbsp;Stop Recording&nbsp; </mark> </li>
-                          <li> Press&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              &nbsp;Play&nbsp;
-                            </mark>
-                            &nbsp;/&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              Pause
-                            </mark>
-                            &nbsp;to review your recording
-                          </li>
-                          <li> (Optional) Fit the region bounds to your imitation </li>
-                          <li> (Optional) Enter a text description of your sound </li>
-                          <li> Press <mark className='rounded btn-all blue'> &nbsp;Search&nbsp; </mark> </li>
-                          <li> Click on an audio file in&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              &nbsp;Matches&nbsp;
-                            </mark>
-                            &nbsp;to hear the match
-                          </li>
-                          <li> Press&nbsp;
-                            <mark className='rounded btn-all blue'>
-                              &nbsp;Download&nbsp;
-                            </mark>
-                            &nbsp;to download the audio file
-                          </li>
-                        </ol>
-                    </div>
-                  </div>
-                  <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
-                    <input type="text" className="form-control"
-                      placeholder="Enter a text description of your sound (Optional)"
-                      aria-describedby="inputGroup-sizing-sm"
-                      value={this.state.textInput}
-                      onChange={this.handleTextInput}
-                      onKeyPress={this.submit}/>
-                  </div>
-                  <div className='my-4'>
-                    <div className='waveform' ref={this.recordingWaveform}/>
-                  </div>
-                  <div className='btn-group w-100'>
-                    <button className='btn btn-all btn-red' onClick={this.toggleRecording}>
-                      {this.state.recordButtonText}
-                    </button>
-                    <button className='btn btn-all btn-purple' onClick={this.togglePlayRecording}>
-                      {this.state.playRecordingText}
-                    </button>
-                    <button className='btn btn-all btn-blue' onClick={this.search}>
-                      Search
-                    </button>
-                    <button className='btn btn-all btn-green' onClick={this.clearRecording}>
-                      Clear
-                    </button>
-                  </div>
-                </div>
-                <div className='col-md-6 mb-2'>
-                  <div className='text-off-white gray rounded px-0 my-4'>
-                    <div className="card btn btn-all purple mb-2 instructions">
-                      Matches
-                    </div>
-                      <div className='scrollbox m-2' style={{height: this.state.matchDivHeight}}>
-                        <div className='pb-2 pt-1'>
-                          {this.matchesBoxContents(recordingProgress)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className='my-4'>
-                    <div className='waveform' ref={this.playbackWaveform}/>
-                  </div>
-                  <div className='btn-group w-100'>
-                    <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
-                      {this.state.playMatchText}
-                    </button>
-                    <button className='btn btn-all btn-blue' onClick={this.download}>
-                      Download
-                    </button>
-                    <button className='btn btn-all btn-green' onClick={this.clearMatch}>
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        )
     }
 
     resizeMatches = () => {
@@ -716,25 +410,6 @@ class Voogle extends React.Component {
         });
     }
 
-    togglePlayRecording = () => {
-        // Event handler for the play/pause button
-        this.setState(state => {
-            if (!state.playingRecording &&
-                !state.recording &&
-                state.hasRecorded) {
-                return {
-                    playingRecording: true,
-                    playRecordingText: 'Pause'
-                };
-            } else {
-                return {
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                }
-            }
-        });
-    }
-
     togglePlayMatch = () => {
         // Event handler for the play/pause button
         this.setState(state => {
@@ -768,17 +443,23 @@ class Voogle extends React.Component {
             }
         });
     }
+
+    updateSearchHeight = () => {
+        const headerRect = this.headerRef.current.getBoundingClientRect();
+        const footerRect = this.footerRef.current.getBoundingClientRect();
+
+        const headerHeight = headerRect.bottom - headerRect.top;
+        const footerHeight = footerRect.bottom - footerRect.top;
+        const matchesHeight = window.innerHeight - headerHeight - 16;
+        const searchHeight = matchesHeight - footerHeight;
+
+        this.setState({ matchesHeight: matchesHeight, searchHeight: searchHeight });
+    }
 }
 
 Voogle.defaultProps = {
-    // The time (in milliseconds) between waveform updates
-    drawingRate: 500,
-
-    // The user interface to display: one of 'old', 'new', or 'foley'
-    interface: 'new',
-
     // The maximum duration (in seconds) of a user's recording
-    maxRecordingLength: 10,
+    maxRecordingLength: 8,
 
     // The minimum audio buffer value above which automatic region placement
     // will begin
