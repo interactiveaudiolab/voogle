@@ -36,6 +36,15 @@ input:focus {
   background-color: transparent;
 }
 
+.hover-light-purple {
+  background-color: #B4A5CB;
+}
+
+.hover-light-purple:hover {
+  background-color: hsl(273.2, 18.8%, 61%);
+}
+
+
 /* opacity 50% */
 .region-color {
   background-color:  #5E57B2;
@@ -97,7 +106,7 @@ input:focus {
 }
 
 .dark-text {
-  color: #1C142D;
+  color: hsl(259,25%,35%);
 }
 
 .light-purple-text {
@@ -110,6 +119,14 @@ input:focus {
 
 .text-box-text-color {
   color: #7F7E88;
+}
+
+.hover-dark-text {
+  color: #B4A5CB;
+}
+
+.hover-dark-text:hover {
+  color: hsl(273.2, 26.8%, 61%);
 }
 
 

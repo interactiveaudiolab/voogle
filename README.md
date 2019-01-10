@@ -15,7 +15,7 @@ Voogle frontend dependencies are installed with `npm install`.
 **Note:** You must have [Node.js](https://nodejs.org/en/) installed before you can run `npm install`.
 
 ## Available Datasets
-Any collection of audio files can be used as the sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8) [1, 2]. A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
+Any collection of audio files can be used as sounds returned by Voogle in response to a vocal query. The Interactive Audio Lab has released 2 datasets specifically for the training of query-by-vocal-imitation models: [Vocal Imitation Set](https://zenodo.org/record/1340763#.XAap0mhKiM8) and [VocalSketch](https://zenodo.org/record/1251982#.XAap1WhKiM8) [1, 2]. A small test dataset for demos can be downloaded [here](https://www.dropbox.com/s/lkj55uvz4z26i8d/test_dataset.zip?dl=1).
 
 Audio files should be placed in [`data/audio/<dataset_name>`](data/audio/). The dataset used during execution can be specified in [`config.yaml`](config.yaml).
 
@@ -37,6 +37,8 @@ After installing the dependencies, a dataset, and a model, the Voogle app can be
 
 From there, please follow the directions on the website. Enjoy!
 
+**Note:** There are currently two frontend interfaces available for Voogle. If you would like to use the alternate interface, use the command `npm run old-interface` instead during step 1.
+
 ### Deploying on the Web
 The following steps are required to prepare Voogle for deployment as a web application:
 - [ ] Get a domain name
@@ -44,7 +46,7 @@ The following steps are required to prepare Voogle for deployment as a web appli
 - [ ] Setup server
 - [ ] Serve audio files outside of the main event loop (e.g., with Apache or nginx)
 - [ ] Update query file naming. Depending on the scale, multiple users could send a query at the same time. This would require query names to include a unique id that is not exclusively associated with the timestamp.
-- [ ] Test with multiple simultaneous users
+- [ ] Test concurrency with multiple simultaneous users
 
 ## Testing
 Unit tests can be run with `npm run test`.

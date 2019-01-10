@@ -11,7 +11,6 @@ import logo from '../images/logo.png'
 import 'react-circular-progressbar/dist/styles.css'
 import '../css/voogle.css';
 
-
 class Voogle extends React.Component {
     constructor(props) {
         super(props);
@@ -260,7 +259,7 @@ class Voogle extends React.Component {
               <p className='text48 open-sans400 light-purple-text m-0 ml-4 my-2'>
                 Voogle
               </p>
-              <button className='btn no-border light-purple dark-text lato500 float-right ml-auto h-50 mr-4'>
+              <button className='btn no-border hover-light-purple dark-text lato500 float-right ml-auto h-50 mr-4'>
                 Show Instructions
               </button>
             </div>

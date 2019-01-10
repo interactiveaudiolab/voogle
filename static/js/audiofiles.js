@@ -1,12 +1,21 @@
 import React, { Component } from 'react';
 import '../css/voogle.css';
+import download from '../images/download.png'
+import downloadHover from '../images/download_hover.png'
 
 class AudioFiles extends Component {
+
     playPauseIcon = (index) => {
         console.log(index, this.props.playing)
         const icon = index === this.props.playing ? 'fa-pause' : 'fa-play';
         const onClick = index === this.props.playing ? this.props.pause : this.props.play;
-        return <i className={'fa ' + icon + ' pr-3 pointer'} onClick={onClick}/>
+        return (
+            <i className={'fa ' + icon + ' pr-3 pointer hover-dark-text'} onClick={onClick}/>
+        );
+    }
+
+    darkenImage = (e) => {
+        e.target.setAttribute('src', downloadHover);
     }
 
     render() {
@@ -19,12 +28,19 @@ class AudioFiles extends Component {
                   data-key={index}
                   style={{height: this.props.height}}
                 >
-                  <div className='col text24 light-purple-text pl-3 lato-400'>
+                  <div className='col text24 pl-3 light-purple-text lato-400'>
                     { file.filename }
                   </div>
-                  <div className='col text24 light-purple-text pr-3 text-right'>
+                  <div className='col text24 pr-3 text-right'>
                     {this.playPauseIcon(index)}
-                    <i className='fa fa-download pr-1 pointer' onClick={this.props.download}/>
+                    <img
+                      className='pr-1 pb-1 pointer'
+                      src={download}
+                      style={{width: '30px'}}
+                      onClick={this.props.download}
+                      onMouseOver={(e) => e.currentTarget.src = downloadHover}
+                      onMouseOut={(e) => e.currentTarget.src = download}
+                    />
                   </div>
                 </div>
             )
