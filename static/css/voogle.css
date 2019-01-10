@@ -64,11 +64,15 @@ input:focus {
   font-size: 22px;
 }
 
+.text26 {
+  font-size: 26px;
+}
+
 .text32 {
   font-size: 32px;
 }
 
-.text36 {
+.text326 {
   font-size: 36px;
 }
 
@@ -103,6 +107,10 @@ input:focus {
 .open-sans400 {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
+}
+
+.light-text {
+  color: hsl(263.7, 26.8%, 76.2%);
 }
 
 .dark-text {
@@ -160,11 +168,41 @@ input:focus {
   bottom: 50%;
 }
 
+.close-inst {
+  position: relative;
+  left: 100%;
+  bottom: 50%;
+}
+
+.close-inst:hover {
+  color: #E7EEF2;
+}
+
 .dim {
   position: absolute;
   height: 100%;
   width: 100%;
   background: rgba(28, 20, 45, 0.2);
+}
+
+.instruction-box {
+  background-color: #414159;
+  border-radius: 15px;
+  height: 50%;
+  left: 25%;
+  position: relative;
+  top: 25%;
+  width: 50%;
+}
+.instruction-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: absolute;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  width: 100vw;
+  z-index: 10;
 }
 
 .rounded-top {

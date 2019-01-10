@@ -35,7 +35,7 @@ After installing the dependencies, a dataset, and a model, the Voogle app can be
 1. Start the server by running `npm run production`.
 2. Navigate to `localhost:5000` in your browser.
 
-From there, please follow the directions on the website. Enjoy!
+From there, please follow the directions found under "Show Instructions". Enjoy!
 
 **Note:** There are currently two frontend interfaces available for Voogle. If you would like to use the alternate interface, use the command `npm run old-interface` instead during step 1.
 

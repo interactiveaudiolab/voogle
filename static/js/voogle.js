@@ -17,6 +17,7 @@ class Voogle extends React.Component {
 
         this.state = {
             hasRecorded: false,
+            instructions: true,
             matches: [],
             matchesHeight: 0,
             playing: null,
@@ -118,6 +119,33 @@ class Voogle extends React.Component {
 
     handleTextInput = (event) => {
         this.setState({textInput: event.target.value});
+    }
+
+    instructions = () => {
+        if (this.state.instructions) {
+            return (
+                <div className='instruction-overlay'>
+                  <div className='instruction-box px-5 pb-5 pt-4 d-flex align-items-center'>
+                    <div className='close-inst light-text pl-3 text26'>
+                      <i className='fa fa-times' onClick={this.toggleInstructions}/>
+                    </div>
+                    <div>
+                      <p className='m-0 mb-2 lato400 text40 text-center light-text'>
+                        Welcome to Voogle!
+                      </p>
+                      <p className='m-0 mb-2 lato-300 text24 light-text'>
+                        Voogle is a search engine that uses audio to search for audio! To use Voogle, click the big purple button and make a sound. Voogle will present you with similar sounds, which you can preview and download.
+                      </p>
+                      <p className='m-0 lato-300 text24 light-text'>
+                        You can narrow your search results by providing a text description of the sound you're looking for. To do this, type your description in the bottom box before Voogling.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+            );
+        } else {
+            return null;
+        }
     }
 
     levelDetect = (buffer) => {
@@ -253,13 +281,19 @@ class Voogle extends React.Component {
 
     render() {
         const searchWidth = this.props.foley ? 'col-4' : 'col-8';
+        const displayInstructions = this.state.instructions ? 'none' : 'initial';
         return (
+          <div>
+          {this.instructions()}
           <div className='container'>
             <div ref={this.headerRef} className='row header d-flex align-items-center'>
               <p className='text48 open-sans400 light-purple-text m-0 ml-4 my-2'>
                 Voogle
               </p>
-              <button className='btn no-border hover-light-purple dark-text lato500 float-right ml-auto h-50 mr-4'>
+              <button
+                className='btn no-border hover-light-purple dark-text lato500 float-right ml-auto h-50 mr-4 pointer'
+                onClick={this.toggleInstructions}
+              >
                 Show Instructions
               </button>
             </div>
@@ -309,6 +343,7 @@ class Voogle extends React.Component {
               </div>
               {this.props.foley ? this.renderFoley() : null}
             </div>
+          </div>
           </div>
         );
     }
@@ -422,6 +457,10 @@ class Voogle extends React.Component {
 
         // Find the user's audio via level detection
         this.sendQuery();
+    }
+
+    toggleInstructions = () => {
+        this.setState(state => ({instructions: !state.instructions}));
     }
 
     toggleRecording = () => {
