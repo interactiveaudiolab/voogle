@@ -17,7 +17,7 @@ class Voogle extends React.Component {
 
         this.state = {
             hasRecorded: false,
-            instructions: true,
+            instructions: false,
             matches: [],
             matchesHeight: 0,
             playing: null,
