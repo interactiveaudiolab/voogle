@@ -11,6 +11,7 @@ import logo from '../images/logo.png'
 import 'react-circular-progressbar/dist/styles.css'
 import '../css/voogle.css';
 
+
 class Voogle extends React.Component {
     constructor(props) {
         super(props);
@@ -88,11 +89,7 @@ class Voogle extends React.Component {
     }
 
     download = (event) => {
-        console.log(event)
-        console.log(event.target)
-        console.log(event.target.parentNode)
-        console.log(event.target.parentNode.parentNode)
-        const key = event.target.parentNode.parentNode.firstChild.innerHTML;
+        const key = event.target.parentNode.parentNode.firstChild.getAttribute('filename');
 
         let formData = new FormData;
         formData.append('filename', key);
@@ -216,9 +213,7 @@ class Voogle extends React.Component {
     play = (event) => {
         const row = event.target.parentNode.parentNode;
         const playing = parseInt(row.getAttribute('data-key'));
-        const filename = row.firstChild.innerHTML;
-
-        console.log(row.getAttribute('data-key'), playing)
+        const filename = row.firstChild.getAttribute('filename');
 
         let formData = new FormData;
         formData.append('filename', filename);
@@ -291,7 +286,7 @@ class Voogle extends React.Component {
                 Voogle
               </p>
               <button
-                className='btn no-border hover-light-purple dark-text lato500 float-right ml-auto h-50 mr-4 pointer'
+                className='btn no-border hover-light-purple dark-text lato400 float-right ml-auto h-50 mr-4 pointer'
                 onClick={this.toggleInstructions}
               >
                 Show Instructions
@@ -326,13 +321,14 @@ class Voogle extends React.Component {
                     </div>
                   </div>
                 </div>
-                <div ref={this.footerRef} className='light rounded-top'>
+                <div ref={this.footerRef} className='light rounded-top py-2'>
                   <input
-                    className='transparent no-border w-100 text-box-text-color lato400 text32 ml-4'
-                    onBlur={(e) => e.target.placeholder = 'Describe your sound'}
+                    className='transparent no-border w-100 text-box-text-color lato400 text24 ml-4'
+                    onBlur={(e) => e.target.placeholder = '(Optional) Enter a text description'}
                     onChange={this.handleTextInput}
                     onFocus={(e) => e.target.placeholder = ''}
-                    placeholder='Describe your sound'
+                    onKeyDown={this.textSubmit}
+                    placeholder='(Optional) Enter a text description'
                     type='text'
                     value={this.state.textInput}
                   />
@@ -360,11 +356,12 @@ class Voogle extends React.Component {
                     overflowX: 'hidden'
                 }}>
                   <AudioFiles
+                    download={this.download}
                     files={this.state.matches}
                     height={height}
                     play={this.play}
                     playing={this.state.playing}
-                    download={this.download}
+                    text={this.state.textInput}
                   />
                   <audio ref={this.audioRef} onEnded={() => this.pause()}/>
                 </div>
@@ -422,6 +419,7 @@ class Voogle extends React.Component {
     }
 
     sendQuery = () => {
+        console.log('sending')
         this.recorder.getBuffer(this.send);
     }
 
@@ -457,6 +455,17 @@ class Voogle extends React.Component {
 
         // Find the user's audio via level detection
         this.sendQuery();
+    }
+
+    textSubmit = (event) => {
+        if (event.key === 'Enter') {
+            console.log('')
+            event.preventDefault();
+            event.stopPropagation();
+            if (this.state.textInput && this.state.hasRecorded) {
+                this.sendQuery();
+            }
+        }
     }
 
     toggleInstructions = () => {

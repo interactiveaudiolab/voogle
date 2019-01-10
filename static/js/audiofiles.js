@@ -6,7 +6,6 @@ import downloadHover from '../images/download_hover.png'
 class AudioFiles extends Component {
 
     playPauseIcon = (index) => {
-        console.log(index, this.props.playing)
         const icon = index === this.props.playing ? 'fa-pause' : 'fa-play';
         const onClick = index === this.props.playing ? this.props.pause : this.props.play;
         return (
@@ -28,8 +27,8 @@ class AudioFiles extends Component {
                   data-key={index}
                   style={{height: this.props.height}}
                 >
-                  <div className='col text24 pl-3 light-purple-text lato-400'>
-                    { file.filename }
+                  <div filename={file.filename} className='col text24 pl-3 light-purple-text lato400'>
+                    { this.renderFilename(file.filename) }
                   </div>
                   <div className='col text24 pr-3 text-right'>
                     {this.playPauseIcon(index)}
@@ -45,12 +44,40 @@ class AudioFiles extends Component {
                 </div>
             )
         });
+
         return (
             <div className='audiofiles'>
               { fileList }
             </div>
         )
     }
+
+        renderFilename = (filename) => {
+            console.log(filename, this.props.text);
+            if (this.props.text === "") {
+                console.log('empty')
+                return <div>{filename}</div>;
+            }
+
+            const textLower = this.props.text.toLowerCase();
+            const length = textLower.length;
+            const matchIndex = filename.toLowerCase().indexOf(textLower);
+            if (matchIndex === -1 || length < 3) {
+                console.log('nomatch')
+                return <div>{filename}</div>;
+            } else {
+                console.log('match')
+                return (
+                    <div>
+                      {filename.substring(0, matchIndex)}
+                      <div className='lato700' style={{display: 'inline'}}>
+                        {filename.substring(matchIndex, matchIndex + length)}
+                      </div>
+                      {filename.substring(matchIndex + length)}
+                    </div>
+                );
+            }
+        }
 }
 
 export default AudioFiles;
