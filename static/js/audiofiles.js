@@ -1,19 +1,30 @@
 import React, { Component } from 'react';
-import '../css/audiofiles.css';
+import '../css/voogle.css';
 
 class AudioFiles extends Component {
+    playPauseIcon = (index) => {
+        console.log(index, this.props.playing)
+        const icon = index === this.props.playing ? 'fa-pause' : 'fa-play';
+        const onClick = index === this.props.playing ? this.props.pause : this.props.play;
+        return <i className={'fa ' + icon + ' pr-3 pointer'} onClick={onClick}/>
+    }
+
     render() {
-        const { files, loader } = this.props;
-        const fileList = files.map((file) => {
+        const fileList = this.props.files.map((file, index) => {
+            const color = index % 2 ? 'search-dark' : 'search-light';
             return (
-                <div className='row round-box dark-gray mb-1 mx-2' onClick={() => loader(file.filename)}>
-                  <div className='col-4'>
+                <div
+                  className={'row justify-content-between align-items-center d-flex m-0 ' + color}
+                  key={index}
+                  data-key={index}
+                  style={{height: this.props.height}}
+                >
+                  <div className='col text24 light-purple-text pl-3 lato-400'>
                     { file.filename }
                   </div>
-                  <div className='col-8 p-0'>
-                    <div className='score-box' style={this.renderScore(file.similarityScore)}>
-                      { this.renderTextMatch(file.textMatch) }
-                    </div>
+                  <div className='col text24 light-purple-text pr-3 text-right'>
+                    {this.playPauseIcon(index)}
+                    <i className='fa fa-download pr-1 pointer' onClick={this.props.download}/>
                   </div>
                 </div>
             )
@@ -23,20 +34,6 @@ class AudioFiles extends Component {
               { fileList }
             </div>
         )
-    }
-
-    renderScore = (similarityScore) => {
-        const percentage = Math.round((similarityScore * 0.5 + 0.34) * 100);
-
-        return { width: percentage.toString() + '%' };
-    }
-
-    renderTextMatch = (isMatch) => {
-        if (isMatch) {
-            return (<div className='text-match pr-3'>Text Match</div>)
-        } else {
-            return (<div>&nbsp;</div>)
-        }
     }
 }
 

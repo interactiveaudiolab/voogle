@@ -94,10 +94,13 @@ const prodSettings = {
 const TARGET = process.env.npm_lifecycle_event;
 process.env.BABEL_ENV = TARGET;
 
-if (TARGET === 'start') {
-  module.exports = merge(common, devSettings)
-}
+module.exports = env => {
+  console.log(env)
 
-if (TARGET === 'build' || !TARGET) {
-  module.exports = merge(common, prodSettings)
+  const modeSettings = env.production ? prodSettings : devSettings;
+  const interfaceSettings = {
+    plugins: [new webpack.DefinePlugin({'process.env.interface': JSON.stringify(env.interface)})]
+  };
+
+  return merge(common, modeSettings, interfaceSettings);
 }

@@ -7,8 +7,10 @@ import Recorder from './recorder.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import WavEncoder from 'wav-encoder';
 import WaveSurfer from 'wavesurfer.js';
+import logo from '../images/logo.png'
 import 'react-circular-progressbar/dist/styles.css'
 import '../css/voogle.css';
+
 
 class Voogle extends React.Component {
     constructor(props) {
@@ -16,29 +18,22 @@ class Voogle extends React.Component {
 
         this.state = {
             hasRecorded: false,
-            loadedMatch: null,
-            matchDivHeight: 64,
-            matchDivWidth: 64,
             matches: [],
-            playMatchText: 'Play',
-            playRecordingText: 'Play',
-            playingMatch: false,
-            playingRecording: false,
-            recordButtonText: 'Record',
+            matchesHeight: 0,
+            playing: null,
             recording: false,
             recordingProgress: 0.0,
+            searchHeight: 0,
             searching: false,
             searchTime: 0,
             textInput: ''
         }
 
-        // A handle for the periodically drawing the waveform while recording
-        this.drawIntervalId = null;
-
         // A handle for stopping recording when the maximum recording length
         // has been reached
         this.timerAnimationId = null;
         this.recordingTimerId = null;
+
         // The time at which the recording timer was last initiated
         this.recordingStartTime = null;
 
@@ -48,213 +43,85 @@ class Voogle extends React.Component {
         // The time at which search began
         this.searchStartTime = null;
 
-        // Create references to DOM nodes to place the waveforms
-        this.recordingWaveform = React.createRef();
-        this.playbackWaveform = React.createRef();
-
-        // Create reference to div holding instructions and textbox in order
-        // to match the height in the match div.
-        this.resizeTopDiv = React.createRef();
-        this.resizeBottomDiv = React.createRef();
-        this.matchesBox = React.createRef();
-
         // The start and end sample indices of the query within the recording
         this.start = null;
         this.end = null;
 
-        // Position to start playback in seconds
-        this.recordingPlaybackStart = 0;
+        // React div references
+        this.audioRef = React.createRef();
+        this.footerRef = React.createRef();
+        this.headerRef = React.createRef();
+        this.searchRef = React.createRef();
     }
 
     componentDidMount() {
-        // Construct the waveform display
-        this.wavesurfer = WaveSurfer.create({
-            container: this.recordingWaveform.current,
-            cursorColor: '#242A36',
-            hideScrollbar: true,
-            pixelRatio: 1,
-            plugins: [RegionsPlugin.create()],
-            progressColor: '#3D7FB3',
-            waveColor: '#4A99D8'
-        });
-
-        this.matchWavesurfer = WaveSurfer.create({
-            container: this.playbackWaveform.current,
-            cursorColor: '#242A36',
-            hideScrollbar: true,
-            pixelRatio: 1,
-            plugins: [RegionsPlugin.create()],
-            progressColor: '#8519A1',
-            waveColor: '#A51FC7'
-        });
-
-        // Reset the cursor when the audio is done playing
-        this.wavesurfer.on('finish', () => {
-            this.wavesurfer.stop();
-            this.setState({
-                playingRecording: false,
-                playRecordingText: 'Play'
-            });
-        });
-
-        this.matchWavesurfer.on('finish', () => {
-            this.matchWavesurfer.stop();
-            this.setState({
-                playingMatch: false,
-                playMatchText: 'Play'
-            });
-        });
-
-        this.matchWavesurfer.on('ready',  () => {
-            this.matchWavesurfer.play();
-            this.setState({
-                playingMatch: true,
-                playMatchText: 'Pause'
-            });
-        });
-
-        // Grab the audio routing graph
-        this.audioContext = this.wavesurfer.backend.getAudioContext();
-
-        // Get the sampling rate at which audio processing occurs
-        this.samplingRate = this.audioContext.sampleRate;
-
-        // Request mic access
-        navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(
-            (stream) => {
-                // Plug the user's mic into the graph
-                this.audioStream = this.audioContext.createMediaStreamSource(
-                    stream);
-
-                // Plug mic into recorder and recorder into waveform
-                this.recorder = new Recorder(
-                    this.audioStream, { numChannels: 1});
-
-            }
-        ).catch(
-            (error) => console.log(error)
-        );
-
-        // Update matches box size when the window is created or resized
-        this.resizeMatches();
-        window.addEventListener('resize', this.resizeMatches);
+        this.updateSearchHeight();
+        window.addEventListener('resize', this.updateSearchHeight);
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // If the update was the user starting or stopping the recording,
-        // send the update to the recorder.
         if (this.state.recording != prevState.recording) {
-            console.log(this.audioContext.state, this.audioContext);
-            if (this.audioContext.state === 'running') {
-                this.handleRecording();
-            } else if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume().then(() => this.handleRecording());
-            }
-        }
-
-        // If we start searching, being search animation
-        if (this.state.searching != prevState.searching) {
-            if (this.state.searching) {
-                this.searchTimerId = setInterval(
-                    () => {
-                        let currentTime = (new Date()).getTime();
-                        let elapsed = Math.floor(
-                            (currentTime - this.searchStartTime) / 1000);
-                        this.setState({ searchTime: elapsed });
-                    },
-                    1000
-                );
+            if (this.state.recording) {
+                this.record();
             } else {
-                clearInterval(this.searchTimerId);
-                this.setState({ searchTime: 0 });
+                this.stop();
             }
         }
+    }
 
-        // If the user pressed the play/pause button, signal wavesurfer to play
-        // the recorded audio
-        if (this.state.playingRecording != prevState.playingRecording) {
-            if (this.state.playingRecording) {
-                this.wavesurfer.play(this.recordingPlaybackStart);
-            } else {
-                let currentTime = this.wavesurfer.getCurrentTime();
-                if (currentTime > this.recordingPlaybackStart) {
-                    this.recordingPlaybackStart = currentTime;
-                }
-                this.wavesurfer.pause();
-            }
-        }
+    componentWillMount() {
+        document.body.style.backgroundColor = '#1C142D';
+    }
 
-        // If the user pressed the play/pause button, signal wavesurfer to play
-        // the recorded audio
-        if (this.state.playingMatch != prevState.playingMatch) {
-            if (this.state.playingMatch) {
-                this.matchWavesurfer.play();
-            } else {
-                this.matchWavesurfer.pause();
-            }
-        }
+    componentWillUnmount() {
+        document.body.style.backgroundColor = null;
+        window.removeEventListener('resize', this.updateSearchHeight);
     }
 
     clearRecording = () => {
         // Erase the recorded audio
-        this.queryBuffer = null;
-        this.recorder.clear();
-        this.wavesurfer.empty();
-        this.wavesurfer.clearRegions();
-        this.setState({
-            hasRecorded: false,
-            playingRecording: false,
-            playRecordingText: 'Play',
-            showCursorTriangles: false
-        });
-    }
-
-    clearMatch = () => {
-        this.matchWavesurfer.empty();
-        this.matchWavesurfer.clearRegions();
-        // window.removeEventListener('resize', this.placeCursorTriangles);
-        this.setState({
-            loadedMatch: null,
-            playingMatch: false,
-            playMatchText: 'Play'
-        });
-    }
-
-    download = () => {
-        // Don't download if we have no audio loaded
-        if (!this.state.loadedMatch) {
-            return;
+        if (this.recorder) {
+            this.recorder.clear();
         }
+        this.queryBuffer = null;
+        this.setState({hasRecorded: false});
+    }
 
-        // Encode the audio as a WAV file
-        WavEncoder.encode({
-            sampleRate: this.matchWavesurfer.backend.ac.sampleRate,
-            channelData: [this.matchWavesurfer.backend.buffer.getChannelData(0)]
-        }).then((buffer) => {
-            let blob = new Blob([buffer], {type: 'audio/wav'});
-            let filename = this.state.loadedMatch.slice(
-                this.state.loadedMatch.lastIndexOf('/') + 1);
+    download = (event) => {
+        console.log(event)
+        console.log(event.target)
+        console.log(event.target.parentNode)
+        console.log(event.target.parentNode.parentNode)
+        const key = event.target.parentNode.parentNode.firstChild.innerHTML;
 
-            // Download hack: create a ghost element with a download link and
-            // click it
-            let link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
+        let formData = new FormData;
+        formData.append('filename', key);
+
+        fetch('/retrieve', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                response.blob().then(blob => {
+                    // Download hack: create a ghost element with a download
+                    // link and click it
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = key;
+                    link.click();
+                });
+            } else {
+                console.log('Audio file ${key} could not be found');
+            }
         });
     }
 
-    draw = () => {
-        // Update the waveform with the new audio
-        this.recorder.exportWAV((blob) => {
-            this.wavesurfer.loadBlob(blob);
-        });
+    handleTextInput = (event) => {
+        this.setState({textInput: event.target.value});
     }
 
-    drawRegion = () => {
-        // Grab a copy of the audio buffer
-        let buffer = this.wavesurfer.backend.buffer.getChannelData(0).slice();
-
+    levelDetect = (buffer) => {
         // Take absolute value of each sample for level detection
         let max = 0.0;
         for (let i = 0; i < buffer.length; i++) {
@@ -278,7 +145,7 @@ class Voogle extends React.Component {
         });
 
         // Find the last location at which the audio exceeds the threshold level
-        let end = buffer.length - buffer.reverse().findIndex((x) => {
+        let end = buffer.length - buffer.slice().reverse().findIndex((x) => {
             return x > this.props.regionEndThreshold;
         });
 
@@ -294,149 +161,40 @@ class Voogle extends React.Component {
         end = end / this.samplingRate + this.props.regionEndTolerance;
 
         // Clip the audio to the bounds of the buffer
-        start = Math.max(0, start);
-        end = Math.min(this.wavesurfer.getDuration(), end);
+        start = Math.max(0, start) * this.samplingRate;
+        end = Math.min(buffer.length, end) * this.samplingRate;
 
-        // Save buffer indices for sending query
-        this.start = start * this.samplingRate;
-        this.end = end * this.samplingRate;
-
-        // Add the region
-        this.wavesurfer.addRegion({
-            id: 'queryRegion',
-            start: start,
-            end: end,
-            color: 'rgb(36,42,54,0.4)'
-        });
-
-        // Start playback at region start
-        this.recordingPlaybackStart = start;
-
-        let region = this.wavesurfer.regions.list.queryRegion;
-
-        // Stop playback when region bound is passed
-        region.on('out', () => {
-            if (this.wavesurfer.getCurrentTime() > region.end - 0.001) {
-                this.wavesurfer.stop();
-                this.recordingPlaybackStart = start;
-                this.setState({
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                });
-            }
-        });
-
-        // Change the bounds of the query when the region is resized
-        region.on('update-end', (event) => {
-            let newRegion = this.wavesurfer.regions.list.queryRegion;
-            this.recordingPlaybackStart = newRegion.start + 0.001;
-            this.start = Math.ceil(newRegion.start * this.samplingRate);
-            this.end = Math.floor(newRegion.end * this.samplingRate);
-        });
-
-        // region.on('update', (event) => {
-        //     this.placeCursorTriangles();
-        // });
-
-        // window.addEventListener('resize', this.placeCursorTriangles);
+        return buffer.slice(start, end);
     }
 
-    getRecordingProgress = () => {
-        return this.state.recordingProgress;
+    makeRecorder = () => {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.audioContext = new AudioContext;
+        this.samplingRate = this.audioContext.sampleRate;
+
+        navigator.getUserMedia = (
+            navigator.getUserMedia || navigator.webkitGetUserMedia);
+        navigator.getUserMedia(
+            {audio: true, video: false},
+            this.startUserMedia,
+            (error) => console.log(error));
     }
 
-    handleRecording = () => {
-        if (this.state.recording) {
-            // Stop playback
-            if (this.state.playingRecording) {
-                this.setState({
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                })
-            }
-            if (this.state.playingMatch) {
-                this.setState({
-                    playingMatch: false,
-                    playMatchText: 'Play'
-                });
-            }
-
-            // Reset the waveforms
-            this.clearRecording();
-            this.clearMatch();
-
-            // Clear the existing matches
-            this.setState({ matches: [] });
-
-            // Start recording
-            this.recorder.record();
-
-            // Periodically draw the waveform while recording
-            this.drawIntervalId = setInterval(
-                this.draw, this.props.drawingRate);
-
-            // Update the timer animation every 100 ms
-            this.recordingStartTime = (new Date()).getTime();
-            this.timerAnimationId = setInterval(
-                () => {
-                    let currentTime = (new Date()).getTime();
-                    let elapsed = (currentTime - this.recordingStartTime) /
-                        10;
-                    let recordingProgress = elapsed /
-                        this.props.maxRecordingLength;
-                    this.setState({ recordingProgress: recordingProgress });
-                },
-                100
-            );
-
-            // Stop recording after the maximum allowed recording length
-            // has been reached
-            this.recordingTimerId = setTimeout(
-                () => {
-                    clearInterval(this.timerAnimationId);
-                    this.setState({
-                        recording: false,
-                        recordButtonText: 'Record'
-                    })
-                },
-                this.props.maxRecordingLength * 1000
-            );
-
-        } else {
-            // Stop recording
-            this.recorder.stop();
-
-            // Indicate that a query is available
-            this.setState({ hasRecorded: true, recordingProgress: 0 });
-
-            // Stop periodically drawing the waveform while recording
-            clearInterval(this.drawIntervalId);
-
-            // Stop updating the timer animation
-            clearInterval(this.timerAnimationId);
-
-            // Stop the recording timer
-            clearTimeout(this.recordingTimerId);
-
-            // Find the user's audio via level detection
-            this.drawRegion();
-        }
+    pause = () => {
+        this.audioRef.current.pause();
+        this.audioRef.current.currentTime = 0;
+        this.setState({playing: null});
     }
 
-    handleTextInput = (event) => {
-        this.setState({textInput: event.target.value});
-    }
+    play = (event) => {
+        const row = event.target.parentNode.parentNode;
+        const playing = parseInt(row.getAttribute('data-key'));
+        const filename = row.firstChild.innerHTML;
 
-    loadAudio = (key) => {
-        // Don't retrieve the audio if we already have it
-        if (key === this.state.loadedMatch) {
-            this.matchWavesurfer.seekTo(0);
-            this.setState({playingMatch: true, playMatchText: 'Pause'});
-            return;
-        }
+        console.log(row.getAttribute('data-key'), playing)
 
         let formData = new FormData;
-        formData.append('filename', key);
+        formData.append('filename', filename);
 
         fetch('/retrieve', {
             method: 'POST',
@@ -445,251 +203,170 @@ class Voogle extends React.Component {
         .then(response => {
             if (response.ok) {
                 response.blob().then(blob => {
-                    this.matchWavesurfer.loadBlob(blob);
-                    this.setState({ loadedMatch: key });
+                    this.audioRef.current.src = URL.createObjectURL(blob);
+                    this.audioRef.current.play();
+                    this.setState({playing: playing});
                 });
             } else {
-                console.log('Audio file ${key} could not be found');
+                console.log('Audio file ${filename} could not be found');
             }
-        })
-
+        });
     }
 
-    matchesBoxContents = (recordingProgress) => {
-        if (this.state.recording) {
-            return (
-                <div className='timer' style={{
-                    width: Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 1.75,
-                    paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 3.3}}>
-                    <CircularProgressbar
-                        percentage={recordingProgress}
-                        strokeWidth={50}
-                        styles={{
-                            path: { strokeLinecap: 'butt', stroke: '#DD3C6D' },
-                            text: { fill: '#E8EFF3' },
-                            trail: { stroke: '#333C4D' },
-                        }}
-                        text={ (this.props.maxRecordingLength - Math.ceil(recordingProgress / 10)).toString() }
-                    />
-                </div>
-            );
-        } else if (this.state.searching) {
-            const styles = {
-                paddingLeft: this.state.matchDivWidth / 2.85,
-                paddingTop: this.state.matchDivHeight / 2 - Math.min(this.state.matchDivWidth, this.state.matchDivHeight) / 10
-            };
-            return (
-                <h2 style={styles}> Searching{'.'.repeat(this.state.searchTime % 4)} </h2>
-            );
-        } else if (this.state.matches) {
-            return (
-                <AudioFiles files={this.state.matches} loader={this.loadAudio}/>
-            );
-        } else {
-            return null;
+    record() {
+        // Stop current playback
+        if (this.state.playing !== null) {
+            this.setState({playing: null});
         }
+
+        // Reset previous recording and results
+        this.clearRecording();
+        this.setState({matches: []});
+
+        if (!this.recorder) {
+            this.makeRecorder();
+        } else {
+            this.recorder.record();
+        }
+
+        // Update the timer animation every 100 ms
+        this.recordingStartTime = (new Date()).getTime();
+        this.timerAnimationId = setInterval(
+            () => {
+                let currentTime = (new Date()).getTime();
+                let elapsed = (currentTime - this.recordingStartTime) / 10;
+                let recordingProgress = elapsed / this.props.maxRecordingLength;
+                this.setState({recordingProgress: recordingProgress});
+            },
+            100
+        );
+
+        // Stop recording after the maximum allowed recording length
+        // has been reached
+        this.recordingTimerId = setTimeout(
+            () => {
+                clearInterval(this.timerAnimationId);
+                this.setState({recording: false})
+            },
+            this.props.maxRecordingLength * 1000
+        );
     }
-
-    // placeCursorTriangles() {
-    //     // Traverse to the region handles
-    //     let div = this.recordingWaveform.current;
-    //     console.log(div.getBoundingClientRect());
-    //     let waveformRect = div.getBoundingClientRect();
-    //     let offset = waveformRect.left;
-    //     let top = waveformRect.top - 0.5 * waveformRect.height;
-    //     let wave = div.children[0];
-    //     let rgn = wave.getElementsByClassName('wavesurfer-region')[0];
-    //     // let start = rgn.getElementsByClassName('wavesurfer-handle-start');
-    //     // let end = rgn.getElementsByClassName('wavesurfer-handle-end');
-    //     // console.log(start[0], end[0]);
-    //     // Get the bounding boxes of the handles
-    //     let regionRect = rgn.getBoundingClientRect();
-    //     // let startRect = rgn[0].getBoundingClientRect();
-    //     // let endRect = end[0].getBoundingClientRect();
-    //     // console.log(startRect, endRect);
-
-    //     this.setState({
-    //         cursorStartX: regionRect.left,
-    //         cursorEndX: regionRect.right
-    //     });
-
-    //     if (!this.state.showCursorTriangles) {
-    //         this.setState({showCursorTriangles: true});
-    //     }
-    // }
 
     render() {
-        const recordingProgress = this.getRecordingProgress();
+        const searchWidth = this.props.foley ? 'col-4' : 'col-8';
         return (
-            <div className='container'>
-              <div className='mt-4 ml-1'>
-                <h1 className='text-off-white'>
-                  Voogle
-                  <small className='text-muted'>
-                    &nbsp;&nbsp;A Vocal-Imitation Search Engine
-                  </small>
-                </h1>
-              </div>
-              <div className='row'>
-                <div className='col-md-6 mb-3'>
-                  <div className='text-off-white gray rounded px-0 pb-1 my-4'>
-                    <div className='card btn btn-all blue mb-2 instructions' ref={this.matchesBox}>
-                      Instructions
-                    </div>
-                    <div ref={this.resizeTopDiv}>
-                        <ol className='big-text'>
-                          <li> Press <mark className='rounded btn-all red'> &nbsp;Record&nbsp; </mark> </li>
-                          <li> Imitate your desired sound with your voice </li>
-                          <li> Press <mark className='rounded btn-all red'> &nbsp;Stop Recording&nbsp; </mark> </li>
-                          <li> Press&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              &nbsp;Play&nbsp;
-                            </mark>
-                            &nbsp;/&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              Pause
-                            </mark>
-                            &nbsp;to review your recording
-                          </li>
-                          <li> (Optional) Fit the region bounds to your imitation </li>
-                          <li> (Optional) Enter a text description of your sound </li>
-                          <li> Press <mark className='rounded btn-all blue'> &nbsp;Search&nbsp; </mark> </li>
-                          <li> Click on an audio file in&nbsp;
-                            <mark className='rounded btn-all purple'>
-                              &nbsp;Matches&nbsp;
-                            </mark>
-                            &nbsp;to hear the match
-                          </li>
-                          <li> Press&nbsp;
-                            <mark className='rounded btn-all blue'>
-                              &nbsp;Download&nbsp;
-                            </mark>
-                            &nbsp;to download the audio file
-                          </li>
-                        </ol>
-                    </div>
-                  </div>
-                  <div className="form-group form-group-lg my-4 " ref={this.resizeBottomDiv}>
-                    <input type="text" className="form-control"
-                      placeholder="Enter a text description of your sound (Optional)"
-                      aria-describedby="inputGroup-sizing-sm"
-                      value={this.state.textInput}
-                      onChange={this.handleTextInput}
-                      onKeyPress={this.submit}/>
-                  </div>
-                  <div className='my-4'>
-                    <div className='waveform' ref={this.recordingWaveform}/>
-                  </div>
-                  <div className='btn-group w-100'>
-                    <button className='btn btn-all btn-red' onClick={this.toggleRecording}>
-                      {this.state.recordButtonText}
-                    </button>
-                    <button className='btn btn-all btn-purple' onClick={this.togglePlayRecording}>
-                      {this.state.playRecordingText}
-                    </button>
-                    <button className='btn btn-all btn-blue' onClick={this.search}>
-                      Search
-                    </button>
-                    <button className='btn btn-all btn-green' onClick={this.clearRecording}>
-                      Clear
-                    </button>
-                  </div>
-                </div>
-                <div className='col-md-6 mb-2'>
-                  <div className='text-off-white gray rounded px-0 my-4'>
-                    <div className="card btn btn-all purple mb-2 instructions">
-                      Matches
-                    </div>
-                      <div className='scrollbox m-2' style={{height: this.state.matchDivHeight}}>
-                        <div className='pb-2 pt-1'>
-                          {this.matchesBoxContents(recordingProgress)}
+          <div className='container'>
+            <div ref={this.headerRef} className='row header d-flex align-items-center'>
+              <p className='text48 open-sans400 light-purple-text m-0 ml-4 my-2'>
+                Voogle
+              </p>
+              <button className='btn no-border light-purple dark-text lato500 float-right ml-auto h-50 mr-4'>
+                Show Instructions
+              </button>
+            </div>
+            <div className='row'>
+              <div className={'col p-0 ' + searchWidth}>
+                <div className='d-flex justify-content-center align-items-center' style={{height: this.state.searchHeight}}>
+                  <div>
+                    <p className='open-sans400 text40 light-purple-text mb-2'>
+                      {this.searchText()}
+                    </p>
+                    <div>
+                      <div className='voogle-button' onClick={this.toggleRecording}>
+                        <img className=' center' src={logo}/>
+                        <CircularProgressbar
+                          background
+                          percentage={this.state.recordingProgress}
+                          textForPercentage={null}
+                          strokeWidth={5}
+                          styles={{
+                            background: {fill: '#4E2A83'},
+                            path: {
+                                animation: 'stroke-dashoffset 0.5s ease 0s',
+                                stroke: '#B4A5CB',
+                                transition: 'none'
+                            },
+                            trail: {stroke: '#4E2A83'}
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
-                  <div className='my-4'>
-                    <div className='waveform' ref={this.playbackWaveform}/>
-                  </div>
-                  <div className='btn-group w-100'>
-                    <button className='btn btn-all btn-purple' onClick={this.togglePlayMatch}>
-                      {this.state.playMatchText}
-                    </button>
-                    <button className='btn btn-all btn-blue' onClick={this.download}>
-                      Download
-                    </button>
-                    <button className='btn btn-all btn-green' onClick={this.clearMatch}>
-                      Clear
-                    </button>
-                  </div>
+                </div>
+                <div ref={this.footerRef} className='light rounded-top'>
+                  <input
+                    className='transparent no-border w-100 text-box-text-color lato400 text32 ml-4'
+                    onBlur={(e) => e.target.placeholder = 'Describe your sound'}
+                    onChange={this.handleTextInput}
+                    onFocus={(e) => e.target.placeholder = ''}
+                    placeholder='Describe your sound'
+                    type='text'
+                    value={this.state.textInput}
+                  />
                 </div>
               </div>
+              <div className='col-4 p-0'>
+                {this.renderMatches()}
+              </div>
+              {this.props.foley ? this.renderFoley() : null}
             </div>
-        )
+          </div>
+        );
     }
 
-    // renderCursors = () => {
-    //     if (this.state.showCursorTriangles) {
-    //         console.log('drawing cursors')
-    //         let startStyle = {
-    //             position: 'absolute',
-    //             top: this.state.cursorY,
-    //             left: this.state.cursorStartX
-    //         };
-    //         let endStyle = {
-    //             position: 'absolute',
-    //             top: this.state.cursorY,
-    //             left: this.state.cursorEndX
-    //         };
-    //         return (
-    //             <div>
-    //               <div className='arrow' style={startStyle}></div>
-    //               <div className='arrow' style={endStyle}></div>
-    //             </div>
-    //         );
-    //     } else{
-    //         return null;
-    //     }
-    // }
-
-    resizeMatches = () => {
-        const top = this.resizeTopDiv.current.getBoundingClientRect().top;
-        const btm = this.resizeBottomDiv.current.getBoundingClientRect().bottom;
-        const lft = this.resizeTopDiv.current.getBoundingClientRect().left;
-        const rgt = this.resizeBottomDiv.current.getBoundingClientRect().right;
-        this.setState({ matchDivHeight: btm - top, matchDivWidth: rgt - lft });
-    }
-
-    search = () => {
-        // Event handler for the search button
-        if (this.state.hasRecorded) {
-            // Get the full recording
-            let buffer = this.wavesurfer.backend.buffer.getChannelData(0);
-
-            // Grab the segment containing the query
-            let query = buffer.slice(this.start, this.end)
-
-            // Send the underlying data as a bytestream
-            this.sendQuery(new Blob([query.buffer]));
+    renderMatches = () => {
+        const height = this.state.matchesHeight / 12;
+        if (this.state.matches.length &&
+           !this.state.recording &&
+           !this.state.searching) {
+            return (
+                <div style={{
+                    height: this.state.matchesHeight,
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
+                }}>
+                  <AudioFiles
+                    files={this.state.matches}
+                    height={height}
+                    play={this.play}
+                    playing={this.state.playing}
+                    download={this.download}
+                  />
+                  <audio ref={this.audioRef} onEnded={() => this.pause()}/>
+                </div>
+            );
+        } else {
+            const grayedBoxes = [...Array(12).keys()].map(value => {
+                const color = value % 2 ? 'search-light' : 'search-dark';
+                return <div className={color} style={{height: height}} key={value}></div>
+            });
+            return (
+                <div>
+                  <div className='dim'></div>
+                  {grayedBoxes}
+                </div>
+            );
         }
     }
 
-    submit = (event) => {
-        if (event.key == 'Enter') {
-            this.search();
+    searchText = () => {
+        if (this.state.searching) {
+            return 'Voogling...';
+        } else if (this.state.recording) {
+            return 'Listening...';
+        } else {
+            return 'Click to Voogle';
         }
     }
 
-    sendQuery = (query) => {
-        // Don't send search request if no recording exists
-        if (!this.state.hasRecorded) {
-            return;
-        }
+    send = (buffer) => {
+        let query = new Blob([this.levelDetect(buffer[0])]);
 
         let formData = new FormData;
         formData.append('query', query);
         formData.append('sampling_rate', this.samplingRate);
         formData.append('text_input', this.state.textInput);
 
-        this.setState({ searching: true });
         this.searchStartTime = (new Date()).getTime();
         fetch('/search', {
             method: 'POST',
@@ -710,66 +387,70 @@ class Voogle extends React.Component {
         });
     }
 
-    togglePlayRecording = () => {
-        // Event handler for the play/pause button
-        this.setState(state => {
-            if (!state.playingRecording &&
-                !state.recording &&
-                state.hasRecorded) {
-                return {
-                    playingRecording: true,
-                    playRecordingText: 'Pause'
-                };
-            } else {
-                return {
-                    playingRecording: false,
-                    playRecordingText: 'Play'
-                }
-            }
-        });
+    sendQuery = () => {
+        this.recorder.getBuffer(this.send);
     }
 
-    togglePlayMatch = () => {
-        // Event handler for the play/pause button
-        this.setState(state => {
-            if (!state.playingMatch && state.loadedMatch) {
-                return {
-                    playingMatch: true,
-                    playMatchText: 'Pause'
-                };
-            } else {
-                return {
-                    playingMatch: false,
-                    playMatchText: 'Play'
-                }
-            }
+    startUserMedia = (stream) => {
+        // Plug the user's mic into the graph
+        let audioStream = this.audioContext.createMediaStreamSource(stream);
+
+        // Plug mic into recorder and recorder into waveform
+        this.recorder = new Recorder(audioStream, { numChannels: 1});
+
+        this.recorder.record();
+    }
+
+    stop = () => {
+        // Stop recording
+        this.recorder.stop();
+
+        // Indicate that a query is available
+        this.setState({
+            hasRecorded: true,
+            recordingProgress: 0,
+            searching: true
         });
+
+        // Stop periodically drawing the waveform while recording
+        clearInterval(this.drawIntervalId);
+
+        // Stop updating the timer animation
+        clearInterval(this.timerAnimationId);
+
+        // Stop the recording timer
+        clearTimeout(this.recordingTimerId);
+
+        // Find the user's audio via level detection
+        this.sendQuery();
     }
 
     toggleRecording = () => {
         // Event handler for the recording button
-        this.setState(state => {
-            if (state.recording) {
-                return {
-                    recording: false,
-                    recordButtonText: 'Record'
-                };
-            } else {
-                return {
-                    recording: true,
-                    recordButtonText: 'Stop Recording'
-                }
-            }
+        if (!this.state.searching) {
+            this.setState(state => ({recording: !state.recording}));
+        }
+    }
+
+    updateSearchHeight = () => {
+        const headerRect = this.headerRef.current.getBoundingClientRect();
+        const footerRect = this.footerRef.current.getBoundingClientRect();
+
+        const headerHeight = headerRect.bottom - headerRect.top;
+        const footerHeight = footerRect.bottom - footerRect.top;
+        const matchesHeight = window.innerHeight - headerHeight - 16;
+        const searchHeight = matchesHeight - footerHeight;
+
+        this.setState({
+            matchesHeight: matchesHeight,
+            searchHeight: searchHeight
         });
     }
 }
 
 Voogle.defaultProps = {
-    // The time (in milliseconds) between waveform updates
-    drawingRate: 500,
-
     // The maximum duration (in seconds) of a user's recording
-    maxRecordingLength: 10,
+    maxRecordingLength: 8,
 
     // The minimum audio buffer value above which automatic region placement
     // will begin

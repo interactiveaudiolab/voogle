@@ -5,8 +5,9 @@
   "main": "scripts/js/index.js",
   "scripts": {
     "test": "python -m unittest discover",
-    "build": "webpack --mode production",
-    "start": "webpack-dev-server --open --mode development",
+    "build": "webpack --mode production --env.production --env.interface=new",
+    "start": "webpack-dev-server --mode development --open --env.interface=new",
+    "old-interface": "webpack --mode production --env.production --env.interface=old && python app.py",
     "production": "npm run build && npm run serve",
     "development": "npm run start && npm run serve-dev",
     "serve": "python app.py",
