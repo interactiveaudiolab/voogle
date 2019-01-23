@@ -43,7 +43,6 @@ class TestDataset(QueryByVoiceDataset):
             measure_similarity_batch_size,
             construct_representation_batch_size)
 
-
     def data_generator(self, query, text_handler, require_text_match):
         '''
         Provides a generator that returns the necessary data for inference of
@@ -126,7 +125,8 @@ class TestDataset(QueryByVoiceDataset):
         Returns:
             A python list.
         '''
-        return sorted(os.listdir(self.dataset_directory))
+        filenames = os.listdir(self.dataset_directory)
+        return sorted([f for f in filenames if f.startswith('.')])
 
     def _get_representation_handles(self):
         '''
@@ -151,12 +151,6 @@ class TestDataset(QueryByVoiceDataset):
             A python list. Representations should be in the same order as the
                 handles
         '''
-        # representations = []
-        # for handle in handles:
-        #     filepath = os.path.join(self.representation_directory, handle)
-        #     representation = np.load(filepath)
-        #     representations.append(representation)
-        # return representations
         if not self.data_dict:
             with open(self.binary_filename, 'rb') as file:
                 self.data_dict = pickle.load(file)
@@ -174,11 +168,6 @@ class TestDataset(QueryByVoiceDataset):
                     representations[i] is the audio representation of
                     filenames[i]).
         '''
-        # # Save each representation as its own .npy file
-        # for representation, filename in zip(representations, filenames):
-        #     filepath = os.path.join(
-        #         self.representation_directory, filename)
-        #     np.save(filepath + '.npy', representation)
-        self.data_dict = {f : r for (f, r) in zip(filenames, representations)}
+        self.data_dict = {f: r for (f, r) in zip(filenames, representations)}
         with open(self.binary_filename, 'wb') as file:
             pickle.dump(self.data_dict, file)
