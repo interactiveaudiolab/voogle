@@ -196,9 +196,7 @@ class Voogle extends React.Component {
         this.audioContext = new AudioContext;
         this.samplingRate = this.audioContext.sampleRate;
 
-        navigator.getUserMedia = (
-            navigator.getUserMedia || navigator.webkitGetUserMedia);
-        navigator.getUserMedia(
+        navigator.mediaDevices.getUserMedia(
             {audio: true, video: false},
             this.startUserMedia,
             (error) => console.log(error));

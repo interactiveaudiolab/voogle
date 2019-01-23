@@ -126,7 +126,7 @@ class TestDataset(QueryByVoiceDataset):
             A python list.
         '''
         filenames = os.listdir(self.dataset_directory)
-        return sorted([f for f in filenames if f.startswith('.')])
+        return sorted([f for f in filenames if not f.startswith('.')])
 
     def _get_representation_handles(self):
         '''
