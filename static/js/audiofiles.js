@@ -53,9 +53,7 @@ class AudioFiles extends Component {
     }
 
         renderFilename = (filename) => {
-            console.log(filename, this.props.text);
             if (this.props.text === "") {
-                console.log('empty')
                 return <div>{filename}</div>;
             }
 
@@ -63,10 +61,8 @@ class AudioFiles extends Component {
             const length = textLower.length;
             const matchIndex = filename.toLowerCase().indexOf(textLower);
             if (matchIndex === -1 || length < 3) {
-                console.log('nomatch')
                 return <div>{filename}</div>;
             } else {
-                console.log('match')
                 return (
                     <div>
                       {filename.substring(0, matchIndex)}

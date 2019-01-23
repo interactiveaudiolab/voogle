@@ -196,10 +196,9 @@ class Voogle extends React.Component {
         this.audioContext = new AudioContext;
         this.samplingRate = this.audioContext.sampleRate;
 
-        navigator.mediaDevices.getUserMedia(
-            {audio: true, video: false},
-            this.startUserMedia,
-            (error) => console.log(error));
+        navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        .then(this.startUserMedia)
+        .catch(error => console.log(error));
     }
 
     pause = () => {
@@ -417,7 +416,6 @@ class Voogle extends React.Component {
     }
 
     sendQuery = () => {
-        console.log('sending')
         this.recorder.getBuffer(this.send);
     }
 
@@ -457,7 +455,6 @@ class Voogle extends React.Component {
 
     textSubmit = (event) => {
         if (event.key === 'Enter') {
-            console.log('')
             event.preventDefault();
             event.stopPropagation();
             if (this.state.textInput && this.state.hasRecorded) {
