@@ -17,6 +17,17 @@ class AudioFiles extends Component {
         e.target.setAttribute('src', downloadHover);
     }
 
+    isMatch = (filename) => {
+      if (this.props.text === "") {
+          return false;
+      }
+
+      const textLower = this.props.text.toLowerCase();
+      const length = textLower.length;
+      const matchIndex = filename.toLowerCase().indexOf(textLower);
+      return !(matchIndex === -1 || length < 3);
+    }
+
     render() {
         const fileList = this.props.files.map((file, index) => {
             const color = index % 2 ? 'search-dark' : 'search-light';
@@ -28,9 +39,10 @@ class AudioFiles extends Component {
                   style={{height: this.props.height}}
                 >
                   <div filename={file.filename} className='col text24 pl-3 light-purple-text lato400'>
-                    { this.renderFilename(file.filename) }
+                    <div>{file.filename}</div>
                   </div>
-                  <div className='col text24 pr-3 text-right'>
+                  <div className='col text22 pr-3 text-right'>
+                    {this.isMatch(file.filename) ? <i className="pr-3 light-purple-text fas fa-star"></i> : null}
                     {this.playPauseIcon(index)}
                     <img
                       className='pr-1 pb-1 pointer'
@@ -52,28 +64,28 @@ class AudioFiles extends Component {
         )
     }
 
-        renderFilename = (filename) => {
-            if (this.props.text === "") {
-                return <div>{filename}</div>;
-            }
-
-            const textLower = this.props.text.toLowerCase();
-            const length = textLower.length;
-            const matchIndex = filename.toLowerCase().indexOf(textLower);
-            if (matchIndex === -1 || length < 3) {
-                return <div>{filename}</div>;
-            } else {
-                return (
-                    <div>
-                      {filename.substring(0, matchIndex)}
-                      <div className='lato700' style={{display: 'inline'}}>
-                        {filename.substring(matchIndex, matchIndex + length)}
-                      </div>
-                      {filename.substring(matchIndex + length)}
-                    </div>
-                );
-            }
+    renderFilename = (filename) => {
+        if (this.props.text === "") {
+            return <div>{filename}</div>;
         }
+
+        const textLower = this.props.text.toLowerCase();
+        const length = textLower.length;
+        const matchIndex = filename.toLowerCase().indexOf(textLower);
+        if (matchIndex === -1 || length < 3) {
+            return <div>{filename}</div>;
+        } else {
+            return (
+                <div>
+                  {filename.substring(0, matchIndex)}
+                  <div className='lato700' style={{display: 'inline'}}>
+                    {filename.substring(matchIndex, matchIndex + length)}
+                  </div>
+                  {filename.substring(matchIndex + length)}
+                </div>
+            );
+        }
+    }
 }
 
 export default AudioFiles;

@@ -60,7 +60,7 @@ input:focus {
 
 /* Text */
 
-.text24 {
+.text22 {
   font-size: 22px;
 }
 
@@ -115,6 +115,10 @@ input:focus {
 
 .dark-text {
   color: hsl(259,25%,35%);
+}
+
+.purple-text {
+  background-color: #4E2A83;
 }
 
 .light-purple-text {

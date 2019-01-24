@@ -290,7 +290,7 @@ class Voogle extends React.Component {
               </button>
             </div>
             <div className='row'>
-              <div className={'col p-0 ' + searchWidth}>
+              <div className={'col-12 col-lg-8 p-0 ' + searchWidth}>
                 <div className='d-flex justify-content-center align-items-center' style={{height: this.state.searchHeight}}>
                   <div>
                     <p className='open-sans400 text40 light-purple-text mb-2'>
@@ -331,7 +331,7 @@ class Voogle extends React.Component {
                   />
                 </div>
               </div>
-              <div className='col-4 p-0'>
+              <div className='col-lg-4 col-12 w-100 p-0'>
                 {this.renderMatches()}
               </div>
               {this.props.foley ? this.renderFoley() : null}
@@ -347,7 +347,7 @@ class Voogle extends React.Component {
            !this.state.recording &&
            !this.state.searching) {
             return (
-                <div style={{
+                <div  style={{
                     height: this.state.matchesHeight,
                     overflowY: 'auto',
                     overflowX: 'hidden'
