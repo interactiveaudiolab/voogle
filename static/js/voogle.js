@@ -149,11 +149,9 @@ class Voogle extends React.Component {
         // Take absolute value of each sample for level detection
         let max = 0.0;
         for (let i = 0; i < buffer.length; i++) {
-            buffer[i] = Math.abs(buffer[i]);
-
             // Store maximum sample value
-            if (buffer[i] > max) {
-                max = buffer[i];
+            if (Math.abs(buffer[i]) > max) {
+                max = Math.abs(buffer[i]);
             }
         }
 
