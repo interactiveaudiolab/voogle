@@ -1,36 +1,28 @@
 import librosa
 import numpy as np
 import os
-import tensorflow as tf
-from keras.models import load_model
+from model.mcft import mcft
 from model.QueryByVoiceModel import QueryByVoiceModel
-from model.vggish_utils import vggish_input_bk
-from model.vggish_utils.vggish_model_architecture import VGGish2s
 from scipy import spatial
-import torch
-from torch.autograd import Variable
 
-
-class VGGishEmbedding(QueryByVoiceModel):
+class MCFT(QueryByVoiceModel):
     '''
-    A VGGish model to extract feature embeddings for query-by-voice applications.
+    A MCFT feature extractor for query-by-voice applications.
 
-    citation: S.Hershey,S.Chaudhuri,D.P.Ellis,J.F.Gemmeke,A.Jansen, R. C. Moore,
-    M. Plakal, D. Platt, R. A. Saurous, B. Seybold, et al.,
-    “Cnn architectures for large-scale audio classification,”
-    in Acoustics, Speech and Signal Processing (ICASSP),
-    2017 IEEE International Conference on. IEEE, 2017, pp. 131–135.
+    citation: Fatemeh Pishdadian and Bryan Pardo. “Multi-resolution Common
+        Fate Transform,” IEEE/ACM Transactions on Audio, Speech, and Language
+        Processing, 2018
     '''
 
     def __init__(
         self,
         model_filepath,
         parametric_representation=False,
-        uses_windowing=False,
-        window_length=None,
-        hop_length=None):
+        uses_windowing=True,
+        window_length=4.0,
+        hop_length=2.0):
         '''
-        SiameseStyle model constructor.
+        MCFT model constructor.
 
         Arguments:
             model_filepath: A string. The path to the model weight file on
@@ -68,8 +60,30 @@ class VGGishEmbedding(QueryByVoiceModel):
             A python list of audio representations. The list order should be
                 the same as in audio_list.
         '''
-        pairs = zip(audio_list, sampling_rates)
-        return [self._construct_representation(a, s) for (a, s) in pairs]
+        representations = []
+        for audio, sampling_rate in zip(audio_list, sampling_rates):
+
+            if self.uses_windowing:
+                windows = self._window(audio, sampling_rate)
+            else:
+                windows = [
+                    librosa.util.fix_length(
+                        audio, self.window_length * sampling_rate)]
+
+            representation = []
+            for window in windows:
+                # construct the mcft of the signal
+                features = mcft(window)
+                # TODO
+                representation.append(features)
+
+            # normalize to zero mean and unit variance
+            representation = np.array(representation)
+            # representation = self._normalize(representation).astype('float32')
+            # representation = np.expand_dims(representation, axis=1)
+            representations.append(representation)
+
+        return representations
 
     def measure_similarity(self, query, items):
         '''
@@ -104,28 +118,4 @@ class VGGishEmbedding(QueryByVoiceModel):
         Loads the model weights from disk. Prepares the model to be able to
         make predictions.
         '''
-        self.logger.info(
-            'Loading model weights from {}'.format(self.model_filepath))
-        self.model = VGGish2s()
-        self.model.load_state_dict(torch.load(self.model_filepath))
-        self.model.eval()
-
-    def _construct_representation(self, audio, sampling_rate):
-        # resample query at 16k
-        new_sampling_rate = 16000
-        audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
-        sampling_rate = new_sampling_rate
-
-        # zero-padding
-        target_length = int(np.ceil(audio.shape[0]/sampling_rate))
-        if target_length % 2 != 0:
-            target_length += 1
-        pad = np.zeros((target_length*sampling_rate-audio.shape[0]))
-        audio = np.append(audio, pad)
-
-        melspec = vggish_input_bk.waveform_to_examples(audio, sampling_rate)
-        melspec = melspec.astype('float32')
-        representation = self.model(Variable(torch.from_numpy(melspec)))
-        representation = representation.detach().numpy()
-
-        return representation
+        pass

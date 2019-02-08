@@ -102,7 +102,7 @@ class SiameseStyle(QueryByVoiceModel):
     def _load_model(self):
         '''
         Loads the model weights from disk. Prepares the model to be able to
-        make measure_similarityions.
+        make predictions.
         '''
         self.logger.info(
             'Loading model weights from {}'.format(self.model_filepath))
@@ -120,7 +120,9 @@ class SiameseStyle(QueryByVoiceModel):
         if self.uses_windowing:
             windows = self._window(query, sampling_rate)
         else:
-            windows = [librosa.util.fix_length(query, 4 * sampling_rate)]
+            windows = [
+                librosa.util.fix_length(
+                    query, self.window_length * sampling_rate)]
 
         # construct the logmelspectrogram of the signal
         representation = []
@@ -151,7 +153,9 @@ class SiameseStyle(QueryByVoiceModel):
             if self.uses_windowing:
                 windows = self._window(audio, sampling_rate)
             else:
-                windows = [librosa.util.fix_length(audio, 4 * sampling_rate)]
+                windows = [
+                    librosa.util.fix_length(
+                        audio, self.window_length * sampling_rate)]
 
             representation = []
             for window in windows:

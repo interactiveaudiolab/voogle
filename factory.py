@@ -2,6 +2,7 @@ import os
 from model.SiameseStyle import SiameseStyle
 from model.VGGishEmbedding import VGGishEmbedding
 from data.TestDataset import TestDataset
+from data.OtoMobile import OtoMobile
 from log import get_logger
 
 logger = get_logger('factory')
@@ -65,6 +66,13 @@ def dataset_factory(
 
     if dataset_name == 'test_dataset':
         dataset = TestDataset(
+            dataset_directory,
+            representation_directory,
+            model,
+            measure_similarity_batch_size,
+            construct_representation_batch_size)
+    elif dataset_name == 'otomobile':
+        dataset = OtoMobile(
             dataset_directory,
             representation_directory,
             model,
