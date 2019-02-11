@@ -1,4 +1,5 @@
 import os
+from model.MCFT import MCFT
 from model.SiameseStyle import SiameseStyle
 from model.VGGishEmbedding import VGGishEmbedding
 from data.TestDataset import TestDataset
@@ -23,7 +24,9 @@ def model_factory(model_name, model_filepath):
     logger.debug('Attempting to load the {} model from {}'.format(
         model_name, model_filepath))
 
-    if model_name == 'siamese-style':
+    if model_name == 'mcft':
+        model = MCFT(model_filepath)
+    elif model_name == 'siamese-style':
         model = SiameseStyle(model_filepath)
     elif model_name == 'VGGish-embedding':
         model = VGGishEmbedding(model_filepath)

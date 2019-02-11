@@ -1,7 +1,7 @@
 import librosa
 import numpy as np
 import os
-from model.mcft import mcft
+from model.mcft.mcft_toolbox.mcft import mcft
 from model.QueryByVoiceModel import QueryByVoiceModel
 from scipy import spatial
 
@@ -60,6 +60,12 @@ class MCFT(QueryByVoiceModel):
             A python list of audio representations. The list order should be
                 the same as in audio_list.
         '''
+        # cqt parameters
+        fmin = 27.5*2**(0/12)
+        fmax = 27.5*2**(87/12)
+        fres = 24
+        gamma = 10
+
         representations = []
         for audio, sampling_rate in zip(audio_list, sampling_rates):
 
@@ -73,8 +79,15 @@ class MCFT(QueryByVoiceModel):
             representation = []
             for window in windows:
                 # construct the mcft of the signal
-                features = mcft(window)
-                # TODO
+                cqt_params_in = {
+                    'samprate_sig': sampling_rate,
+                    'fmin': fmin,
+                    'fmax': fmax,
+                    'fres': fres,
+                    'gamma': gamma
+                }
+                mcft_out, _, _, _, _ = mcft(window, cqt_params_in)
+                features = np.mean(mcft_out, axis=(0, 1))
                 representation.append(features)
 
             # normalize to zero mean and unit variance
