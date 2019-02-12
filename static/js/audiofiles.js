@@ -39,7 +39,7 @@ class AudioFiles extends Component {
                   style={{height: this.props.height}}
                 >
                   <div filename={file.filename} className='col text24 pl-3 light-purple-text lato400'>
-                    <div>{file.filename}</div>
+                    <div>{file.displayName}</div>
                   </div>
                   <div className='col text22 pr-3 text-right'>
                     {this.isMatch(file.filename) ? <i className="pr-3 light-purple-text fas fa-star"></i> : null}

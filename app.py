@@ -68,8 +68,8 @@ def search():
 
         # run a similarity search between the query and the audio dataset
         voogle = app.config.get('voogle')
-        ranked_matches, text_matches, similarity_scores = voogle.search(
-            query, sampling_rate, text_input)
+        display_names, ranked_matches, text_matches, similarity_scores = (
+            voogle.search(query, sampling_rate, text_input))
         logger.info('Produced matches {} with text-match array {}\
                     '.format(ranked_matches, text_matches))
 
@@ -81,6 +81,7 @@ def search():
             'Completed search request in {} seconds'.format(end - start))
 
         return jsonify({
+            'display_names': display_names,
             'matches': ranked_matches,
             'text_matches': text_matches,
             'similarity_scores': similarity_scores

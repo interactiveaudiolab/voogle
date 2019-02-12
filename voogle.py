@@ -98,6 +98,7 @@ class Voogle(object):
         match_list = sorted(model_output, key=model_output.get)[-self.matches:]
         match_list.reverse()
         filenames = [self.dataset.handle_to_filename(m) for m in match_list]
+        display_names = [os.path.basename(f) for f in filenames]
 
         # Find the audio files also containing the user's text query
         if self.require_text_match or not text_input:
@@ -112,7 +113,7 @@ class Voogle(object):
         max_score = model_output[match_list[0]]
         similarity_scores = [model_output[m] / max_score for m in match_list]
 
-        return filenames, text_matches, similarity_scores
+        return display_names, filenames, text_matches, similarity_scores
 
     def _update_model_output(self, model_output, handle, max_file_rank):
         if handle in model_output:

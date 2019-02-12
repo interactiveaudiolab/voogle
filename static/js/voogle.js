@@ -403,6 +403,7 @@ class Voogle extends React.Component {
                 for (let i = 0; i < results.matches.length; i++) {
                     newMatches.push({
                         rank: i,
+                        displayName: results.display_names[i],
                         filename: results.matches[i],
                         textMatch: results.text_matches[i],
                         similarityScore: results.similarity_scores[i]

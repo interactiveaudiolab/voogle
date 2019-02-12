@@ -1,9 +1,16 @@
 import librosa
+import math
 import numpy as np
 import os
-from model.mcft.mcft_toolbox.mcft import mcft
+from model.mcft.cqt_toolbox.cqt import cqt
+from model.mcft.mcft_toolbox.mcft import cqt_to_mcft
+from model.mcft.mcft_toolbox.spectro_temporal_fbank import (
+    filt_default_centers, gen_fbank_scale_rate)
 from model.QueryByVoiceModel import QueryByVoiceModel
+import pickle
 from scipy import spatial
+import time
+
 
 class MCFT(QueryByVoiceModel):
     '''
@@ -19,8 +26,8 @@ class MCFT(QueryByVoiceModel):
         model_filepath,
         parametric_representation=False,
         uses_windowing=True,
-        window_length=4.0,
-        hop_length=2.0):
+        window_length=2.0,
+        hop_length=1.0):
         '''
         MCFT model constructor.
 
@@ -42,6 +49,7 @@ class MCFT(QueryByVoiceModel):
             uses_windowing,
             window_length,
             hop_length)
+        self.filter_bank = np.array([])
 
     def construct_representation(self, audio_list, sampling_rates, is_query):
         '''
@@ -60,34 +68,32 @@ class MCFT(QueryByVoiceModel):
             A python list of audio representations. The list order should be
                 the same as in audio_list.
         '''
-        # cqt parameters
-        fmin = 27.5*2**(0/12)
-        fmax = 27.5*2**(87/12)
-        fres = 24
-        gamma = 10
-
         representations = []
         for audio, sampling_rate in zip(audio_list, sampling_rates):
 
+            new_sampling_rate = 8000
+            audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
+
             if self.uses_windowing:
-                windows = self._window(audio, sampling_rate)
+                windows = self._window(audio, new_sampling_rate)
             else:
                 windows = [
                     librosa.util.fix_length(
-                        audio, self.window_length * sampling_rate)]
+                        audio, self.window_length * new_sampling_rate)]
 
             representation = []
             for window in windows:
-                # construct the mcft of the signal
-                cqt_params_in = {
-                    'samprate_sig': sampling_rate,
-                    'fmin': fmin,
-                    'fmax': fmax,
-                    'fres': fres,
-                    'gamma': gamma
-                }
-                mcft_out, _, _, _, _ = mcft(window, cqt_params_in)
-                features = np.mean(mcft_out, axis=(0, 1))
+                if not self.filter_bank.any():
+                    self.filter_bank = self._make_filter_bank(
+                        window, sampling_rate)
+
+                query_cqt_mag = self._compute_cqt(window, new_sampling_rate)
+                start = time.time()
+                mcft_out = cqt_to_mcft(query_cqt_mag, self.filter_bank)
+                stop = time.time()
+                print('computation time: ', stop-start)
+                features = np.mean(np.abs(mcft_out), axis=(2, 3))
+                features /= np.max(features)
                 representation.append(features)
 
             # normalize to zero mean and unit variance
@@ -114,17 +120,63 @@ class MCFT(QueryByVoiceModel):
                 element in the dataset. The list order should be the same as
                 in dataset.
         '''
-        if not self.model:
-            raise RuntimeError('No model loaded during call to \
-                               measure_similarity.')
-
         # run model inference
         self.logger.debug('Running inference')
         simlarities = []
         for q, i in zip(query, items):
-            simlarities.append(1 - spatial.distance.cosine(q, i))
+            simlarities.append(
+                1 - spatial.distance.cosine(q.flatten(), i.flatten()))
 
         return np.array(simlarities)
+
+    def _compute_cqt(self, query, sampling_rate):
+        # cqt parameters
+        fmin = 27.5*2**(0/12)
+        fmax = 27.5*2**(87/12)
+        fres = 24
+        gamma = 0
+
+        cqt_results = cqt(query, fres, sampling_rate, fmin, fmax, gamma=gamma)
+        return np.abs(cqt_results['cqt'])
+
+    def _compute_filter_bank(self, query, sampling_rate):
+        fres = 24
+        query_cqt_mag = self._compute_cqt(query, sampling_rate)
+        num_freq_bin, num_time_frame = np.shape(query_cqt_mag)
+
+        # filterbank parameters
+        query_dur = len(query)/sampling_rate
+        scale_res, rate_res = 1, 8
+        samprate_spec = fres
+        samprate_temp = np.floor(num_time_frame/query_dur)
+
+        scale_nfft, rate_nfft = num_freq_bin, num_time_frame
+
+        scale_nfft = int(2**np.ceil(np.log2(scale_nfft)))
+        rate_nfft = int(2**np.ceil(np.log2(rate_nfft)))
+
+        scale_params = (scale_res, scale_nfft, samprate_spec)
+        rate_params = (rate_res, rate_nfft, samprate_temp)
+        scale_ctrs, rate_ctrs = filt_default_centers(scale_params, rate_params)
+
+
+        time_const = 1
+        filt_params = {
+            'samprate_spec': samprate_spec,
+            'samprate_temp': samprate_temp,
+            'time_const': time_const
+        }
+
+        start = time.time()
+        _, fbank_sr_domain = gen_fbank_scale_rate(
+            scale_ctrs, rate_ctrs, scale_nfft, rate_nfft, filt_params)
+        stop = time.time()
+        print('computation time: ', stop-start)
+
+        with open(self.model_filepath, 'wb') as file:
+            pickle.dump(fbank_sr_domain, file)
+
+        return fbank_sr_domain
 
     def _load_model(self):
         '''
@@ -132,3 +184,10 @@ class MCFT(QueryByVoiceModel):
         make predictions.
         '''
         pass
+
+    def _make_filter_bank(self, query, sampling_rate):
+        try:
+            with open(self.model_filepath, 'rb') as file:
+                return pickle.load(file)
+        except FileNotFoundError:
+            return self._compute_filter_bank(query, sampling_rate)
