@@ -93,7 +93,6 @@ class MCFT(QueryByVoiceModel):
                 stop = time.time()
                 print('computation time: ', stop-start)
                 features = np.mean(np.abs(mcft_out), axis=(2, 3))
-                features /= np.max(features)
                 representation.append(features)
 
             # normalize to zero mean and unit variance
