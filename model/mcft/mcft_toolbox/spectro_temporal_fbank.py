@@ -368,10 +368,11 @@ def filt_centers(filt_type,bins_per_oct,nfft,samprate):
     ctr_low = grid_res/2
 
     # center of the highest bandpass filter
-    log2_ctr_band_max = np.ceil(np.log2(samprate/2)) - 1
+    log2_ctr_band_min = np.ceil(np.log2(ctr_low))
+    log2_ctr_band_max = np.floor(np.log2(samprate/2))
 
     # centers of bandpass filters
-    ctr_band = 2 ** np.arange(0, log2_ctr_band_max+(1/bins_per_oct), 1/bins_per_oct)
+    ctr_band = 2 ** np.arange(log2_ctr_band_min, log2_ctr_band_max+(1/bins_per_oct), 1/bins_per_oct)
 
     # center of the highpass filter
     if filt_type is 'scale':
@@ -388,9 +389,9 @@ def filt_centers(filt_type,bins_per_oct,nfft,samprate):
     ctr_all = np.append(ctr_all,ctr_high)
 
     # remove repeated values(sometimes happens due to rounding)
-    scale_ctrs = np.unique(ctr_all)
+    filt_ctrs = np.unique(ctr_all)
 
-    return scale_ctrs
+    return filt_ctrs
 
 
 
