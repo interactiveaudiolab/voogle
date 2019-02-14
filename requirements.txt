@@ -20,6 +20,7 @@ numba==0.40.1
 numpy==1.15.2
 pandas==0.24.1
 Pillow==5.3.0
+progress==1.4
 protobuf==3.6.1
 PyYAML==3.13
 resampy==0.2.1

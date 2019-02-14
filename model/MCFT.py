@@ -71,7 +71,7 @@ class MCFT(QueryByVoiceModel):
         representations = []
         for audio, sampling_rate in zip(audio_list, sampling_rates):
 
-            new_sampling_rate = 8000
+            new_sampling_rate = 8192
             audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
 
             if self.uses_windowing:
@@ -85,20 +85,18 @@ class MCFT(QueryByVoiceModel):
             for window in windows:
                 if not self.filter_bank.any():
                     self.filter_bank = self._make_filter_bank(
-                        window, sampling_rate)
+                        window, new_sampling_rate)
 
-                query_cqt_mag = self._compute_cqt(window, new_sampling_rate)
                 start = time.time()
+                query_cqt_mag = self._compute_cqt(window, new_sampling_rate)
                 mcft_out = cqt_to_mcft(query_cqt_mag, self.filter_bank)
-                stop = time.time()
-                print('computation time: ', stop-start)
                 features = np.mean(np.abs(mcft_out), axis=(2, 3))
+                end = time.time()
+                print('time: {}'.format(end - start))
                 representation.append(features)
 
             # normalize to zero mean and unit variance
             representation = np.array(representation)
-            # representation = self._normalize(representation).astype('float32')
-            # representation = np.expand_dims(representation, axis=1)
             representations.append(representation)
 
         return representations
@@ -123,8 +121,11 @@ class MCFT(QueryByVoiceModel):
         self.logger.debug('Running inference')
         simlarities = []
         for q, i in zip(query, items):
-            simlarities.append(
-                1 - spatial.distance.cosine(q.flatten(), i.flatten()))
+            sim = []
+            for window in q:
+                sim.append(
+                    1 - spatial.distance.cosine(window.flatten(), i.flatten()))
+            simlarities.append(np.max(np.array(sim)))
 
         return np.array(simlarities)
 
@@ -155,10 +156,6 @@ class MCFT(QueryByVoiceModel):
         rate_params = (rate_res, rate_nfft, samprate_temp)
         scale_ctrs, rate_ctrs = filt_default_centers(scale_params, rate_params)
 
-        # scale_nfft = int(2**np.ceil(np.log2(scale_nfft)))
-        # rate_nfft = int(2**np.ceil(np.log2(rate_nfft)))
-
-
         time_const = 1
         filt_params = {
             'samprate_spec': samprate_spec,
@@ -166,14 +163,8 @@ class MCFT(QueryByVoiceModel):
             'time_const': time_const
         }
 
-        start = time.time()
         _, fbank_sr_domain = gen_fbank_scale_rate(
             scale_ctrs, rate_ctrs, scale_nfft, rate_nfft, filt_params)
-        stop = time.time()
-        print('computation time: ', stop-start)
-
-        with open(self.model_filepath, 'wb') as file:
-            pickle.dump(fbank_sr_domain, file)
 
         return fbank_sr_domain
 

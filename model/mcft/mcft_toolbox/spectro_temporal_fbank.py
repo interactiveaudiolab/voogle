@@ -353,7 +353,7 @@ def filt_centers(filt_type,bins_per_oct,nfft,samprate):
 
     Inputs:
     filt_type: string, 'scale' or 'rate' (high pass filter is computed differently based on filter type)
-    bins_per_oct: number of scale filters per octave
+    bins_per_oct: number of scale or rate filters per octave
     nfft: number of frequencies of analysis in the scale domain
     samprate: sampling rate in the spectral domain
 

@@ -4,6 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
 from log import get_logger
+from progress.bar import Bar
 
 
 class QueryByVoiceDataset(ABC):
@@ -202,8 +203,8 @@ class QueryByVoiceDataset(ABC):
         for audio, sampling_rates, filenames in generator:
             representations = self.model.construct_representation(
                 audio, sampling_rates, is_query=False)
-
             self._save_representations(representations, filenames)
+
 
     def _build_audio_generator(self, audio_filenames):
         audio_list = []

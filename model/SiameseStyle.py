@@ -96,8 +96,9 @@ class SiameseStyle(QueryByVoiceModel):
         # run model inference
         with self.graph.as_default():
             self.logger.debug('Running inference')
-            return self.model.predict(
-                [query, items], batch_size=len(query), verbose=1)
+            return np.array(self.model.predict(
+                [query, items], batch_size=len(query), verbose=1),
+                dtype='float64')
 
     def _load_model(self):
         '''

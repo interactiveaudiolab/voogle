@@ -4,6 +4,13 @@ import download from '../images/download.png'
 import downloadHover from '../images/download_hover.png'
 
 class AudioFiles extends Component {
+    constructor(props) {
+        super(props)
+
+        this.state = {
+
+        }
+    }
 
     playPauseIcon = (index) => {
         const icon = index === this.props.playing ? 'fa-pause' : 'fa-play';

@@ -4,6 +4,7 @@
 model_name: mcft
 
 # model weight filename relative to the model/weight directory
+# for mcft, use 'mcft.pickle'. Otherwise, use the model weight filename.
 model_filepath: mcft.pickle
 
 # dataset of audio files to be queried relative to the data directory
