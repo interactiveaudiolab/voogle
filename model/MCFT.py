@@ -71,7 +71,7 @@ class MCFT(QueryByVoiceModel):
         representations = []
         for audio, sampling_rate in zip(audio_list, sampling_rates):
 
-            new_sampling_rate = 8192
+            new_sampling_rate = 8000
             audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
 
             if self.uses_windowing:
@@ -135,7 +135,7 @@ class MCFT(QueryByVoiceModel):
         fmax = 27.5*2**(87/12)
         fres = 24
         gamma = 0
-
+        print(query.shape, sampling_rate)
         cqt_results = cqt(query, fres, sampling_rate, fmin, fmax, gamma=gamma)
         return np.abs(cqt_results['cqt'])
 
@@ -152,9 +152,15 @@ class MCFT(QueryByVoiceModel):
 
         scale_nfft, rate_nfft = num_freq_bin, num_time_frame
 
+        scale_nfft = int(2**np.ceil(np.log2(scale_nfft)))
+        rate_nfft = int(2**np.ceil(np.log2(rate_nfft)))
+
         scale_params = (scale_res, scale_nfft, samprate_spec)
         rate_params = (rate_res, rate_nfft, samprate_temp)
+        print(scale_params, rate_params)
         scale_ctrs, rate_ctrs = filt_default_centers(scale_params, rate_params)
+
+        print(scale_ctrs, rate_ctrs)
 
         time_const = 1
         filt_params = {

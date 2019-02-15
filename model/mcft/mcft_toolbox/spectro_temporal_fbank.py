@@ -369,6 +369,7 @@ def filt_centers(filt_type,bins_per_oct,nfft,samprate):
 
     # center of the highest bandpass filter
     log2_ctr_band_min = np.ceil(np.log2(ctr_low))
+    log2_ctr_band_min += float(2**log2_ctr_band_min <= ctr_low)
     log2_ctr_band_max = np.floor(np.log2(samprate/2))
 
     # centers of bandpass filters

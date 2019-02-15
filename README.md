@@ -1,7 +1,7 @@
 # Voogle
 Voogle is an audio search engine that uses vocal imitations of the desired sound as the search query.
 
-Voogle is built in Python 3.6 and Javascript, using Node.js.
+Voogle is built in Python 3.6 and Javascript, using Node.js. Voogle runs best in Google Chrome.
 
 ## Installation
 ### Server
@@ -23,8 +23,9 @@ Audio files should be placed in [`data/audio/<dataset_name>`](data/audio/). The 
 Interactive Audio Lab has released the following models for query-by-vocal-imitation:
  - `siamese-style`: a siamese-style neural network [3]
     - [weight file](https://www.dropbox.com/s/234i2ft9sfcdpty/siamese_style.h5?dl=1)
- - `VGGish-embedding`: cosine similarity of VGGish embeddings
+ - `VGGish-embedding`: cosine similarity of VGGish embeddings [4]
     - [weight file](https://www.dropbox.com/s/5x5ceczislmyk0y/vggish_pretrained_convs.pth?dl=1)
+ - `mcft`: multi-resolution common-fate transform [5]
 
 Weight files should be placed in [`model/weights`](model/weights/). The model used during execution can be specified in [`config.yaml`](config.yaml).
 
@@ -38,15 +39,6 @@ After installing the dependencies, a dataset, and a model, the Voogle app can be
 From there, please follow the directions found under "Show Instructions". Enjoy!
 
 **Note:** There are currently two frontend interfaces available for Voogle. If you would like to use the alternate interface, use the command `npm run old-interface` instead during step 1.
-
-### Deploying on the Web
-The following steps are required to prepare Voogle for deployment as a web application:
-- [ ] Get a domain name
-- [ ] Determine server location (e.g., AWS)
-- [ ] Setup server
-- [ ] Serve audio files outside of the main event loop (e.g., with Apache or nginx)
-- [ ] Update query file naming. Depending on the scale, multiple users could send a query at the same time. This would require query names to include a unique id that is not exclusively associated with the timestamp.
-- [ ] Test concurrency with multiple simultaneous users
 
 ## Testing
 Unit tests can be run with `npm run test`.
@@ -74,3 +66,6 @@ An example dataset can be found [here](data/TestDataset.py).
 - [1] Bongjun Kim, Madhav Ghei, Bryan Pardo, and Zhiyao Duan, "Vocal Imitation Set: a dataset of vocally imitated sound events using the AudioSet ontology," Proceedings of the Detection and Classification of Acoustic Scenes and Events 2018 Workshop (DCASE2018), Surrey, UK, Nov. 2018. [[paper link](http://dcase.community/documents/workshop2018/proceedings/DCASE2018Workshop_Kim_135.pdf)]
 - [2] Mark Cartwright and Bryan Pardo, "Vocalsketch: Vocally imitating audio concepts," Proceedings of the 33rd Annual ACM Conference on Human Factors in Computing Systems (ACM), 2015. [[paper link](http://music.cs.northwestern.edu/publications/cartwright_pardo_chi2015.pdf)]
 - [3] Yichi Zhang, Bryan Pardo, and Zhiyao Duan, "Siamese Style Convolutional Neural Networks for Sound Search by Vocal Imitation," IEEE/ACM Transactions on Audio Speech and Language Processing. [[paper link](https://ieeexplore.ieee.org/document/8453811)]
+- [4] Bongjun Kim and Bryan Pardo, "Improving Content-based Audio Retrieval by Vocal Imitation Feedback," IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP), 2019.
+- [5] Fatemeh Pishdadian and Bryan Pardo. “Multi-resolution Common Fate Transform,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2018. [[paper link](http://music.eecs.northwestern.edu/publications/pishdadian_pardo_mcft_journal_2018.pdf)]
+

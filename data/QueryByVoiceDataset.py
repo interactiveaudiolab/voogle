@@ -4,7 +4,6 @@ import os
 from abc import ABC, abstractmethod
 from audioread import NoBackendError
 from log import get_logger
-from progress.bar import Bar
 
 
 class QueryByVoiceDataset(ABC):
