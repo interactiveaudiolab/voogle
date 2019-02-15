@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.fftpack import fft,ifft,fft2,ifft2
+from scipy.fftpack import fft,ifft,fft2,ifft2,helper
 
 def gen_fbank_scale_rate(scale_ctrs,rate_ctrs,nfft_scale,nfft_rate,filt_params,comp_specgram=None):
     """
@@ -43,9 +43,9 @@ def gen_fbank_scale_rate(scale_ctrs,rate_ctrs,nfft_scale,nfft_rate,filt_params,c
 
     ### Parameters and dimensions
 
-    # set nfft to the next even number
-    nfft_scale = nfft_scale + np.mod(nfft_scale, 2)
-    nfft_rate = nfft_rate + np.mod(nfft_rate, 2)
+    # set nfft to the next 5-smooth number
+    nfft_scale = helper.next_fast_len(nfft_scale) #nfft_scale + np.mod(nfft_scale, 2)
+    nfft_rate = helper.next_fast_len(nfft_rate) # nfft_rate + np.mod(nfft_rate, 2)
 
     num_scale_ctrs = len(scale_ctrs)
     num_rate_ctrs = len(rate_ctrs)
@@ -174,9 +174,9 @@ def gen_filt_scale_rate(scale_ctr, rate_ctr, scale_params, rate_params, filt_dir
 
     ### frequency and time vectors
 
-    # zero-pad filters to the next even number
-    scale_filt_len = scale_filt_len + np.mod(scale_filt_len, 2)
-    rate_filt_len = rate_filt_len + np.mod(rate_filt_len, 2)
+    # zero-pad filters to the next 5-smooth number
+    scale_filt_len = helper.next_fast_len(scale_filt_len) # scale_filt_len + np.mod(scale_filt_len, 2)
+    rate_filt_len = helper.next_fast_len(rate_filt_len) # rate_filt_len + np.mod(rate_filt_len, 2)
 
     # generate frequency and time vectors
     freq_vec = np.arange(scale_filt_len,dtype='float64')/samprate_spec

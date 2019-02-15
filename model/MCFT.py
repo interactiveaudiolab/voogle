@@ -152,9 +152,6 @@ class MCFT(QueryByVoiceModel):
 
         scale_nfft, rate_nfft = num_freq_bin, num_time_frame
 
-        scale_nfft = int(2**np.ceil(np.log2(scale_nfft)))
-        rate_nfft = int(2**np.ceil(np.log2(rate_nfft)))
-
         scale_params = (scale_res, scale_nfft, samprate_spec)
         rate_params = (rate_res, rate_nfft, samprate_temp)
         print(scale_params, rate_params)

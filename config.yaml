@@ -1,11 +1,11 @@
 # similarity model
 # must match model_name used for model instantiation in factory.py
 # implemented models: mcft, siamese-style, VGGish-embedding
-model_name: mcft
+model_name: VGGish-embedding
 
 # model weight filename relative to the model/weight directory
 # can be any non-empty string for mcft
-model_filepath: mcft
+model_filepath: vggish_pretrained_convs.pth
 
 # dataset of audio files to be queried relative to the data directory
 # must match dataset_name used for dataset instantiation in factory.py
