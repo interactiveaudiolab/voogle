@@ -30,7 +30,7 @@ class TestVoogle(unittest.TestCase):
         '''
         Test a basic query
         '''
-        match_list, text_query, similarity_scores = self.voogle.search(
+        _, match_list, text_query, similarity_scores = self.voogle.search(
             self.query, self.sr_query)
         self.assertEqual(len(match_list), 15)
         self.assertEqual(len(text_query), 15)
