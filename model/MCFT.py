@@ -166,7 +166,7 @@ class MCFT(QueryByVoiceModel):
             'time_const': time_const
         }
 
-        _, fbank_sr_domain = gen_fbank_scale_rate(
+        fbank_sr_domain = gen_fbank_scale_rate(
             scale_ctrs, rate_ctrs, scale_nfft, rate_nfft, filt_params)
 
         return fbank_sr_domain

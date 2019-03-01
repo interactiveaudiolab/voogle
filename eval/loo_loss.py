@@ -12,15 +12,19 @@ def compute_loss(voogle, dataset):
         filename = os.path.join(dataset.dataset_directory, file)
         audio, sampling_rate = librosa.load(filename, sr=None)
         _, filenames, _, sim = (voogle.search(audio, sampling_rate))
-        scores = [sim[i] for i in range(len(sim)) if filenames[i] != filename]
-        filenames = [f for f in filenames if f != filename]
+        scores = [sim[i] for i in range(len(sim)) if os.path.basename(filenames[i]) != os.path.basename(filename)]
+        filenames = [f for f in filenames if os.path.basename(f) != os.path.basename(filename)]
+        assert len(scores) == len(sim) - 1
         labels = [f.split('\\')[1] for f in filenames]
+        if not labels:
+            labels = [f.split('/')[1] for f in filenames]
         unique_labels = set(labels)
         label_sim = {}
         for label in unique_labels:
             label_scores = [
                 scores[i] for i in range(len(scores)) if labels[i] == label]
-            label_sim[label] = np.mean(label_scores)
+            # label_sim[label] = np.mean(label_scores)
+            label_sim[label] = np.max(label_scores)
         ground_truth = filename.split('\\')[-2]
         pred = max(label_sim, key=label_sim.get)
         loss = label_sim[ground_truth] == max(label_sim.values())
@@ -57,7 +61,7 @@ if __name__ == '__main__':
         config.get('construct_representation_batch_size'),
         model)
 
-    voogle = Voogle(model, dataset, config.get('require_text_match'))
+    voogle = Voogle(model, dataset, config.get('require_text_match'), matches=64)
 
     print('Leave-one-out loss for model {} on dataset {} is {}'.format(
         config.get('model_name'),

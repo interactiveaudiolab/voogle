@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.fftpack import fft2,ifft2
+from scipy.fftpack import fft2,ifft2,fftn,ifftn, fft, ifft
 from model.mcft.cqt_toolbox.cqt import cqt
 from model.mcft.mcft_toolbox.spectro_temporal_fbank import filt_default_centers,gen_fbank_scale_rate
 
@@ -12,7 +12,6 @@ def mcft(signal, cqt_params_in, filt_params_in=None,del_cqt_phase=0):
     Constant-Q Transform (CQT) of the audio signal, which is
     computed using the invertible and optimized CQT implementation
     proposed by Schorkhuber et al.:
-
     Toolbox webpage:
     http://www.cs.tut.fi/sgn/arg/CQT/
     Reference:
@@ -20,10 +19,8 @@ def mcft(signal, cqt_params_in, filt_params_in=None,del_cqt_phase=0):
     time-frequency transforms with log-frequency resolution."
     Audio Engineering Society Conference: 53rd International Conference:
     Semantic Audio. Audio Engineering Society, 2014.
-
     The python translation of this CQT toolbox can be found here:
     https://github.com/interactiveaudiolab/MCFT/tree/master/mcft_python/cqt_toolbox
-
     Inputs:
     signal: numpy array containing samples of the time-domain signal
     cqt_params_in: dictionary contatining CQT parameters, including:
@@ -43,13 +40,10 @@ def mcft(signal, cqt_params_in, filt_params_in=None,del_cqt_phase=0):
                    If the phase is deleted the origianl filterbank will be applied to the
                    magnitude CQT.
                    Note: the output representation is invertible only if the phase is included (default)
-
-
     Outputs:
     mcft_out: 4d numpy array containing the MCFT coefficients
     cqt_params_out: dictionary containing all CQT parameters (required for reconstruction)
     fbank_sr_domain: 4d numpy array containing the scale-rate filterbank
-
     Author: Fatemeh Pishdadian (fpishdadian@u.northwestern.edu)
     """
 
@@ -98,7 +92,7 @@ def mcft(signal, cqt_params_in, filt_params_in=None,del_cqt_phase=0):
         beta = 1 # time constant of the tempral filter
 
         scale_res = 1 # number of scale filters per octave
-        rate_res = 1 # number of rate filters per octave
+        rate_res = 8 # number of rate filters per octave
         scale_params = (scale_res,nfft_scale,samprate_spec)
         rate_params = (rate_res, nfft_rate, samprate_temp)
 
@@ -125,26 +119,26 @@ def mcft(signal, cqt_params_in, filt_params_in=None,del_cqt_phase=0):
     mcft_out = cqt_to_mcft(sig_cqt,fbank_sr_domain)
 
 
-    return mcft_out, cqt_params_out, fbank_sr_domain,scale_ctrs,rate_ctrs
+    return mcft_out, cqt_params_out, fbank_sr_domain
 
 
-
-def cqt_to_mcft(sig_cqt,fbank_scale_rate):
+def cqt_to_mcft(sig_cqt,fbank_scale_rate,mcft_out_domain='tf'):
     """
     This function receives the time-frequency representation (CQT)
     of an audio signal (complex in general) and generates a 4-dimensional
     representation (scale,rate,frequency,time) by 2d filtering based
     on the cortical part of Chi's auditory model.
-
     Inputs:
     sig_cqt: 2d numpy array containing the (complex) time-frequency
              representation of an audio signal (log scale frequency, e.g. CQT)
     fbank_scale_rate: 4d numpy array containing a bank of filters in the
              scale-rate domain
-
+    mcft_out_domain: string indicating whether the filtered specgrogram is returned
+                     in the time-frequency domain or scale_rate domain
+                     'tf' (default): time-frequency domain, involves an extra 2D-IFT step
+                     'sr': scale-rate domain
     Ouptput:
     mcft_out: 4d numpy array containing the MCFT coefficients
-
     Author: Fatemeh Pishdadian (fpishdadian@u.northwestern.edu)
     """
 
@@ -154,25 +148,83 @@ def cqt_to_mcft(sig_cqt,fbank_scale_rate):
     ### compute the MCFT coefficients
 
     # 2D-Fourier transform of the time-frequency representation
-    sig_cqt_2dft = fft2(sig_cqt,[nfft_scale, nfft_rate])
+    sig_cqt_2dft = np.fft.fft(sig_cqt,nfft_scale,axis=0)
+    sig_cqt_2dft = np.fft.fft(sig_cqt_2dft.T,nfft_rate,axis=0).T
 
     # allocate memory for the coefficients
     mcft_out = np.zeros((num_scale_ctrs, num_rate_ctrs, nfft_scale, nfft_rate), dtype='complex128')
 
     for i in range(num_scale_ctrs):
         for j in range(num_rate_ctrs):
-
             # extract the current filter
-            filt_sr_temp = fbank_scale_rate[i,j,:,:]
+            filt_sr_temp = fbank_scale_rate[i, j, :, :]
 
             # filter the signal in the scale-rate domain
             sig_filt_sr = sig_cqt_2dft * filt_sr_temp
 
-            # convert back to the time-frequency domain
-            sig_filt_tf = ifft2(sig_filt_sr)
-            mcft_out[i,j,:,:] = sig_filt_tf
+            # convert back to the time-frequency domain if specified
+            if mcft_out_domain is 'tf':
+                sig_filt_tf = np.fft.ifft(sig_filt_sr,axis=0)
+                sig_filt_tf = np.fft.ifft(sig_filt_tf.T,axis=0)
+                mcft_out[i, j, :, :] = sig_filt_tf.T
+            elif mcft_out_domain is 'sr':
+                mcft_out[i, j, :, :] = sig_filt_sr
 
     return mcft_out
 
 
 
+# def cqt_to_mcft(sig_cqt,fbank_scale_rate,mcft_out_domain='tf'):
+#     """
+#     This function receives the time-frequency representation (CQT)
+#     of an audio signal (complex in general) and generates a 4-dimensional
+#     representation (scale,rate,frequency,time) by 2d filtering based
+#     on the cortical part of Chi's auditory model.
+#
+#     Inputs:
+#     sig_cqt: 2d numpy array containing the (complex) time-frequency
+#              representation of an audio signal (log scale frequency, e.g. CQT)
+#     fbank_scale_rate: 4d numpy array containing a bank of filters in the
+#              scale-rate domain
+#
+#     mcft_out_domain: string indicating whether the filtered specgrogram is returned
+#                      in the time-frequency domain or scale_rate domain
+#                      'tf' (default): time-frequency domain, involves an extra 2D-IFT step
+#                      'sr': scale-rate domain
+#
+#     Ouptput:
+#     mcft_out: 4d numpy array containing the MCFT coefficients
+#
+#     Author: Fatemeh Pishdadian (fpishdadian@u.northwestern.edu)
+#     """
+#
+#     # dimensions
+#     num_scale_ctrs, num_rate_ctrs, nfft_scale, nfft_rate = np.shape(fbank_scale_rate)
+#
+#     ### compute the MCFT coefficients
+#
+#     # 2D-Fourier transform of the time-frequency representation
+#     sig_cqt_2dft = fft2(sig_cqt,[nfft_scale, nfft_rate])
+#
+#     # allocate memory for the coefficients
+#     mcft_out = np.zeros((num_scale_ctrs, num_rate_ctrs, nfft_scale, nfft_rate), dtype='complex128')
+#
+#     for i in range(num_scale_ctrs):
+#         for j in range(num_rate_ctrs):
+#
+#             # extract the current filter
+#             filt_sr_temp = fbank_scale_rate[i,j,:,:]
+#
+#             # filter the signal in the scale-rate domain
+#             sig_filt_sr = sig_cqt_2dft * filt_sr_temp
+#
+#             # convert back to the time-frequency domain if specified
+#             if mcft_out_domain is 'tf':
+#                 sig_filt_tf = ifft2(sig_filt_sr)
+#                 mcft_out[i, j, :, :] = sig_filt_tf
+#             elif mcft_out_domain is 'sr':
+#                 mcft_out[i, j, :, :] = sig_filt_sr
+#
+#             # convert back to the time-frequency domain
+#
+#     return mcft_out

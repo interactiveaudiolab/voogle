@@ -11,7 +11,7 @@ model_filepath: vggish_pretrained_convs.pth
 # must match dataset_name used for dataset instantiation in factory.py
 # must match the name of the directory containing the audio files
 # implemented datasets: test_dataset, otomobile
-dataset_name: test_dataset
+dataset_name: otomobile
 
 # directory for storing preprocessed or embedded data relative to the data
 # directory
