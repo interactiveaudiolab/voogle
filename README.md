@@ -1,9 +1,9 @@
 # Voogle
 Voogle is an audio search engine that uses vocal imitations of the desired sound as the search query.
 
-![](https://github.com/interactiveaudiolab/voogle/raw/master/static/images/voogle.png "voogle")
-
 Voogle is built in Python 3.6 and Javascript, using Node.js. Voogle runs best in Google Chrome.
+
+![](https://github.com/interactiveaudiolab/voogle/raw/master/static/images/voogle.png "voogle")
 
 ## Installation
 ### Server
