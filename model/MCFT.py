@@ -72,7 +72,7 @@ class MCFT(QueryByVoiceModel):
         for audio, sampling_rate in zip(audio_list, sampling_rates):
 
             new_sampling_rate = 8000
-            audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
+            audio = librosa.resample(audio, orig_sr = sampling_rate, target_sr = new_sampling_rate)
 
             if self.uses_windowing:
                 windows = self._window(audio, new_sampling_rate)

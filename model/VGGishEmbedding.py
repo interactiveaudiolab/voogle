@@ -113,7 +113,7 @@ class VGGishEmbedding(QueryByVoiceModel):
     def _construct_representation(self, audio, sampling_rate):
         # resample query at 16k
         new_sampling_rate = 16000
-        audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
+        audio = librosa.resample(audio, orig_sr = sampling_rate, target_sr = new_sampling_rate)
         sampling_rate = new_sampling_rate
 
         # zero-padding

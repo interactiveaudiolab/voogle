@@ -11,6 +11,7 @@ from log import get_logger
 from timeit import default_timer as timer
 from voogle import Voogle
 from werkzeug.exceptions import BadRequest
+import soundfile as sf
 
 logger = get_logger('root')
 app = Flask(__name__, static_url_path='', static_folder='')
@@ -61,7 +62,8 @@ def search():
             app.config.get('query_directory'),
             str(int(time.time())) + '_' + text_input + '.wav')
         save_start = timer()
-        librosa.output.write_wav(query_filepath, query, sampling_rate)
+        #librosa.output.write_wav(query_filepath, query, sampling_rate)
+        sf.write(query_filepath, query, sampling_rate)
         save_end = timer()
 
         logger.info('Saved query in {} seconds'.format(save_end - save_start))

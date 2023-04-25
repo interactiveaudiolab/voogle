@@ -115,7 +115,7 @@ class SiameseStyle(QueryByVoiceModel):
 
         # resample query at 16k
         new_sampling_rate = 16000
-        query = librosa.resample(query, sampling_rate, new_sampling_rate)
+        query = librosa.resample(query, orig_sr = sampling_rate, target_sr = new_sampling_rate)
         sampling_rate = new_sampling_rate
 
         if self.uses_windowing:
@@ -148,7 +148,7 @@ class SiameseStyle(QueryByVoiceModel):
         for audio, sampling_rate in zip(dataset, sampling_rates):
 
             # resample audio at 44.1k
-            audio = librosa.resample(audio, sampling_rate, new_sampling_rate)
+            audio = librosa.resample(audio, orig_sr = sampling_rate, target_sr = new_sampling_rate)
             sampling_rate = new_sampling_rate
 
             if self.uses_windowing:
