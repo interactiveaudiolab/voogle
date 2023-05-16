@@ -2,7 +2,9 @@ import librosa
 import numpy as np
 import os
 import tensorflow as tf
-from keras.models import load_model
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential, load_model
 from model.QueryByVoiceModel import QueryByVoiceModel
 
 
@@ -108,7 +110,7 @@ class SiameseStyle(QueryByVoiceModel):
         self.logger.info(
             'Loading model weights from {}'.format(self.model_filepath))
         self.model = load_model(self.model_filepath)
-        self.graph = tf.get_default_graph()
+        self.graph = tf.compat.v1.get_default_graph()
 
     def _construct_representation_query(self, query, sampling_rate):
         self.logger.debug('Constructing query representation')
@@ -129,7 +131,7 @@ class SiameseStyle(QueryByVoiceModel):
         representation = []
         for window in windows:
             melspec = librosa.feature.melspectrogram(
-                window, sr=sampling_rate, n_fft=133,
+                y = window, sr=sampling_rate, n_fft=133,
                 hop_length=133, power=2, n_mels=39,
                 fmin=0.0, fmax=5000)
             melspec = melspec[:, :482]
@@ -162,7 +164,7 @@ class SiameseStyle(QueryByVoiceModel):
             for window in windows:
                 # construct the logmelspectrogram of the signal
                 melspec = librosa.feature.melspectrogram(
-                    window,
+                    y=window,
                     sr=sampling_rate,
                     n_fft=1024,
                     hop_length=1024,

@@ -104,7 +104,9 @@ class QueryByVoiceModel(ABC):
         hop_samples = int(self.hop_length * sampling_rate)
 
         if audio.shape[0] < window_samples:
-            window = librosa.util.fix_length(audio, window_samples)
+            #window = librosa.util.fix_length(audio, window_samples)
+            window = librosa.util.fix_length(audio, size = window_samples)
             return np.expand_dims(window, axis=0)
         else:
-            return librosa.util.frame(audio, window_samples, hop_samples).T
+            #return librosa.util.frame(audio, window_samples, hop_samples).T
+            return librosa.util.frame(audio, frame_length = window_samples, hop_length = hop_samples).T

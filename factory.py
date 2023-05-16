@@ -4,6 +4,9 @@ from model.SiameseStyle import SiameseStyle
 from model.VGGishEmbedding import VGGishEmbedding
 from data.TestDataset import TestDataset
 from data.OtoMobile import OtoMobile
+from data.JazzBlues import JazzBlues
+from data.JazzBluesBig import JazzBluesBig
+
 from log import get_logger
 
 logger = get_logger('factory')
@@ -30,6 +33,8 @@ def model_factory(model_name, model_filepath):
         model = SiameseStyle(model_filepath)
     elif model_name == 'VGGish-embedding':
         model = VGGishEmbedding(model_filepath)
+    elif model_name == 'clmr_pt':
+        model = CLMR(model_filepath)
     else:
         raise ValueError('Model {} is not defined'.format(model_name))
 
@@ -76,6 +81,20 @@ def dataset_factory(
             construct_representation_batch_size)
     elif dataset_name == 'otomobile':
         dataset = OtoMobile(
+            dataset_directory,
+            representation_directory,
+            model,
+            measure_similarity_batch_size,
+            construct_representation_batch_size)
+    elif dataset_name == 'jazz_blues':
+        dataset = JazzBlues(
+            dataset_directory,
+            representation_directory,
+            model,
+            measure_similarity_batch_size,
+            construct_representation_batch_size)
+    elif dataset_name == 'jazz_blues_big':
+        dataset = JazzBluesBig(
             dataset_directory,
             representation_directory,
             model,
